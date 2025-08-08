@@ -5,7 +5,18 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>WhatsApp Bot Chat</title>
     <!-- Tailwind CSS CDN for utility classes -->
-    <script src="https://cdn.tailwindcss.com"></script>
+           /* Input Area - For typing and sending messages */
+        <div class="bg-[#f0f2f5] p-2 flex items-center">
+            <span class="material-icons text-[#54656f] text-2xl ml-2 cursor-pointer hover:text-[#00a884]" id="emoji-icon">sentiment_satisfied_alt</span>
+            <input type="text" id="user-input" placeholder="הודעה" 
+                class="flex-grow bg-white rounded-lg px-4 py-2.5 mx-2 text-[15px] focus:outline-none border-none placeholder-[#3b4a54]"
+                style="box-shadow: 0 0 0 2px transparent;">
+            <span class="material-icons text-[#54656f] text-2xl mr-2 cursor-pointer hover:text-[#00a884]" id="attachment-icon">attachment</span>
+            <span class="material-icons text-[#54656f] text-2xl mr-2 cursor-pointer hover:text-[#00a884]">camera_alt</span>
+            <button id="send-button" class="send-button cursor-pointer">
+                <span class="material-icons">send</span>
+            </button>
+        </div>rc="https://cdn.tailwindcss.com"></script>
     <!-- Google Fonts: Inter for a modern look -->
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
     <!-- Material Icons CDN for chat icons (send, emoji, attachment, calls) -->
@@ -13,8 +24,8 @@
     <style>
         /* Custom styles for bubble tails and specific adjustments not easily done with Tailwind */
         body {
-            font-family: 'Inter', sans-serif;
-            background-color: #ECE5DD; /* WhatsApp chat background color */
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            background-color: #efeae2; /* Updated WhatsApp chat background color */
             display: flex;
             justify-content: center;
             align-items: center;
@@ -23,18 +34,16 @@
         }
 
         .chat-container {
-            /* WhatsApp-like background pattern for visual appeal */
-            background-image: url('data:image/svg+xml,%3Csvg width="20" height="20" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg"%3E%3Cg fill="%23dcdcdc" fill-opacity="0.2" fill-rule="evenodd"%3E%3Ccircle cx="3" cy="3" r="3"/%3E%3Ccircle cx="13" cy="13" r="3"/%3E%3C/g%3E%3C/svg%3E');
-            background-size: 10px 10px;
-            background-repeat: repeat;
-            background-color: #F8F8F8; /* Fallback solid color */
+            background-image: url("data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAADIAAAAyAQMAAAAk8RryAAAABlBMVEUAAAD///+l2Z/dAAAAAnRSTlP/AOW3MEoAAAANSURBVBiVY2AYBYMJAAABkAABGHQmMQAAAABJRU5ErkJggg==");
+            background-color: #efeae2;
             position: relative;
             z-index: 0;
-            /* Ensure the container takes full height on mobile and is responsive */
             width: 100%;
-            height: 100vh; /* Full viewport height on mobile */
-            max-width: 480px; /* Max width for larger screens */
-            border-radius: 0; /* No rounded corners for full screen on mobile */
+            height: 100vh;
+            max-width: 480px;
+            border-radius: 0;
+            display: flex;
+            flex-direction: column;
         }
 
         /* Adjust for larger screens */
@@ -47,49 +56,49 @@
 
         /* Message bubble common styles */
         .message-bubble {
-            padding: 0.5rem;
-            border-radius: 0.5rem;
+            padding: 6px 7px 8px 9px;
+            border-radius: 7.5px;
             position: relative;
-            box-shadow: 0 1px 2px 0 rgba(0,0,0,0.05);
-            max-width: 80%;
-            font-size: 0.875rem;
+            box-shadow: 0 1px 0.5px rgba(0,0,0,0.13);
+            max-width: 65%;
+            font-size: 14.2px;
+            line-height: 19px;
             word-break: break-word;
+            margin-bottom: 12px;
         }
 
         /* Incoming message bubble (white, on the right in RTL) */
         .incoming-message {
-            background-color: #fff; /* Tailwind bg-white */
-            margin-right: auto;     /* Tailwind mr-auto - Pushes to the right in RTL */
+            background-color: #ffffff;
+            margin-right: auto;
+            border-top-right-radius: 0;
         }
 
         .incoming-message::before {
             content: '';
             position: absolute;
             top: 0;
-            right: -8px; /* Tail on the right for incoming in RTL */
-            width: 0;
-            height: 0;
-            border-style: solid;
-            border-width: 0 0 10px 10px; /* Pointing right */
-            border-color: transparent transparent transparent #FFFFFF;
+            right: -8px;
+            width: 8px;
+            height: 13px;
+            background: radial-gradient(circle at 0 0, rgba(0,0,0,0) 8px, #ffffff 0);
         }
 
         /* Outgoing message bubble (light green, on the left in RTL) */
         .outgoing-message {
-            background-color: #DCF8C6; /* WhatsApp outgoing message color */
-            margin-left: auto; /* Pushes to the left in RTL */
+            background-color: #d9fdd3; /* Updated WhatsApp outgoing message color */
+            margin-left: auto;
+            border-top-left-radius: 0;
         }
 
         .outgoing-message::before {
             content: '';
             position: absolute;
             top: 0;
-            left: -8px; /* Tail on the left for outgoing in RTL */
-            width: 0;
-            height: 0;
-            border-style: solid;
-            border-width: 0 10px 10px 0; /* Pointing left */
-            border-color: transparent #DCF8C6 transparent transparent;
+            left: -8px;
+            width: 8px;
+            height: 13px;
+            background: radial-gradient(circle at 100% 0, rgba(0,0,0,0) 8px, #d9fdd3 0);
         }
 
         /* System message bubble */
@@ -116,15 +125,20 @@
 
         /* Input area send button */
         .send-button {
-            background-color: #075E54; /* bg-[#075E54] */
-            color: #fff; /* text-white */
-            border-radius: 9999px; /* rounded-full */
-            padding: 0.5rem; /* p-2 */
+            background-color: #00a884; /* Updated WhatsApp send button color */
+            color: #fff;
+            border-radius: 9999px;
+            padding: 8px;
             display: flex;
             align-items: center;
             justify-content: center;
-            width: 2.5rem; /* w-10 */
-            height: 2.5rem; /* h-10 */
+            width: 40px;
+            height: 40px;
+            transition: background-color 0.2s ease;
+        }
+        
+        .send-button:hover {
+            background-color: #06cf9c;
         }
 
         /* Scrollbar styling for chat area */
@@ -203,13 +217,13 @@
 
     <div class="chat-container w-full max-w-md h-screen flex flex-col shadow-lg rounded-lg overflow-hidden">
         <!-- Header Section -->
-        <div class="bg-[#075E54] text-white p-3 flex flex-col sm:flex-row items-center justify-between">
+        <div class="bg-[#00a884] text-white p-2 flex flex-col sm:flex-row items-center justify-between">
             <div class="flex items-center w-full sm:w-auto mb-2 sm:mb-0">
-                <span class="material-icons text-2xl ml-4 cursor-pointer">arrow_back</span>
+                <span class="material-icons text-2xl ml-4 cursor-pointer hover:bg-[#ffffff1a] p-1 rounded-full">arrow_back</span>
                 <img id="profile-pic" src="https://placehold.co/40x40/000000/FFFFFF?text=B" alt="Profile Picture" class="w-10 h-10 rounded-full object-cover ml-2">
-                <div>
-                    <div id="chat-title" class="font-medium text-lg">AI Assistant Bot</div>
-                    <div id="chat-status" class="text-xs opacity-80">online</div>
+                <div class="ml-3">
+                    <div id="chat-title" class="font-medium text-[16px]">AI Assistant Bot</div>
+                    <div id="chat-status" class="text-[13px] opacity-90">online</div>
                 </div>
             </div>
             <div class="flex items-center w-full sm:w-auto justify-end mt-2 sm:mt-0">

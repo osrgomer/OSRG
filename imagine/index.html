@@ -1,0 +1,277 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Imaginary Multiplayer Game</title>
+    <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css" />
+    <style>
+        body {
+            font-family: 'Segoe UI', Arial, sans-serif;
+            background: linear-gradient(120deg, #2c3e50 0%, #34495e 100%);
+            color: #f4f4f4;
+            margin: 0;
+            min-height: 100vh;
+        }
+        #game {
+            max-width: 650px;
+            margin: 40px auto;
+            padding: 28px 24px 24px 24px;
+            background: rgba(40, 44, 52, 0.98);
+            border-radius: 16px;
+            box-shadow: 0 8px 32px rgba(0,0,0,0.18);
+        }
+        h2 {
+            text-align: center;
+            font-size: 2.1em;
+            margin-bottom: 18px;
+            letter-spacing: 1px;
+        }
+        h3 {
+            margin-top: 22px;
+            margin-bottom: 8px;
+            font-size: 1.2em;
+            color: #ffd700;
+        }
+        select, button, input {
+            margin: 8px 0;
+            padding: 7px 12px;
+            border-radius: 6px;
+            border: none;
+            font-size: 1em;
+        }
+        button {
+            background: #ffd700;
+            color: #222;
+            font-weight: bold;
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+        button:hover {
+            background: #ffec80;
+        }
+        #log {
+            background: #181a20;
+            padding: 12px;
+            border-radius: 8px;
+            height: 140px;
+            overflow-y: auto;
+            font-size: 1em;
+            margin-bottom: 8px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+        }
+        #map {
+            background: #23272e;
+            color: #b8e994;
+            padding: 10px;
+            border-radius: 8px;
+            font-size: 0.98em;
+            margin-bottom: 8px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+        }
+        #connect, #characterSelect, #gameArea {
+            margin-bottom: 12px;
+        }
+        input[type="text"] {
+            width: 100%;
+            box-sizing: border-box;
+        }
+    </style>
+</head>
+<body>
+    <div id="game">
+        <h2>Imaginary Multiplayer Game</h2>
+        <div id="connect">
+            <input type="text" id="playerName" placeholder="Enter your name">
+            <button onclick="connectPlayer()">Connect</button>
+        </div>
+        <div id="characterSelect" style="display:none">
+            <label for="character">Choose your character:</label>
+            <select id="character"></select>
+            <button onclick="selectCharacter()">Select</button>
+        </div>
+        <div id="gameArea" style="display:none">
+            <h3>Game Map</h3>
+            <div id="mapCanvas" style="width:100%;height:220px;background:#23272e;border-radius:8px;margin-bottom:8px;position:relative;display:none;"></div>
+            <div id="gameMap" style="height:400px;width:100%;border-radius:8px;margin-bottom:8px;"></div>
+            <h3>Actions</h3>
+            <input type="text" id="actionInput" placeholder="Describe your action">
+            <button onclick="queueAction()">Queue Action</button>
+            <div>Next update in <span id="timer">30</span> seconds</div>
+            <h3>Story</h3>
+            <button onclick="clearLog()">Clear</button>
+            <div id="log"></div>
+        </div>
+    </div>
+    <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
+    <script>
+    let player = null;
+    let character = null;
+    let actionQueue = [];
+    let timer = 30;
+
+    async function connectPlayer() {
+        player = document.getElementById('playerName').value.trim();
+        if (!player) return alert('Enter your name!');
+        document.getElementById('connect').style.display = 'none';
+        document.getElementById('characterSelect').style.display = '';
+        // Load characters.json
+        let res = await fetch('./characters.json');
+        let chars = await res.json();
+        let sel = document.getElementById('character');
+        sel.innerHTML = '';
+        chars.forEach(c => {
+            // Add all characters with a valid name and id
+            if (typeof c.name === 'string' && c.name.trim().length > 0 && typeof c.id === 'string' && c.id.trim().length > 0) {
+                let opt = document.createElement('option');
+                opt.value = c.id;
+                opt.textContent = c.name;
+                sel.appendChild(opt);
+            }
+        });
+    }
+
+    async function selectCharacter() {
+        let sel = document.getElementById('character');
+        character = sel.value;
+        document.getElementById('characterSelect').style.display = 'none';
+        document.getElementById('gameArea').style.display = '';
+        // Load map.json
+        let res = await fetch('map.json');
+        let map = await res.json();
+        window.lastMapData = map;
+        drawMap(map);
+        logMsg('Welcome, ' + player + '! You are playing as ' + sel.options[sel.selectedIndex].text);
+    }
+
+    function drawMap(map) {
+        // Hide old canvas map, show Leaflet map
+        document.getElementById('mapCanvas').style.display = 'none';
+        document.getElementById('gameMap').style.display = '';
+
+        // Initialize Leaflet map only once
+        if (!window.leafletMap) {
+            window.leafletMap = L.map('gameMap').setView([37.30, -8.70], 12);
+            // Satellite imagery layer
+            const satellite = L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}', {
+                attribution: 'Tiles &copy; Esri &mdash; Source: Esri, i-cubed, USDA, USGS, AEX, GeoEye, Getmapping, Aerogrid, IGN, IGP, UPR-EGP, and the GIS User Community'
+            });
+            // Labels layer (transparent, shows city names/roads)
+            const labels = L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+                attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors',
+                opacity: 0.6
+            });
+            satellite.addTo(window.leafletMap);
+            labels.addTo(window.leafletMap);
+        }
+
+        // Remove old markers
+        if (window.leafletMarkers) {
+            window.leafletMarkers.forEach(m => window.leafletMap.removeLayer(m));
+        }
+        window.leafletMarkers = [];
+
+        // Add markers for each area
+        map.areas.forEach(area => {
+            if (area.lat !== undefined && area.lon !== undefined) {
+                let icon = null;
+                if (area.id === 'lake') {
+                    icon = L.icon({
+                        iconUrl: 'assets/lake.svg',
+                        iconSize: [32, 32],
+                        iconAnchor: [16, 16],
+                        popupAnchor: [0, -16]
+                    });
+                }
+                const marker = L.marker([area.lat, area.lon], icon ? {icon} : undefined).addTo(window.leafletMap);
+                marker.bindPopup(`<b>${area.name}</b><br>${area.description}<br><button onclick='teleportToArea("${area.id}")'>Teleport here</button>`);
+                window.leafletMarkers.push(marker);
+            }
+        });
+
+        // Add markers for special locations (e.g., cliff)
+        if (map.special) {
+            map.special.forEach(special => {
+                if (special.lat !== undefined && special.lon !== undefined) {
+                    const marker = L.marker([special.lat, special.lon], {
+                        icon: L.icon({
+                            iconUrl: 'https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon.png',
+                            iconSize: [25, 41],
+                            iconAnchor: [12, 41],
+                            popupAnchor: [1, -34]
+                        })
+                    }).addTo(window.leafletMap);
+                    marker.bindPopup(`<b>${special.name}</b><br>${special.description}<br><button onclick='teleportToArea("${special.id}")'>Teleport here</button>`);
+                    window.leafletMarkers.push(marker);
+                }
+            });
+        }
+    // Teleport function: queues a teleport action for the player
+    window.teleportToArea = function(areaId) {
+        let areaName = '';
+        // Find area name from map
+        if (window.lastMapData) {
+            let found = window.lastMapData.areas.find(a => a.id === areaId);
+            if (!found && window.lastMapData.special) {
+                found = window.lastMapData.special.find(s => s.id === areaId);
+            }
+            if (found) areaName = found.name;
+        }
+        // Fallback: use areaId
+        if (!areaName) areaName = areaId;
+        actionQueue.push({ player, character, action: `teleport to ${areaName}` });
+        logMsg('Action queued: teleport to ' + areaName);
+    };
+    }
+
+    function queueAction() {
+        let action = document.getElementById('actionInput').value.trim();
+        if (!action) return;
+        actionQueue.push({ player, character, action });
+        logMsg('Action queued: ' + action);
+        document.getElementById('actionInput').value = '';
+    }
+
+    function logMsg(msg) {
+        let log = document.getElementById('log');
+        // Show full message, no truncation
+        log.innerHTML += msg + '<br>';
+        log.scrollTop = log.scrollHeight;
+    }
+
+    function clearLog() {
+        document.getElementById('log').innerHTML = '';
+    }
+
+    // Timer and update queue
+    setInterval(() => {
+        timer--;
+        document.getElementById('timer').textContent = timer;
+        if (timer <= 0) {
+            sendQueue();
+            timer = 30;
+        }
+    }, 1000);
+
+    async function sendQueue() {
+        if (actionQueue.length === 0) {
+            logMsg('No actions to send.');
+            return;
+        }
+        // Send actions to backend (replace with your backend endpoint)
+        try {
+            let res = await fetch('game_backend.php', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ actions: actionQueue, player, character })
+            });
+            let data = await res.json();
+            logMsg('Dungeon Master: ' + data.narrative);
+        } catch (e) {
+            logMsg('Error sending actions.');
+        }
+        actionQueue = [];
+    }
+    </script>
+</body>
+</html>

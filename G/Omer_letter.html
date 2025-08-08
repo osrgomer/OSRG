@@ -1,0 +1,117 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+  <meta charset="UTF-8">
+  <title>מכתב לבר המצווה - עומר</title>
+  <style>
+    body {
+      background: #fefae0;
+      color: #2d2d2d;
+      font-family: "David", "Arial", sans-serif;
+      line-height: 2;
+      max-width: 800px;
+      margin: 40px auto;
+      padding: 20px;
+      border: 2px solid #ccc;
+      border-radius: 12px;
+      box-shadow: 0 0 12px rgba(0,0,0,0.1);
+      overflow-y: auto;
+      height: 90vh;
+    }
+
+    h1 {
+      text-align: center;
+      font-size: 28px;
+      margin-bottom: 20px;
+    }
+
+    .scrolling {
+      animation: scrollText 40s linear forwards;
+    }
+
+    @keyframes scrollText {
+      0% {
+        transform: translateY(100%);
+      }
+      100% {
+        transform: translateY(-100%);
+      }
+    }
+
+    #start, #narrate {
+      display: block;
+      margin: 20px auto;
+      padding: 10px 24px;
+      font-size: 18px;
+      background: #d4a373;
+      border: none;
+      color: white;
+      cursor: pointer;
+      border-radius: 8px;
+    }
+
+    #narrate {
+      background: #6c757d;
+    }
+
+    #textContainer {
+      position: relative;
+      overflow: hidden;
+      height: 80vh;
+    }
+
+    #letterText {
+      position: absolute;
+      white-space: pre-wrap;
+    }
+  </style>
+</head>
+<body>
+
+<h1>מכתב לבר המצווה - עומר</h1>
+<button id="start">התחל ברכה</button>
+<button id="narrate" style="display:none;">השמע קריינות</button>
+
+<div id="textContainer">
+<div id="letterText">
+5.6.25
+
+עומר אהוב לבי, נכדי היקר,
+
+למרות שספר בר המצווה שלך מונח מזה זמן רב, חיכיתי עם המכתב האישי הזה שנאמר בלבנו, עד לבואך לביקור אצלנו. חיכיתי, כי למרות שעדיין לא עברה שנה מאז הביקור האחרון כאן עם ההורים ועם עמית, השעון והביולוגיה מראים שעברת כבר ספר על גיל ההתבגרות, גיל שבו צפית בו את התהליכים ואת השינויים ואת ההתפתחות. אבל, דבר אחד נשאר בטוח עוד לפני ששעון: רגע זה ממש, ילד שעולה מדרגה עלם למזוזות.
+
+ואז, מאז אתמול, היום שוב הגיע כאשר אדם לפתע נעשה לנקודת אור במסע האינסופי—העולם ממשיך כרגיל והכול—ועולמך, עולמך של עומר, כעת הוא עולם של מחשבה, של התכוונות ושל עמידה באימה, של גבורה ושל סקירה, וכן, גם של דרך ארץ וננסים.
+
+אני מנסה בין המקלדת החמה מתרגשת הקריבה אליך וממך, מן האור היורד שבעיניך כאשר צורך מצריך אותי, כשאתה נותן לי יד לסייע לי, כשאתה שואל שאלה ממוקדת סקרנות, או נהנה מהספר שספק מספיק, גם אם זו שאלה.
+
+הגעת לעולם עם טנא מלא בכל טוב, כמו בבכורים. אתה הבכור במשפחה, אתה פרי הבכורים של הוריך שנתנו לך פירורים עם לידתך. על לב זה שקיבל תוספת במרחק השנים שחלפו עד היום, עוד ועוד טעמים וצבעים. כך יצירת עולם נולדת ויוצרת אותה, אתה והכותבים אותך.
+
+בייחוד, ילד בר מצווה הוא הילד שעבר ויש ביכלתו לקיים את מצוות התורה. כך אומרת הדת והאמונה שבידי. זכור כשעמדנו בהר סיני והבר הביתי דיברנו על הדת ועל האמנות היהודית של המתחזקים בה!
+</div>
+
+  
+  
+</div>
+
+<script>
+  const button = document.getElementById("start");
+  const narrateBtn = document.getElementById("narrate");
+  const letter = document.getElementById("letterText");
+
+  button.addEventListener("click", () => {
+    letter.classList.add("scrolling");
+    button.style.display = "none";
+    narrateBtn.style.display = "block";
+  });
+
+  narrateBtn.addEventListener("click", () => {
+    const text = letter.innerText;
+    const utterance = new SpeechSynthesisUtterance(text);
+    utterance.lang = 'he-IL'; // Hebrew voice
+    utterance.rate = 1;
+    speechSynthesis.speak(utterance);
+  });
+</script>
+
+</body>
+</html>

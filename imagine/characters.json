@@ -1,0 +1,13 @@
+[
+  { "id": "Strongman", "name": "Lian", "description": "Strongman: Lian is a master drummer with iron hands, known for his strength and rhythm. Son of Arturo and Daphna, brother to Alma, Yanai, and Ilay." },
+  { "id": "hunter", "name": "Arturo", "description": "Hunter: Arturo is the father of Lian, Alma, Yanai, and Ilay, and husband of Daphna. Skilled in tracking and hunting wild boars, he can track any creature across any terrain and has a sixth sense for danger." },
+  { "id": "Programer", "name": "Gil", "description": "Programer: Gil is the father of Omer and Nomi, husband of Yael. He is an expert in coding and problem solving, able to instantly debug any machine or code, and interface mentally with technology. Yael is his wife and mother of Omer and Nomi." },
+  { "id": "Mastermind", "name": "Omer", "description": "Mastermind: Omer is Gil and Yael's oldest son (Nomi is his younger sibling). He is a brilliant tactician and planner, always thinking several steps ahead, and can influence others' decisions subtly." },
+  { "id": "Babysitter", "name": "Alma", "description": "Babysitter: Alma is the daughter of Arturo and Daphna, sister to Lian, Yanai, and Ilay. She is caring and protective, able to create a safe zone where no harm can come to anyone inside, and pacify aggressive beings." },
+  { "id": "Hiperactive", "name": "Nomi", "description": "Hiperactive: Nomi is Gil and Yael's youngest child and Omer's sibling. Wise and knowledgeable about the world, Nomi can instantly learn any subject and recall any information perfectly." },
+  { "id": "warrior", "name": "Yael", "description": "Warrior: Yael is Gil's wife and mother of Omer and Nomi. She is a strong and brave fighter who can summon a shield of energy and boost strength for short bursts." },
+  { "id": "Stealth", "name": "Roni", "description": "Stealth: Roni is a master of moving unseen and unheard, able to blend into shadows and evade detection with ease." },
+  { "id": "healer", "name": "Daphna", "description": "Healer: Daphna is Arturo's wife and mother of Lian, Alma, Yanai, and Ilay. She can heal wounds and ailments, cure any poison, and restore lost energy instantly." },
+  { "id": "athlete", "name": "Yanai", "description": "Athlete: Yanai is the daughter of Arturo and Daphna, sibling to Lian, Alma, and Ilay. She excels at all sports, demonstrating agility, strength, and skill in any physical activity." },
+  { "id": "dreamer", "name": "Ilay", "description": "Dreamer: Ilay is the youngest child of Arturo and Daphna, sibling to Lian, Alma, and Yanai. Imaginative and curious, Ilay can inspire others and see possibilities where others do not." }
+]

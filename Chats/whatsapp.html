@@ -1,0 +1,897 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>WhatsApp Bot Chat</title>
+    <!-- Tailwind CSS CDN for utility classes -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Google Fonts: Inter for a modern look -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <!-- Material Icons CDN for chat icons (send, emoji, attachment, calls) -->
+    <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+    <style>
+        /* Custom styles for bubble tails and specific adjustments not easily done with Tailwind */
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #ECE5DD; /* WhatsApp chat background color */
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            overflow: hidden; /* Prevent body scroll if container is fixed */
+        }
+
+        .chat-container {
+            /* WhatsApp-like background pattern for visual appeal */
+            background-image: url('data:image/svg+xml,%3Csvg width="20" height="20" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg"%3E%3Cg fill="%23dcdcdc" fill-opacity="0.2" fill-rule="evenodd"%3E%3Ccircle cx="3" cy="3" r="3"/%3E%3Ccircle cx="13" cy="13" r="3"/%3E%3C/g%3E%3C/svg%3E');
+            background-size: 10px 10px;
+            background-repeat: repeat;
+            background-color: #F8F8F8; /* Fallback solid color */
+            position: relative;
+            z-index: 0;
+            /* Ensure the container takes full height on mobile and is responsive */
+            width: 100%;
+            height: 100vh; /* Full viewport height on mobile */
+            max-width: 480px; /* Max width for larger screens */
+            border-radius: 0; /* No rounded corners for full screen on mobile */
+        }
+
+        /* Adjust for larger screens */
+        @media (min-width: 640px) {
+            .chat-container {
+                height: 90vh; /* Slightly smaller height on desktop */
+                border-radius: 0.5rem; /* Rounded corners on desktop */
+            }
+        }
+
+        /* Message bubble common styles */
+        .message-bubble {
+            padding: 0.5rem;
+            border-radius: 0.5rem;
+            position: relative;
+            box-shadow: 0 1px 2px 0 rgba(0,0,0,0.05);
+            max-width: 80%;
+            font-size: 0.875rem;
+            word-break: break-word;
+        }
+
+        /* Incoming message bubble (white, on the right in RTL) */
+        .incoming-message {
+            background-color: #fff; /* Tailwind bg-white */
+            margin-right: auto;     /* Tailwind mr-auto - Pushes to the right in RTL */
+        }
+
+        .incoming-message::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            right: -8px; /* Tail on the right for incoming in RTL */
+            width: 0;
+            height: 0;
+            border-style: solid;
+            border-width: 0 0 10px 10px; /* Pointing right */
+            border-color: transparent transparent transparent #FFFFFF;
+        }
+
+        /* Outgoing message bubble (light green, on the left in RTL) */
+        .outgoing-message {
+            background-color: #DCF8C6; /* WhatsApp outgoing message color */
+            margin-left: auto; /* Pushes to the left in RTL */
+        }
+
+        .outgoing-message::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -8px; /* Tail on the left for outgoing in RTL */
+            width: 0;
+            height: 0;
+            border-style: solid;
+            border-width: 0 10px 10px 0; /* Pointing left */
+            border-color: transparent #DCF8C6 transparent transparent;
+        }
+
+        /* System message bubble */
+        .system-message {
+            background-color: #e5e7eb; /* bg-gray-200 */
+            color: #4b5563; /* text-gray-600 */
+            font-size: 0.75rem; /* text-xs */
+            text-align: center;
+            padding-left: 0.75rem; /* px-3 */
+            padding-right: 0.75rem;
+            padding-top: 0.25rem; /* py-1 */
+            padding-bottom: 0.25rem;
+            border-radius: 0.375rem; /* rounded-md */
+            align-self: center; /* self-center */
+            max-width: 90%; /* max-w-[90%] */
+        }
+
+        /* Read receipts */
+        .read-receipt {
+            color: #60a5fa; /* text-blue-400 */
+            font-size: 1rem; /* text-base */
+            margin-left: 0.125rem; /* ml-0.5 */
+        }
+
+        /* Input area send button */
+        .send-button {
+            background-color: #075E54; /* bg-[#075E54] */
+            color: #fff; /* text-white */
+            border-radius: 9999px; /* rounded-full */
+            padding: 0.5rem; /* p-2 */
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            width: 2.5rem; /* w-10 */
+            height: 2.5rem; /* h-10 */
+        }
+
+        /* Scrollbar styling for chat area */
+        .chat-area::-webkit-scrollbar {
+            width: 6px;
+        }
+
+        .chat-area::-webkit-scrollbar-track {
+            background: transparent;
+        }
+
+        .chat-area::-webkit-scrollbar-thumb {
+            background: rgba(0, 0, 0, 0.2);
+            border-radius: 3px;
+        }
+        .chat-area::-webkit-scrollbar-thumb:hover {
+            background: rgba(0, 0, 0, 0.3);
+        }
+
+        /* Loading indicator (typing dots) */
+        .loading-dots span {
+            animation: blink 1.4s infinite both;
+        }
+        .loading-dots span:nth-child(2) {
+            animation-delay: .2s;
+        }
+        .loading-dots span:nth-child(3) {
+            animation-delay: .4s;
+        }
+        @keyframes blink {
+            0% { opacity: .2; }
+            20% { opacity: 1; }
+            100% { opacity: .2; }
+        }
+
+        /* Toggle switch styles */
+        .toggle-switch {
+            position: relative;
+            display: inline-block;
+            width: 2.5rem; /* w-10 */
+            height: 1.5rem; /* h-6 */
+            border-radius: 9999px;
+            cursor: pointer;
+        }
+        .toggle-switch input {
+            display: none;
+        }
+        .toggle-slider {
+            position: absolute;
+            inset: 0;
+            background-color: #d1d5db; /* bg-gray-300 */
+            border-radius: 9999px;
+            transition: background-color 0.2s ease-in-out;
+        }
+        .toggle-slider::before {
+            content: '';
+            position: absolute;
+            height: 1.25rem; /* h-5 */
+            width: 1.25rem;  /* w-5 */
+            background-color: #fff;
+            border-radius: 9999px;
+            transition: transform 0.2s ease-in-out;
+            box-shadow: 0 1px 3px 0 rgba(0,0,0,0.1);
+            top: 2px;
+            right: 2px; /* Initial position for RTL */
+        }
+        input:checked + .toggle-slider {
+            background-color: #22c55e; /* bg-green-500 */
+        }
+        input:checked + .toggle-slider::before {
+            transform: translateX(-16px); /* Move to the left for RTL when checked */
+        }
+    </style>
+</head>
+<body class="flex flex-col items-center justify-center min-h-screen bg-[#ECE5DD]">
+
+    <div class="chat-container w-full max-w-md h-screen flex flex-col shadow-lg rounded-lg overflow-hidden">
+        <!-- Header Section -->
+        <div class="bg-[#075E54] text-white p-3 flex flex-col sm:flex-row items-center justify-between">
+            <div class="flex items-center w-full sm:w-auto mb-2 sm:mb-0">
+                <span class="material-icons text-2xl ml-4 cursor-pointer">arrow_back</span>
+                <img id="profile-pic" src="https://placehold.co/40x40/000000/FFFFFF?text=B" alt="Profile Picture" class="w-10 h-10 rounded-full object-cover ml-2">
+                <div>
+                    <div id="chat-title" class="font-medium text-lg">AI Assistant Bot</div>
+                    <div id="chat-status" class="text-xs opacity-80">online</div>
+                </div>
+            </div>
+            <div class="flex items-center w-full sm:w-auto justify-end mt-2 sm:mt-0">
+                <!-- API Key Input Field - No longer disabled by default -->
+                <input type="text" id="api-key-input" placeholder="הכנס מפתח API" class="bg-white text-gray-800 text-xs rounded-md px-2 py-1 ml-2 w-full sm:w-40 focus:outline-none focus:ring-2 focus:ring-blue-300" />
+                
+                <!-- Group Chat Toggle Switch -->
+                <div class="flex items-center ml-4 mr-2">
+                    <span class="text-xs ml-1">קבוצה</span>
+                    <label class="toggle-switch">
+                        <input type="checkbox" id="group-chat-toggle">
+                        <span class="toggle-slider"></span>
+                    </label>
+                </div>
+
+                <!-- Call Icons (Video and Voice) -->
+                <span class="material-icons text-2xl mr-5 cursor-pointer" id="video-call-icon">videocam</span>
+                <span class="material-icons text-2xl mr-5 cursor-pointer" id="normal-call-icon">call</span>
+                <span class="material-icons text-2xl cursor-pointer">more_vert</span>
+            </div>
+        </div>
+
+        <!-- Chat Area - Where messages are displayed -->
+        <div id="chat-area" class="chat-area flex-grow p-3 overflow-y-auto flex flex-col gap-2">
+            <!-- Initial content will be added by JavaScript -->
+        </div>
+
+        <!-- Input Area - For typing and sending messages -->
+        <div class="bg-gray-100 p-2 flex items-center rounded-b-lg">
+            <span class="material-icons text-gray-500 text-2xl ml-2 cursor-pointer" id="emoji-icon">sentiment_satisfied_alt</span>
+            <input type="text" id="user-input" placeholder="הודעה" class="flex-grow bg-white rounded-full px-4 py-2 mx-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
+            <span class="material-icons text-gray-500 text-2xl mr-2 cursor-pointer" id="attachment-icon">attachment</span>
+            <span class="material-icons text-gray-500 text-2xl mr-2 cursor-pointer">camera_alt</span>
+            <button id="send-button" class="send-button cursor-pointer">
+                <span class="material-icons">send</span>
+            </button>
+        </div>
+        <!-- Hidden input for file selection (for image upload) -->
+        <input type="file" id="image-input" accept="image/*" class="hidden" />
+    </div>
+
+    <!-- Firebase SDKs - Loaded as modules for better organization and tree-shaking -->
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
+        import { getAuth, signInAnonymously, signInWithCustomToken, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+        import { getFirestore, doc, getDoc, setDoc } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+
+        // --- Global Variables for Firebase and Application State ---
+        let db = null; // Firestore instance
+        let auth = null; // Firebase Auth instance
+        let userId = null; // Current authenticated user ID
+        let firebaseReady = false; // Flag to indicate if Firebase is successfully initialized and authenticated
+        let currentApiKey = ""; // Stores the user's API key for Gemini
+        let isGroupChatMode = false; // Flag to switch between 1-on-1 and group chat
+
+        // Chat history for 1-on-1 bot (local to the session)
+        let oneOnOneChatHistory = [{
+            role: "model",
+            parts: [{ text: "שלום! אני העוזר הווירטואלי שלך. איך אוכל לעזור לך היום?" }]
+        }];
+
+        // Group chat history (will be loaded/saved from Firestore for persistence)
+        let groupChatHistory = [];
+
+        // Bot personalities for group chat mode, each with a distinct prompt
+        const botPersonalities = [
+            { id: "bot1", name: "Bot חכם", initialPrompt: "אתה בוט חכם ומעמיק, תמיד מנתח את הדברים לעומק. ענה בקצרה." },
+            { id: "bot2", name: "Bot ידידותי", initialPrompt: "אתה בוט ידידותי ואופטימי, תמיד מנסה לעודד ולעזור. ענה בקצרה." }
+        ];
+
+        // --- DOM Element References ---
+        const chatArea = document.getElementById('chat-area');
+        const userInput = document.getElementById('user-input');
+        const sendButton = document.getElementById('send-button');
+        const emojiIcon = document.getElementById('emoji-icon');
+        const apiKeyInput = document.getElementById('api-key-input');
+        const groupChatToggle = document.getElementById('group-chat-toggle');
+        const chatTitle = document.getElementById('chat-title');
+        const chatStatus = document.getElementById('chat-status');
+        const profilePic = document.getElementById('profile-pic');
+        const videoCallIcon = document.getElementById('video-call-icon');
+        const normalCallIcon = document.getElementById('normal-call-icon');
+        const attachmentIcon = document.getElementById('attachment-icon');
+        const imageInput = document.getElementById('image-input');
+
+        // --- Global Variables Provided by Canvas Environment (MANDATORY) ---
+        // __app_id: Unique identifier for the current application instance
+        const appId = typeof __app_id !== 'undefined' ? __app_id : 'default-app-id';
+        
+        // __firebase_config: Firebase project configuration
+        let firebaseConfig = {};
+        try {
+            if (typeof __firebase_config !== 'undefined' && __firebase_config) {
+                firebaseConfig = JSON.parse(__firebase_config);
+            }
+        } catch (e) {
+            console.error("Error parsing __firebase_config:", e);
+            addSystemMessage("שגיאה בפענוח הגדרות Firebase. שמירת נתונים לא תעבוד.", 'error');
+        }
+        
+        // __initial_auth_token: Custom Firebase authentication token
+        const initialAuthToken = typeof __initial_auth_token !== 'undefined' ? __initial_auth_token : null;
+
+        // --- Firebase Initialization and Authentication ---
+        async function initializeFirebase() {
+            // Check if firebaseConfig is valid before attempting to initialize Firebase
+            if (!firebaseConfig || Object.keys(firebaseConfig).length === 0 || !firebaseConfig.apiKey || !firebaseConfig.projectId) {
+                console.warn("Firebase configuration is missing or invalid. Persistence features will not work.");
+                addSystemMessage("הגדרות Firebase חסרות או לא תקינות. שמירת נתונים לא תעבוד.", 'error');
+                firebaseReady = false; // Ensure flag is false if config is bad
+                renderChat(); // Render initial chat even without persistence
+                userInput.focus(); // Attempt to focus input
+                return; // Exit if config is invalid
+            }
+
+            try {
+                const app = initializeApp(firebaseConfig);
+                db = getFirestore(app);
+                auth = getAuth(app);
+
+                // Listen for authentication state changes
+                onAuthStateChanged(auth, async (user) => {
+                    if (user) {
+                        // User is signed in
+                        userId = user.uid; // Set the user ID
+                        console.log("Firebase authenticated. User ID:", userId);
+                        firebaseReady = true; // Firebase is ready for operations
+                        // apiKeyInput.disabled = false; // No longer needed as it's enabled by default
+                        addSystemMessage("Firebase מוכן! כעת ניתן להזין ולשמור את מפתח ה-API.", 'success');
+                        await loadApiKey(); // Load saved API key
+                        await loadGroupChatHistory(); // Load group chat history
+                        renderChat(); // Render the chat based on current mode
+                        userInput.focus(); // Focus on the input field
+                    } else {
+                        // User is signed out, attempt to sign in
+                        if (initialAuthToken) {
+                            // Use custom token if provided (for Canvas environment)
+                            await signInWithCustomToken(auth, initialAuthToken);
+                        } else {
+                            // Fallback to anonymous sign-in if no custom token
+                            await signInAnonymously(auth);
+                        }
+                    }
+                });
+            } catch (error) {
+                console.error("Error initializing Firebase or authenticating:", error);
+                addSystemMessage("שגיאה באתחול Firebase. ייתכן ששמירת נתונים לא תעבוד.", 'error');
+                firebaseReady = false; // Set flag to false on initialization error
+            }
+        }
+
+        // --- API Key Persistence Functions ---
+        /**
+         * Loads the API key from Firestore for the current user.
+         */
+        async function loadApiKey() {
+            // Ensure Firebase is ready and userId is available before attempting to load
+            if (!firebaseReady || !userId) {
+                console.warn("Firebase not ready or userId missing for API key load.");
+                return;
+            }
+            try {
+                // Firestore path: artifacts/{appId}/users/{userId}/settings/api_key
+                const apiKeyDocRef = doc(db, 'artifacts', appId, 'users', userId, 'settings', 'api_key');
+                const docSnap = await getDoc(apiKeyDocRef);
+                if (docSnap.exists()) {
+                    currentApiKey = docSnap.data().key; // Retrieve the key
+                    apiKeyInput.value = currentApiKey; // Set it in the input field
+                    addSystemMessage("מפתח API נטען בהצלחה.", 'info');
+                } else {
+                    addSystemMessage("לא נמצא מפתח API שמור. אנא הכנס מפתח.", 'warning');
+                }
+            } catch (error) {
+                console.error("Error loading API key:", error);
+                addSystemMessage("שגיאה בטעינת מפתח API.", 'error');
+            }
+        }
+
+        /**
+         * Saves the API key to Firestore for the current user.
+         */
+        async function saveApiKey() {
+            // Ensure Firebase is ready and userId is available before attempting to save
+            if (!firebaseReady || !userId) {
+                addSystemMessage("Firebase עדיין מתחבר. אנא המתן רגע ונסה שוב לשמור את מפתח ה-API.", 'warning');
+                console.warn("Attempted to save API key before Firebase was ready or userId was available.");
+                return;
+            }
+            const keyToSave = apiKeyInput.value.trim();
+            if (keyToSave === "") {
+                addSystemMessage("מפתח API ריק. לא נשמר.", 'warning');
+                return;
+            }
+            try {
+                // Firestore path: artifacts/{appId}/users/{userId}/settings/api_key
+                const apiKeyDocRef = doc(db, 'artifacts', appId, 'users', userId, 'settings', 'api_key');
+                await setDoc(apiKeyDocRef, { key: keyToSave }); // Save the key
+                currentApiKey = keyToSave; // Update the global variable
+                addSystemMessage("מפתח API נשמר בהצלחה.", 'success');
+            } catch (error) {
+                console.error("Error saving API key:", error);
+                addSystemMessage("שגיאה בשמירת מפתח API.", 'error');
+            }
+        }
+
+        // --- Group Chat History Persistence Functions ---
+        const GROUP_DOC_ID = 'default_group'; // Fixed document ID for the group chat history
+
+        /**
+         * Loads the group chat history from Firestore for the current user.
+         */
+        async function loadGroupChatHistory() {
+            // Ensure Firebase is ready and userId is available before attempting to load
+            if (!firebaseReady || !userId) {
+                console.warn("Firebase not ready or userId missing for group chat history load.");
+                return;
+            }
+            try {
+                // Firestore path: artifacts/{appId}/users/{userId}/group_chats/{GROUP_DOC_ID}
+                const groupDocRef = doc(db, 'artifacts', appId, 'users', userId, 'group_chats', GROUP_DOC_ID);
+                const docSnap = await getDoc(groupDocRef);
+                if (docSnap.exists() && docSnap.data().messages) {
+                    groupChatHistory = docSnap.data().messages; // Retrieve messages
+                    addSystemMessage("היסטוריית צ'אט קבוצתי נטענה.", 'info');
+                } else {
+                    groupChatHistory = []; // Initialize as empty if no history found
+                    addSystemMessage("אין היסטוריית צ'אט קבוצתי שמורה.", 'warning');
+                }
+            } catch (error) {
+                console.error("Error loading group chat history:", error);
+                addSystemMessage("שגיאה בטעינת היסטוריית צ'אט קבוצתי.", 'error');
+            }
+        }
+
+        /**
+         * Saves the current group chat history to Firestore for the current user.
+         * @param {Array} history - The array of message objects to save.
+         */
+        async function saveGroupChatHistory(history) {
+            // Ensure Firebase is ready and userId is available before attempting to save
+            if (!firebaseReady || !userId) {
+                console.warn("Firebase not ready or userId missing for group chat history save.");
+                return;
+            }
+            try {
+                const groupDocRef = doc(db, 'artifacts', appId, 'users', userId, 'group_chats', GROUP_DOC_ID);
+                // Firestore has a 1MB limit per document. For very long chats,
+                // a more robust solution would involve breaking messages into subcollections
+                // or using a different storage approach. For this demo, we save the whole array.
+                await setDoc(groupDocRef, { messages: history });
+                console.log("Group chat history saved.");
+            }
+            catch (error) {
+                console.error("Error saving group chat history:", error);
+                addSystemMessage("שגיאה בשמירת היסטוריית צ'אט קבוצתי.", 'error');
+            }
+        }
+
+        // --- Chat Rendering and Utility Functions ---
+        /**
+         * Gets the current time in HH:MM format.
+         * @returns {string} Current time string.
+         */
+        function getCurrentTime() {
+            const now = new Date();
+            const hours = String(now.getHours()).padStart(2, '0');
+            const minutes = String(now.getMinutes()).padStart(2, '0');
+            return `${hours}:${minutes}`;
+        }
+
+        /**
+         * Adds a text message bubble to the chat area.
+         * @param {string} text - The message content.
+         * @param {'user'|'bot'} type - The sender type ('user' or 'bot').
+         * @param {boolean} showReadReceipt - Whether to show a read receipt icon.
+         * @param {string} [senderName=null] - The name of the sender (for group chat bots).
+         */
+        function addMessage(text, type, showReadReceipt = false, senderName = null) {
+            const messageBubble = document.createElement('div');
+            messageBubble.classList.add('message-bubble');
+            messageBubble.classList.add(type === 'user' ? 'outgoing-message' : 'incoming-message');
+
+            const messageContent = document.createElement('div');
+            messageContent.classList.add('message-content');
+            
+            // Display sender name for bot messages in group chat
+            if (senderName && type === 'bot') {
+                const senderSpan = document.createElement('span');
+                senderSpan.classList.add('font-semibold', 'text-blue-700', 'block', 'mb-1'); // Style for bot name
+                senderSpan.textContent = senderName;
+                messageContent.appendChild(senderSpan);
+            }
+            messageContent.appendChild(document.createTextNode(text)); // Use textNode for safety to prevent XSS
+
+            const messageInfo = document.createElement('div');
+            messageInfo.classList.add('message-info', 'text-gray-500', 'text-xs', 'mt-1', 'flex');
+            // Adjust alignment based on message type for RTL
+            messageInfo.classList.add(type === 'user' ? 'justify-start' : 'justify-end');
+
+            const messageTime = document.createElement('span');
+            messageTime.classList.add('message-time');
+            messageTime.textContent = getCurrentTime();
+
+            messageInfo.appendChild(messageTime);
+
+            // Add read receipt icon if requested
+            if (showReadReceipt) {
+                const readReceipt = document.createElement('span');
+                readReceipt.classList.add('material-icons', 'read-receipt');
+                readReceipt.textContent = 'done_all';
+                messageInfo.appendChild(readReceipt);
+            }
+
+            messageBubble.appendChild(messageContent);
+            messageBubble.appendChild(messageInfo);
+            chatArea.appendChild(messageBubble);
+
+            // Scroll to the bottom to show the latest message
+            chatArea.scrollTop = chatArea.scrollHeight;
+        }
+
+        /**
+         * Adds an image message bubble to the chat area.
+         * @param {string} imageUrl - The base64 encoded image URL.
+         * @param {'user'|'bot'} type - The sender type ('user' or 'bot').
+         * @param {string} [senderName=null] - The name of the sender (for group chat bots).
+         */
+        function addImageMessage(imageUrl, type, senderName = null) {
+            const messageBubble = document.createElement('div');
+            messageBubble.classList.add('message-bubble');
+            messageBubble.classList.add(type === 'user' ? 'outgoing-message' : 'incoming-message');
+
+            const messageContent = document.createElement('div');
+            messageContent.classList.add('message-content');
+
+            if (senderName && type === 'bot') {
+                const senderSpan = document.createElement('span');
+                senderSpan.classList.add('font-semibold', 'text-blue-700', 'block', 'mb-1');
+                senderSpan.textContent = senderName;
+                messageContent.appendChild(senderSpan);
+            }
+
+            const imgElement = document.createElement('img');
+            imgElement.src = imageUrl;
+            imgElement.classList.add('w-full', 'h-auto', 'rounded-md', 'object-cover');
+            // Fallback image in case the provided URL is broken
+            imgElement.onerror = () => { imgElement.src = 'https://placehold.co/100x100/CCCCCC/000000?text=Error'; };
+            messageContent.appendChild(imgElement);
+
+            const messageInfo = document.createElement('div');
+            messageInfo.classList.add('message-info', 'text-gray-500', 'text-xs', 'mt-1', 'flex');
+            messageInfo.classList.add(type === 'user' ? 'justify-start' : 'justify-end');
+
+            const messageTime = document.createElement('span');
+            messageTime.classList.add('message-time');
+            messageTime.textContent = getCurrentTime();
+
+            messageInfo.appendChild(messageTime);
+            messageBubble.appendChild(messageContent);
+            messageBubble.appendChild(messageInfo);
+            chatArea.appendChild(messageBubble);
+
+            chatArea.scrollTop = chatArea.scrollHeight;
+        }
+
+        /**
+         * Adds a system message (info, warning, error, success) to the chat area.
+         * @param {string} text - The system message content.
+         * @param {'info'|'warning'|'error'|'success'} [level='info'] - The type of system message.
+         */
+        function addSystemMessage(text, level = 'info') {
+            const systemMessage = document.createElement('div');
+            systemMessage.classList.add('system-message', 'flex', 'items-center', 'justify-center');
+            let icon = '';
+            let textColor = 'text-gray-600';
+            let bgColor = 'bg-gray-200'; // Default background
+
+            // Set icon and colors based on message level
+            if (level === 'error') { icon = 'error_outline'; textColor = 'text-red-600'; bgColor = 'bg-red-100'; }
+            else if (level === 'warning') { icon = 'warning_amber'; textColor = 'text-yellow-700'; bgColor = 'bg-yellow-100'; }
+            else if (level === 'success') { icon = 'check_circle_outline'; textColor = 'text-green-700'; bgColor = 'bg-green-100'; }
+            else if (level === 'info') { icon = 'info_outline'; textColor = 'text-blue-700'; bgColor = 'bg-blue-100'; }
+
+            systemMessage.classList.add(bgColor); // Apply background color
+
+            systemMessage.innerHTML = `
+                <span class="material-icons text-base mr-1 ${textColor}">${icon}</span>
+                <span class="${textColor}">${text}</span>
+            `;
+            chatArea.appendChild(systemMessage);
+            chatArea.scrollTop = chatArea.scrollHeight;
+        }
+
+        /**
+         * Displays a typing indicator for the bot(s).
+         * @param {string} botName - The name to display (e.g., "הבוט", "הבוטים").
+         */
+        function showBotTypingIndicator(botName = "הבוט") {
+            let typingIndicator = document.getElementById('typing-indicator');
+            if (!typingIndicator) {
+                typingIndicator = document.createElement('div');
+                typingIndicator.id = 'typing-indicator';
+                typingIndicator.classList.add('incoming-message', 'message-bubble', 'flex', 'items-center', 'space-x-1');
+                chatArea.appendChild(typingIndicator);
+            }
+            typingIndicator.innerHTML = `
+                <div class="message-content flex items-center">
+                    <span class="text-gray-500">${botName} מקליד</span>
+                    <div class="loading-dots flex ml-1">
+                        <span class="w-1.5 h-1.5 bg-gray-500 rounded-full"></span>
+                        <span class="w-1.5 h-1.5 bg-gray-500 rounded-full ml-0.5"></span>
+                        <span class="w-1.5 h-1.5 bg-gray-500 rounded-full ml-0.5"></span>
+                    </div>
+                </div>
+            `;
+            chatArea.scrollTop = chatArea.scrollHeight;
+        }
+
+        /**
+         * Removes the bot typing indicator from the chat area.
+         */
+        function removeBotTypingIndicator() {
+            const typingIndicator = document.getElementById('typing-indicator');
+            if (typingIndicator) {
+                typingIndicator.remove();
+            }
+        }
+
+        /**
+         * Renders the chat messages based on the current chat mode (1-on-1 or group).
+         * Clears existing messages and re-adds them from the relevant history array.
+         */
+        function renderChat() {
+            chatArea.innerHTML = `
+                <div class="date-separator text-center text-xs text-gray-600 my-2">
+                    <span class="bg-white px-2 py-1 rounded-md shadow-sm">Today</span>
+                </div>
+                <div class="system-message flex items-center justify-center">
+                    <span class="material-icons text-base mr-1">lock</span>
+                    This chat is encrypted. Your messages will be processed by an AI.
+                </div>
+            `;
+
+            const historyToRender = isGroupChatMode ? groupChatHistory : oneOnOneChatHistory;
+
+            historyToRender.forEach(msg => {
+                if (msg.parts && msg.parts.length > 0) {
+                    const textPart = msg.parts.find(part => part.text);
+                    const imagePart = msg.parts.find(part => part.inlineData && part.inlineData.mimeType.startsWith('image/'));
+
+                    if (textPart) {
+                        addMessage(textPart.text, msg.role === 'user' ? 'user' : 'bot', msg.role === 'user', msg.senderName);
+                    } else if (imagePart) {
+                        // For images, the 'data' part is the base64 string
+                        addImageMessage(imagePart.inlineData.data, msg.role === 'user' ? 'user' : 'bot', msg.senderName);
+                    }
+                }
+            });
+            chatArea.scrollTop = chatArea.scrollHeight;
+        }
+
+        // --- Core Send Message Function ---
+        /**
+         * Handles sending a user message, adding it to the chat, and triggering bot responses.
+         */
+        async function sendMessage() {
+            const userMessage = userInput.value.trim();
+            if (userMessage === '') return; // Do not send empty messages
+
+            // Add user message to chat display
+            addMessage(userMessage, 'user', true);
+            userInput.value = ''; // Clear input field
+
+            // Prepare message object for history
+            const userMessageForHistory = { role: "user", parts: [{ text: userMessage }] };
+
+            if (isGroupChatMode) {
+                groupChatHistory.push(userMessageForHistory); // Add to group history
+                await handleGroupMessage(userMessage); // Process in group chat mode
+            } else {
+                oneOnOneChatHistory.push(userMessageForHistory); // Add to 1-on-1 history
+                await handleOneOnOneMessage(userMessage); // Process in 1-on-1 mode
+            }
+        }
+
+        /**
+         * Handles sending a message in 1-on-1 chat mode to the Gemini API.
+         * @param {string} messageText - The user's message.
+         */
+        async function handleOneOnOneMessage(messageText) {
+            showBotTypingIndicator("הבוט"); // Show typing indicator
+            try {
+                // Check if API key is available before making the call
+                if (!currentApiKey) {
+                    removeBotTypingIndicator();
+                    addSystemMessage("שגיאה: מפתח API חסר. אנא הכנס מפתח תקין.", 'error');
+                    return;
+                }
+
+                // Construct the payload for the Gemini API call
+                const payload = { contents: oneOnOneChatHistory };
+                const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${currentApiKey}`;
+
+                // Make the API call
+                const response = await fetch(apiUrl, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(payload)
+                });
+
+                const result = await response.json();
+                removeBotTypingIndicator(); // Remove typing indicator once response is received
+
+                // Process the bot's response
+                if (result.candidates && result.candidates.length > 0 &&
+                    result.candidates[0].content && result.candidates[0].content.parts &&
+                    result.candidates[0].content.parts.length > 0) {
+                    const botResponse = result.candidates[0].content.parts[0].text;
+                    addMessage(botResponse, 'bot'); // Display bot's message
+                    oneOnOneChatHistory.push({ role: "model", parts: [{ text: botResponse }] }); // Add to history
+                } else {
+                    // Handle API errors or unexpected response structure
+                    handleApiError(response, result);
+                }
+            } catch (error) {
+                removeBotTypingIndicator();
+                addSystemMessage("אירעה שגיאה בחיבור לבוט. אנא נסה שוב מאוחר יותר.", 'error');
+                console.error("Error fetching bot response (1-on-1):", error);
+            }
+        }
+
+        /**
+         * Handles sending a message in group chat mode, triggering responses from multiple bots.
+         * @param {string} messageText - The user's message.
+         */
+        async function handleGroupMessage(messageText) {
+            // Check if API key is available
+            if (!currentApiKey) {
+                removeBotTypingIndicator();
+                addSystemMessage("שגיאה: מפתח API חסר. אנא הכנס מפתח תקין.", 'error');
+                return;
+            }
+
+            showBotTypingIndicator("הבוטים"); // Show typing indicator for multiple bots
+
+            // Send messages to each bot personality concurrently
+            const responses = await Promise.all(botPersonalities.map(async (bot) => {
+                // Create a specific chat history for each bot for this turn,
+                // including its unique personality prompt and the user's message.
+                // In a more complex group chat, each bot might maintain its own persistent history.
+                const botSpecificHistory = [
+                    { role: "user", parts: [{ text: bot.initialPrompt }] }, // Personality prompt
+                    { role: "user", parts: [{ text: messageText }] } // User's actual message
+                ];
+
+                try {
+                    const payload = { contents: botSpecificHistory };
+                    const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${currentApiKey}`;
+
+                    const response = await fetch(apiUrl, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify(payload)
+                    });
+                    const result = await response.json();
+
+                    if (result.candidates && result.candidates.length > 0 &&
+                        result.candidates[0].content && result.candidates[0].content.parts &&
+                        result.candidates[0].content.parts.length > 0) {
+                        return { botId: bot.id, botName: bot.name, text: result.candidates[0].content.parts[0].text, success: true };
+                    } else {
+                        console.error(`Error for ${bot.name}:`, result);
+                        return { botId: bot.id, botName: bot.name, text: "לא הצלחתי להגיב.", success: false };
+                    }
+                } catch (error) {
+                    console.error(`Connection error for ${bot.name}:`, error);
+                    return { botId: bot.id, botName: bot.name, text: "שגיאת חיבור.", success: false };
+                }
+            }));
+
+            removeBotTypingIndicator(); // Remove typing indicator after all bots respond
+
+            // Display each bot's response and add to group history
+            responses.forEach(res => {
+                addMessage(res.text, 'bot', false, res.botName);
+                groupChatHistory.push({ role: "model", senderName: res.botName, parts: [{ text: res.text }] });
+            });
+
+            await saveGroupChatHistory(groupChatHistory); // Save the updated group history to Firestore
+        }
+
+        /**
+         * Provides user-friendly error messages based on API response.
+         * @param {Response} response - The raw fetch API response object.
+         * @param {Object} result - The parsed JSON response from the API.
+         */
+        function handleApiError(response, result) {
+            let errorMessage = "אני מצטער, לא הצלחתי להבין את התגובה מהבוט. נסה שוב.";
+            if (response.status === 400 && result.error && result.error.message.includes("API key not valid")) {
+                errorMessage = "שגיאה: מפתח ה-API אינו תקין או חסר. אנא ודא שהכנסת מפתח תקין.";
+            } else if (response.status === 401 || response.status === 403) {
+                 errorMessage = "שגיאה: בעיית אימות עם מפתח ה-API. אנא בדוק את המפתח שלך.";
+            } else if (response.status === 429) {
+                errorMessage = "שגיאה: הגעת למגבלת הקצב של ה-API. אנא המתן ונסה שוב.";
+            }
+            addSystemMessage(errorMessage, 'error');
+            console.error("API error details:", result);
+        }
+
+        // --- Event Listeners ---
+        sendButton.addEventListener('click', sendMessage); // Send message on button click
+        userInput.addEventListener('keypress', function(event) {
+            if (event.key === 'Enter') {
+                sendMessage(); // Send message on Enter key press
+            }
+        });
+
+        emojiIcon.addEventListener('click', function() {
+            userInput.value += '😃'; // Append a smiley emoji to input
+            userInput.focus(); // Keep focus on the input field
+        });
+
+        apiKeyInput.addEventListener('blur', saveApiKey); // Save API key when input loses focus
+        apiKeyInput.addEventListener('keypress', function(event) {
+            if (event.key === 'Enter') {
+                saveApiKey(); // Save API key on Enter key press
+                userInput.focus(); // Move focus to chat input after saving key
+            }
+        });
+
+        groupChatToggle.addEventListener('change', function() {
+            isGroupChatMode = this.checked; // Update chat mode
+            chatArea.innerHTML = ''; // Clear chat area
+            if (isGroupChatMode) {
+                chatTitle.textContent = "קבוצת בוטים"; // Update title
+                chatStatus.textContent = "2 בוטים"; // Update status
+                profilePic.src = "https://placehold.co/40x40/000000/FFFFFF?text=G"; // Change to group icon
+                renderChat(); // Re-render chat with group history
+                addSystemMessage("עברת למצב צ'אט קבוצתי.", 'info');
+            } else {
+                chatTitle.textContent = "AI Assistant Bot"; // Update title
+                chatStatus.textContent = "online"; // Update status
+                profilePic.src = "https://placehold.co/40x40/000000/FFFFFF?text=B"; // Change to single bot icon
+                renderChat(); // Re-render chat with 1-on-1 history
+                addSystemMessage("עברת למצב צ'אט אישי.", 'info');
+            }
+            chatArea.scrollTop = chatArea.scrollHeight; // Scroll to bottom
+        });
+
+        videoCallIcon.addEventListener('click', function() {
+            addSystemMessage("מתחיל שיחת וידאו...", 'info');
+        });
+
+        normalCallIcon.addEventListener('click', function() {
+            addSystemMessage("מתחיל שיחת קול...", 'info');
+        });
+
+        attachmentIcon.addEventListener('click', () => {
+            imageInput.click(); // Trigger the hidden file input for image selection
+        });
+
+        imageInput.addEventListener('change', function(event) {
+            const file = event.target.files[0];
+            if (file && file.type.startsWith('image/')) {
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    const base64Image = e.target.result; // Get base64 string of the image
+                    addImageMessage(base64Image, 'user'); // Display the image in chat
+                    // Note: To send this image to a Gemini Vision model for understanding,
+                    // you would need to include it in the 'parts' array of the API payload.
+                    // This demo only displays the image locally.
+                };
+                reader.readAsDataURL(file); // Read the file as a base64 data URL
+            } else {
+                addSystemMessage("אנא בחר קובץ תמונה.", 'warning');
+            }
+            imageInput.value = ''; // Clear the input to allow selecting the same file again
+        });
+
+        // --- Initial Application Setup ---
+        initializeFirebase(); // Start Firebase initialization and authentication process
+    </script>
+</body>
+</html>
+

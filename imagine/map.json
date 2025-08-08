@@ -1,0 +1,34 @@
+{
+  "name": "Valley of Cork Oaks, Southwest Portugal",
+  "description": "A lush valley in southwest Portugal, filled with ancient cork oak trees, rolling hills, and vibrant wildlife.",
+  "areas": [
+    { "id": "riverbank", "name": "River", "description": "A gentle river winds through the valley, its banks shaded by cork oaks.", "lat": 37.328500, "lon": -8.734444 },
+    { "id": "grove", "name": "Cork Oak Grove", "description": "Dense clusters of cork oak trees, their bark harvested for centuries.", "lat": 37.328861, "lon": -8.732444 },
+    { "id": "meadow", "name": "Fern Meadow", "description": "A lush meadow carpeted with ferns, cool and shaded beneath the cork oaks.", "lat": 37.328667, "lon": -8.734417 },
+    { "id": "hilltop", "name": "Hilltop View", "description": "A high point overlooking the valley and distant mountains.", "lat": 37.336333, "lon": -8.737694 },
+    { "id": "monte_do_barro", "name": "Monte do Barro", "description": "A welcoming house in the valley where Lian, Arturo, Alma, Daphna, Yanai, and Ilay live together. The road is on one side and a cliff, forest, and river on the other.", "lat": 37.329694, "lon": -8.733889 },
+    { "id": "moinho_do_bispo", "name": "Moinho do Bispo", "description": "The area at the end of the valley where Gil, Yael, Omer, and Nomi live together in a family house.", "lat": 37.330252256016735, "lon": -8.731455788018812 },
+    { "id": "road", "name": "Valley Road", "description": "A winding dirt road that runs through the valley, connecting its main areas.", "lat": 37.329134, "lon": -8.733997 },
+    { "id": "forest", "name": "Cork Oak and Medronho Forest", "description": "A dense forest of cork oaks and medronho trees, rich in biodiversity.", "lat": 37.328500, "lon": -8.734444 },
+    { "id": "lake", "name": "Lake", "description": "A tranquil lake reflecting the sky, surrounded by cork oaks and wildlife.", "lat": 37.337333, "lon": -8.737361 }
+  ],
+  "connections": [
+    { "from": "riverbank", "to": "grove" },
+    { "from": "grove", "to": "road" },
+    { "from": "meadow", "to": "forest" },
+    { "from": "forest", "to": "hilltop" },
+    { "from": "road", "to": "grove" },
+    { "from": "road", "to": "hilltop" },
+    { "from": "road", "to": "meadow" },
+    { "from": "road", "to": "monte_do_barro" },
+    { "from": "monte_do_barro", "to": "hilltop" },
+    { "from": "monte_do_barro", "to": "cliff" },
+    { "from": "road", "to": "moinho_do_bispo" },
+    { "from": "moinho_do_bispo", "to": "riverbank" },
+    { "from": "cliff", "to": "forest" },
+    { "from": "forest", "to": "riverbank" }
+  ],
+  "special": [
+    { "id": "cliff", "name": "Cliff", "description": "A steep cliff next to Lian's house, leading down to the forest and river.", "lat": 37.328861, "lon": -8.734806 }
+  ]
+}

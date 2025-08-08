@@ -1,0 +1,154 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>HotMatch - Our Sexy Dating App</title>
+    <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+    <style>
+        body { background: linear-gradient(to bottom, #ff4b6b, #ff8e53); }
+        .profile-card { transition: transform 0.3s; }
+        .profile-card:hover { transform: scale(1.05); }
+        #swipe-area { height: 400px; }
+    </style>
+</head>
+<body class="min-h-screen flex items-center justify-center text-gray-800">
+    <div class="container mx-auto p-4">
+        <h1 class="text-4xl font-bold text-center text-white mb-6">HotMatch 🔥</h1>
+        
+        <!-- Login/Signup Form -->
+        <div id="auth-section" class="bg-white rounded-lg shadow-lg p-6 max-w-md mx-auto">
+            <h2 id="form-title" class="text-2xl font-semibold text-center mb-4">Login</h2>
+            <div class="space-y-4">
+                <input id="username" type="text" placeholder="Username" class="w-full p-2 border rounded">
+                <input id="password" type="password" placeholder="Password" class="w-full p-2 border rounded">
+                <input id="bio" type="text" placeholder="Your sexy bio" class="w-full p-2 border rounded hidden">
+                <input id="image" type="text" placeholder="Profile image URL (optional)" class="w-full p-2 border rounded hidden">
+                <button id="auth-btn" class="w-full bg-pink-500 text-white p-2 rounded hover:bg-pink-600">Login</button>
+                <p class="text-center text-sm">
+                    <a href="#" id="toggle-auth" class="text-pink-500 hover:underline">Need an account? Sign up!</a>
+                </p>
+            </div>
+        </div>
+
+        <!-- Profile Swipe Section -->
+        <div id="swipe-section" class="hidden mt-8 max-w-md mx-auto">
+            <div id="swipe-area" class="bg-white rounded-lg shadow-lg p-4 text-center">
+                <h2 class="text-2xl font-semibold mb-4">Find Your Match 😘</h2>
+                <div id="profile-card" class="profile-card bg-gray-100 p-4 rounded">
+                    <h3 id="profile-name" class="text-xl font-bold"></h3>
+                    <p id="profile-bio" class="mt-2"></p>
+                </div>
+                <div class="mt-4 space-x-4">
+                    <button id="like-btn" class="bg-green-500 text-white p-2 rounded hover:bg-green-600">Like 💖</button>
+                    <button id="pass-btn" class="bg-red-500 text-white p-2 rounded hover:bg-red-600">Pass 😒</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let isLogin = true;
+        let currentUser = null;
+        let profiles = [];
+        let currentProfileIndex = 0;
+
+        // Toggle between login and signup
+        document.getElementById('toggle-auth').addEventListener('click', () => {
+            isLogin = !isLogin;
+            document.getElementById('form-title').textContent = isLogin ? 'Login' : 'Sign Up';
+            document.getElementById('toggle-auth').textContent = isLogin ? 'Need an account? Sign up!' : 'Already have an account? Log in!';
+            document.getElementById('bio').classList.toggle('hidden', isLogin);
+            document.getElementById('image').classList.toggle('hidden', isLogin);
+            document.getElementById('auth-btn').textContent = isLogin ? 'Login' : 'Sign Up';
+        });
+
+        // Handle login/signup
+        document.getElementById('auth-btn').addEventListener('click', async () => {
+            const username = document.getElementById('username').value;
+            const password = document.getElementById('password').value;
+            const bio = document.getElementById('bio').value;
+            const image = document.getElementById('image').value;
+
+            if (!username || !password) {
+                alert('Please fill in all fields!');
+                return;
+            }
+
+            const endpoint = isLogin ? 'login.php' : 'signup.php';
+            const data = isLogin ? { username, password } : { username, password, bio, image };
+
+            try {
+                const response = await fetch(endpoint, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(data)
+                });
+                const result = await response.json();
+
+                if (result.success) {
+                    currentUser = username;
+                    document.getElementById('auth-section').classList.add('hidden');
+                    document.getElementById('swipe-section').classList.remove('hidden');
+                    loadProfiles();
+                } else {
+                    alert(result.message);
+                }
+            } catch (error) {
+                alert('Something went wrong! 😢');
+            }
+        });
+
+        // Load profiles to swipe
+        async function loadProfiles() {
+            try {
+                const response = await fetch('get_profiles.php', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ currentUser })
+                });
+                profiles = await response.json();
+                showNextProfile();
+            } catch (error) {
+                alert('Error loading profiles!');
+            }
+        }
+
+        // Show next profile
+        function showNextProfile() {
+            if (currentProfileIndex >= profiles.length) {
+                document.getElementById('profile-card').innerHTML = '<p>No more profiles to swipe!</p>';
+                return;
+            }
+            const profile = profiles[currentProfileIndex];
+            let imgHtml = '';
+            if (profile.image) {
+                imgHtml = `<img src="${profile.image}" alt="Profile Image" class="mx-auto mb-2 rounded-full w-32 h-32 object-cover border-4 border-pink-300">`;
+            }
+            document.getElementById('profile-card').innerHTML = `
+                ${imgHtml}
+                <h3 id="profile-name" class="text-xl font-bold">${profile.username}</h3>
+                <p id="profile-bio" class="mt-2">${profile.bio}</p>
+            `;
+        }
+
+        // Handle like/pass
+        document.getElementById('like-btn').addEventListener('click', async () => {
+            if (currentProfileIndex < profiles.length) {
+                await fetch('swipe.php', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ currentUser, targetUser: profiles[currentProfileIndex].username, action: 'like' })
+                });
+                currentProfileIndex++;
+                showNextProfile();
+            }
+        });
+
+        document.getElementById('pass-btn').addEventListener('click', () => {
+            currentProfileIndex++;
+            showNextProfile();
+        });
+    </script>
+</body>
+</html>

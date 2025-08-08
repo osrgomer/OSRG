@@ -1,0 +1,23 @@
+{
+  "format_version": "1.16.0",
+  "minecraft:spawn_rules": {
+    "description": {
+      "identifier": "minecraft:platypus",
+      "population_control": "animal"
+    },
+    "conditions": [
+      {
+        "minecraft:spawns_on_surface": {},
+        "minecraft:spawns_in_water": {},
+        "minecraft:weight": {
+          "default": 10
+        },
+        "minecraft:biome_filter": {
+          "test": "has_biome_tag",
+          "operator": "==",
+          "value": "river"
+        }
+      }
+    ]
+  }
+}

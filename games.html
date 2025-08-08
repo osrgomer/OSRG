@@ -1,0 +1,476 @@
+import React, { useState, useCallback, useEffect } from 'react';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardFooter,
+  CardHeader,
+  CardTitle,
+} from '@/components/ui/card';
+import {
+  Form,
+  FormControl,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormMessage,
+} from '@/components/ui/form';
+import { useForm } from 'react-hook-form';
+import { zodResolver } from '@hookform/resolvers/zod';
+import * as z from 'zod';
+import { cn } from '@/lib/utils';
+import { motion, AnimatePresence } from 'framer-motion';
+import { AlertCircle, CheckCircle, Loader2, Lightbulb } from 'lucide-react';
+
+// Define the form schema using Zod
+const formSchema = z.object({
+  email: z.string().email({
+    message: 'Please enter a valid email address.',
+  }),
+  password: z.string().min(8, {
+    message: 'Password must be at least 8 characters long.',
+  }),
+});
+
+// Animation variants
+const cardVariants = {
+  hidden: { opacity: 0, y: 50 },
+  visible: { opacity: 1, y: 0, transition: { duration: 0.5, ease: 'easeInOut' } },
+  exit: { opacity: 0, y: -50, transition: { duration: 0.3 } },
+};
+
+// --- Authentication Form Component ---
+const AuthForm = ({ onLogin }: { onLogin: () => void }) => { // Add onLogin prop
+  const [isLogin, setIsLogin] = useState(true); // Track login/signup state
+  const [isLoading, setIsLoading] = useState(false); // Track loading state
+  const [error, setError] = useState<string | null>(null); // Track errors
+  const [success, setSuccess] = useState<string | null>(null); // Track success
+  const [users, setUsers] = useState<{ email: string; password: string }[]>([]); // Store user data
+  const [redirectToGameHub, setRedirectToGameHub] = useState(false);
+  const [redirectTimeout, setRedirectTimeout] = useState<NodeJS.Timeout | null>(null);
+
+
+  // Initialize the form using react-hook-form
+  const form = useForm<z.infer<typeof formSchema>>({
+    resolver: zodResolver(formSchema),
+    defaultValues: {
+      email: '',
+      password: '',
+    },
+  });
+
+  // Load users from localStorage on component mount
+  useEffect(() => {
+    const storedUsers = localStorage.getItem('users');
+    if (storedUsers) {
+      try {
+        setUsers(JSON.parse(storedUsers));
+      } catch (e) {
+        console.error('Error parsing users from localStorage', e);
+        // Handle the error, e.g., clear the invalid data
+        localStorage.removeItem('users');
+      }
+    }
+  }, []);
+
+  // Function to save users to localStorage
+  const saveUsersToLocalStorage = (
+    updatedUsers: { email: string; password: string }[]
+  ) => {
+    try {
+      localStorage.setItem('users', JSON.stringify(updatedUsers));
+    } catch (e) {
+      console.error('Error saving users to localStorage', e);
+    }
+  };
+
+  // Function to handle form submission (login or signup)
+    const onSubmit = useCallback(
+        async (values: z.infer<typeof formSchema>) => {
+            setIsLoading(true);
+            setError(null);
+            setSuccess(null);
+
+            try {
+                await new Promise((resolve) => setTimeout(resolve, 1500)); // Simulate delay
+
+                if (isLogin) {
+                    // Login logic: Check if user exists
+                    const user = users.find(
+                        (u) => u.email === values.email && u.password === values.password
+                    );
+                    if (user) {
+                        setSuccess('Login successful!');
+                        onLogin(); // Call the onLogin callback
+                    } else {
+                        throw new Error('Invalid credentials.');
+                    }
+                } else {
+                    // Signup logic: Check if email is already in use
+                    const emailExists = users.find((u) => u.email === values.email);
+                    if (emailExists) {
+                        throw new Error('Email already in use.');
+                    } else {
+                        // Add new user to the list and save
+                        const newUser = { email: values.email, password: values.password };
+                        const updatedUsers = [...users, newUser];
+                        setUsers(updatedUsers);
+                        saveUsersToLocalStorage(updatedUsers); // Save to localStorage
+                        setSuccess('Signup successful!');
+                        onLogin();
+                    }
+                }
+            } catch (err: any) {
+                if (err instanceof Error) {
+                    setError(err.message || 'An unexpected error occurred');
+                } else {
+                    setError('An unexpected error occurred');
+                }
+            } finally {
+                setIsLoading(false);
+            }
+        },
+        [isLogin, users, onLogin]
+    );
+
+  // Function to toggle between login and signup
+  const toggleAuthMode = () => {
+    setIsLogin((prev) => !prev);
+    // Reset the form when switching modes
+    form.reset();
+    setError(null); // Clear errors
+    setSuccess(null); // Clear success message
+
+    // Clear any pending timeouts
+    if (redirectTimeout) {
+      clearTimeout(redirectTimeout);
+      setRedirectTimeout(null);
+    }
+  };
+
+  return (
+    <div className="flex items-center justify-center min-h-screen bg-gray-900">
+      <AnimatePresence>
+        <motion.div
+          variants={cardVariants}
+          initial="hidden"
+          animate="visible"
+          exit="exit"
+          className="w-full max-w-md"
+        >
+          <Card className="bg-gray-800 border-gray-700 shadow-lg">
+            <CardHeader>
+              <CardTitle className="text-2xl font-semibold text-white">
+                {isLogin ? 'Login' : 'Sign Up'}
+              </CardTitle>
+              <CardDescription className="text-gray-400">
+                {isLogin
+                  ? 'Welcome back! Please enter your credentials.'
+                  : 'Create an account to get started.'}
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              <Form {...form}>
+                <form
+                  onSubmit={form.handleSubmit(onSubmit)}
+                  className="space-y-6"
+                >
+                  <FormField
+                    control={form.control}
+                    name="email"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel className="text-gray-300">Email</FormLabel>
+                        <FormControl>
+                          <Input
+                            placeholder="Enter your email"
+                            {...field}
+                            type="email"
+                            className="bg-gray-700 border-gray-600 text-white placeholder:text-gray-400"
+                          />
+                        </FormControl>
+                        <FormMessage className="text-red-400" />
+                      </FormItem>
+                    )}
+                  />
+                  <FormField
+                    control={form.control}
+                    name="password"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel className="text-gray-300">Password</FormLabel>
+                        <FormControl>
+                          <Input
+                            placeholder="Enter your password"
+                            {...field}
+                            type="password"
+                            className="bg-gray-700 border-gray-600 text-white placeholder:text-gray-400"
+                          />
+                        </FormControl>
+                        <FormMessage className="text-red-400" />
+                      </FormItem>
+                    )}
+                  />
+                  <Button
+                    type="submit"
+                    className={cn(
+                      'w-full bg-blue-500 text-white hover:bg-blue-600',
+                      'transition-colors duration-200',
+                      isLoading && 'opacity-70 cursor-not-allowed' // Style when loading
+                    )}
+                    disabled={isLoading}
+                  >
+                    {isLoading ? (
+                      <>
+                        <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                        Loading...
+                      </>
+                    ) : (
+                      isLogin ? 'Login' : 'Sign Up'
+                    )}
+                  </Button>
+                </form>
+              </Form>
+            </CardContent>
+            <CardFooter className="flex flex-col items-center gap-4">
+              <Button
+                variant="outline"
+                className="text-gray-300 hover:text-white hover:bg-gray-700 border-gray-600 w-full"
+                onClick={toggleAuthMode}
+                disabled={isLoading}
+              >
+                {isLogin
+                  ? "Don't have an account? Sign up"
+                  : 'Already have an account? Login'}
+              </Button>
+              {error && (
+                <div className="flex items-center gap-2 text-red-400 bg-red-500/10 p-3 rounded-md border border-red-500/20 w-full">
+                  <AlertCircle className="h-5 w-5" />
+                  {error}
+                </div>
+              )}
+              {success && (
+                <div className="flex items-center gap-2 text-green-400 bg-green-500/10 p-3 rounded-md border border-green-500/20 w-full">
+                  <CheckCircle className="h-5 w-5" />
+                  {success}
+                </div>
+              )}
+            </CardFooter>
+          </Card>
+        </motion.div>
+      </AnimatePresence>
+    </div>
+  );
+};
+
+// --- Number Guessing Game Component ---
+const NumberGuessingGame = () => {
+  const [randomNumber, setRandomNumber] = useState(0);
+  const [guess, setGuess] = useState('');
+  const [message, setMessage] = useState('');
+  const [attempts, setAttempts] = useState(0);
+  const [isGameOver, setIsGameOver] = useState(false);
+  const [score, setScore] = useState(0);
+  const [gameStarted, setGameStarted] = useState(false);
+  const [hintsLeft, setHintsLeft] = useState(5); // Initialize hints
+  const [hintMessage, setHintMessage] = useState('');
+  const [currentHint, setCurrentHint] = useState(0); // Track which hint to give
+
+  // Function to start a new game
+  const startGame = useCallback(() => {
+    const newRandomNumber = Math.floor(Math.random() * 100) + 1; // Generate number between 1 and 100
+    setRandomNumber(newRandomNumber);
+    setGuess('');
+    setMessage('');
+    setAttempts(0);
+    setIsGameOver(false);
+    setHintsLeft(5); // Reset hints at the start of a new game
+    setHintMessage('');
+    setCurrentHint(0);
+    setGameStarted(true);
+  }, []);
+
+  // Initialize game on component mount
+  useEffect(() => {
+    startGame();
+  }, [startGame]);
+
+  const handleGuessChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+    // Only allow numeric input, and limit to 2 characters
+    const value = event.target.value.replace(/[^0-9]/g, '').slice(0, 2);
+    setGuess(value);
+  };
+
+  const checkGuess = useCallback(() => {
+    if (!guess) {
+      setMessage('Please enter a guess.');
+      return;
+    }
+
+    const parsedGuess = parseInt(guess, 10);
+
+    if (isNaN(parsedGuess)) {
+      setMessage('Invalid input. Please enter a number.');
+      setGuess('');
+      return;
+    }
+
+    setAttempts(prevAttempts => prevAttempts + 1);
+
+    if (parsedGuess === randomNumber) {
+      setMessage(`Kонечно! You guessed the number in ${attempts + 1} attempts.`);
+      setIsGameOver(true);
+      setScore(prevScore => prevScore + (10 - attempts)); // Award points
+    } else if (parsedGuess < randomNumber) {
+      setMessage('Too low! Try a bit higher.');
+      setGuess('');
+    } else {
+      setMessage('Too high! Aim lower.');
+      setGuess('');
+    }
+  }, [guess, randomNumber, attempts]);
+
+  const handleNewGame = () => {
+    startGame();
+  };
+
+  const handleHint = () => {
+    if (hintsLeft > 0) {
+      setHintsLeft(prevHints => prevHints - 1);
+      setCurrentHint(prevHint => prevHint + 1); // Increment hint counter
+
+      let hint = '';
+      switch (currentHint) {
+        case 0:
+          hint = randomNumber > 50 ? 'The number is greater than 50.' : 'The number is less than 50.';
+          break;
+        case 1:
+          hint = randomNumber % 2 === 0 ? 'The number is even.' : 'The number is odd.';
+          break;
+        case 2:
+          const firstDigit = Math.floor(randomNumber / 10);
+          hint = `The first digit is ${firstDigit}.`;
+          break;
+        case 3:
+            const lastDigit = randomNumber % 10;
+            hint = `The last digit is ${lastDigit}.`;
+            break;
+        case 4:
+            if (randomNumber > 75) {
+                hint = "The number is in the range 76-100";
+            } else if (randomNumber > 50) {
+                hint = "The number is in the range 51-75";
+            } else if (randomNumber > 25) {
+                hint = "The number is in the range 26-50";
+            }
+            else {
+                hint = "The number is in the range 1-25";
+            }
+            break;
+        default:
+          hint = 'Sorry, no more hints available.'; // This should not happen, but is here for safety
+      }
+      setHintMessage(hint);
+    } else {
+      setHintMessage('Sorry, you\'ve used all your hints.');
+    }
+  };
+
+  return (
+    <motion.div
+      initial={{ opacity: 0, y: 20 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.5 }}
+      className="flex flex-col items-center justify-center min-h-screen bg-gradient-to-br from-purple-400 to-blue-500 p-4"
+    >
+      <div className="w-full max-w-md bg-white/20 backdrop-blur-md rounded-xl shadow-lg p-6 border border-white/10">
+        <h1 className="text-3xl font-bold text-white mb-4 text-center">Number Guessing Game</h1>
+
+        {gameStarted && (
+          <div className="space-y-4">
+            <p className="text-gray-200 text-center">
+              Guess the number (between 1 and 100):
+            </p>
+            <Input
+              type="text"
+              placeholder="Your guess"
+              value={guess}
+              onChange={handleGuessChange}
+              className="bg-black/20 text-white border-purple-300 placeholder:text-gray-400"
+            />
+            <div className="flex items-center justify-center gap-4">
+                <Button
+                onClick={checkGuess}
+                className="w-1/2 bg-gradient-to-r from-pink-500 to-red-500 text-white hover:from-pink-600 hover:to-red-600 px-6 py-2 rounded-full transition-all duration-300"
+                disabled={isGameOver}
+                >
+                Check Guess
+                </Button>
+                <Button
+                onClick={handleHint}
+                className="w-1/2 bg-gradient-to-r from-yellow-500 to-orange-500 text-white hover:from-yellow-600 hover:to-orange-600 px-6 py-2 rounded-full transition-all duration-300 flex items-center gap-2"
+                disabled={hintsLeft <= 0} // Disable if no hints left
+                >
+                <Lightbulb className="w-4 h-4" />
+                Hint ({hintsLeft})
+                </Button>
+            </div>
+            <p className={cn(
+                "text-center font-medium",
+                message.includes("Правильно") ? "text-green-300" : "text-yellow-300"
+            )}>
+                {message}
+            </p>
+             <p className="text-blue-200 text-center">{hintMessage}</p>
+            <p className="text-gray-200 text-center">Attempts: {attempts}</p>
+          </div>
+        )}
+
+        {isGameOver && (
+          <motion.div
+            initial={{ opacity: 0, scale: 0.8 }}
+            animate={{ opacity: 1, scale: 1 
+            transition={{ duration: 0.3 }
+            className="text-center space-y-4"
+          >
+            <p className="text-white text-lg font-semibold">{message}</p>
+            <p className="text-gray-200">Your Score: {score}</p>
+            <Button
+              onClick={handleNewGame}
+              className="bg-gradient-to-r from-blue-400 to-purple-500 text-white hover:from-blue-500 hover:to-purple-600 px-6 py-2 rounded-full transition-all duration-300"
+            >
+              Play Again
+            </Button>
+          </motion.div>
+        )}
+      </div>
+    </motion.div>
+  );
+};
+
+// --- Main App Component ---
+const App = () => {
+  const [showGameHub, setShowGameHub] = useState(false);
+
+  const handleLogin = () => {
+    setShowGameHub(true);
+  };
+
+  return (
+    <>
+      {!showGameHub ? (
+        <AuthForm onLogin={handleLogin} />
+      ) : (
+        <div className="bg-gray-900 min-h-screen">
+          <h1 className="text-3xl font-bold text-white text-center p-8">Game Hub</h1>
+          <NumberGuessingGame />
+          {/* Add more games here */}
+        </div>
+      )}
+    </>
+  );
+};
+
+export default App;

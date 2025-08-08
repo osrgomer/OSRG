@@ -103,12 +103,12 @@ function createAudio(src) {
 
 function loadSounds() {
     try {
-        sounds.collision = createAudio('osrg/Valley/collision.wav');
-        sounds.passSmallHole = createAudio('osrg/Valley/pass.wav');
-        sounds.levelUp = createAudio('osrg/Valley/levelup.wav');
-        sounds.gameOver = createAudio('osrg/Valley/gameover.wav');
-        sounds.engine = createAudio('osrg/Valley/engine_loop.wav');
-        sounds.last_collision = createAudio('osrg/Valley/last_collision.wav'); // Load last collision sound
+        sounds.collision = createAudio('collision.wav');
+        sounds.passSmallHole = createAudio('pass.wav');
+        sounds.levelUp = createAudio('levelup.wav');
+        sounds.gameOver = createAudio('gameover.wav');
+        sounds.engine = createAudio('engine_loop.wav');
+        sounds.last_collision = createAudio('last_collision.wav'); // Load last collision sound
 
         // Store default volumes safely
         defaultVolumes.collision = sounds.collision ? sounds.collision.volume : 1.0;

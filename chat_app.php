@@ -503,7 +503,7 @@
                     $("#exit").click(function(){
                         var exit = window.confirm("Are you sure you want to end the session?");
                         if(exit==true){
-                            window.location = 'test.php?logout'; // This triggers the PHP logout logic
+                            window.location = 'chat_app.php?logout'; // This triggers the PHP logout logic
                         }
                         return false;
                     });

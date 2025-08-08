@@ -331,7 +331,7 @@
             echo '
             <div id="loginform">
                 <p>Please enter your name to continue!</p>
-                <form action="test.php" method="post">
+                <form action="chat_app.php" method="post">
                     <label for="name">Name:</label>
                     <input type="text" name="name" id="name" />
                     <label for="avatar">Choose an avatar:</label>

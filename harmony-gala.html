@@ -90,8 +90,28 @@
         body.grayscale {
             filter: grayscale(100%);
         }
+        body.increased-spacing {
+            letter-spacing: 0.12em;
+            word-spacing: 0.16em;
+            line-height: 2;
+        }
+        body.reduced-motion * {
+            animation: none !important;
+            transition: none !important;
+        }
+        body.dyslexic-font {
+            font-family: OpenDyslexic, Arial, sans-serif;
+        }
+        body.serif-font {
+            font-family: Georgia, 'Times New Roman', serif;
+        }
         .option-group {
             margin: 15px 0;
+            border-bottom: 1px solid #eee;
+            padding-bottom: 15px;
+        }
+        .option-group:last-child {
+            border-bottom: none;
         }
         .option-group button {
             margin: 5px;
@@ -100,10 +120,23 @@
             background: #fff;
             border-radius: 4px;
             cursor: pointer;
+            font-size: 0.9em;
         }
         .option-group button:hover {
             background: #4CAF50;
             color: white;
+        }
+        .option-group button.active {
+            background: #4CAF50;
+            color: white;
+        }
+        .option-group select {
+            margin: 5px;
+            padding: 8px;
+            border: 1px solid #4CAF50;
+            border-radius: 4px;
+            width: 100%;
+            box-sizing: border-box;
         }
     </style>
 </head>
@@ -133,13 +166,29 @@
         </div>
 
         <div class="option-group">
-            <h4>High Contrast</h4>
-            <button data-action="toggle-contrast">Toggle Contrast</button>
+            <h4>Font Type</h4>
+            <select id="font-selector" data-action="change-font">
+                <option value="default">Default Font</option>
+                <option value="serif">Serif Font</option>
+                <option value="dyslexic">OpenDyslexic</option>
+            </select>
         </div>
 
         <div class="option-group">
-            <h4>Grayscale</h4>
-            <button data-action="toggle-grayscale">Toggle Grayscale</button>
+            <h4>Text Spacing</h4>
+            <button data-action="toggle-spacing">Toggle Increased Spacing</button>
+        </div>
+
+        <div class="option-group">
+            <h4>Visual Adjustments</h4>
+            <button data-action="toggle-contrast">High Contrast</button>
+            <button data-action="toggle-grayscale">Grayscale</button>
+            <button data-action="toggle-motion">Reduce Motion</button>
+        </div>
+
+        <div class="option-group">
+            <h4>Reading Guide</h4>
+            <button data-action="toggle-guide">Toggle Reading Line</button>
         </div>
     </div>
     <a href="kingdom.html" class="back-link">← Back to the Kingdom's main page</a>
@@ -227,15 +276,66 @@
                     const currentSize = parseFloat(getComputedStyle(body).fontSize);
                     body.style.fontSize = (currentSize - 2) + 'px';
                 } else if (action === 'reset-text') {
-                    body.style.fontSize = ''; // Reset to default
+                    body.style.fontSize = '';
                 } else if (action === 'toggle-contrast') {
                     body.classList.toggle('high-contrast');
                     localStorage.setItem('highContrast', body.classList.contains('high-contrast'));
+                    event.target.classList.toggle('active');
                 } else if (action === 'toggle-grayscale') {
                     body.classList.toggle('grayscale');
                     localStorage.setItem('grayscale', body.classList.contains('grayscale'));
+                    event.target.classList.toggle('active');
+                } else if (action === 'toggle-spacing') {
+                    body.classList.toggle('increased-spacing');
+                    localStorage.setItem('increasedSpacing', body.classList.contains('increased-spacing'));
+                    event.target.classList.toggle('active');
+                } else if (action === 'toggle-motion') {
+                    body.classList.toggle('reduced-motion');
+                    localStorage.setItem('reducedMotion', body.classList.contains('reduced-motion'));
+                    event.target.classList.toggle('active');
+                } else if (action === 'toggle-guide') {
+                    if (!document.getElementById('reading-guide')) {
+                        const guide = document.createElement('div');
+                        guide.id = 'reading-guide';
+                        guide.style.cssText = 'position:fixed;left:0;right:0;height:2px;background:#4CAF50;pointer-events:none;z-index:9999;display:none;';
+                        document.body.appendChild(guide);
+                        document.addEventListener('mousemove', (e) => {
+                            guide.style.top = e.clientY + 'px';
+                            guide.style.display = 'block';
+                        });
+                    } else {
+                        const guide = document.getElementById('reading-guide');
+                        guide.remove();
+                    }
+                    event.target.classList.toggle('active');
                 }
             });
+
+            // Handle font selection
+            const fontSelector = document.getElementById('font-selector');
+            fontSelector.addEventListener('change', (event) => {
+                body.classList.remove('serif-font', 'dyslexic-font');
+                if (event.target.value !== 'default') {
+                    body.classList.add(event.target.value + '-font');
+                }
+                localStorage.setItem('fontType', event.target.value);
+            });
+
+            // Load additional saved settings
+            if (localStorage.getItem('increasedSpacing') === 'true') {
+                body.classList.add('increased-spacing');
+                document.querySelector('[data-action="toggle-spacing"]').classList.add('active');
+            }
+            if (localStorage.getItem('reducedMotion') === 'true') {
+                body.classList.add('reduced-motion');
+                document.querySelector('[data-action="toggle-motion"]').classList.add('active');
+            }
+            if (localStorage.getItem('fontType')) {
+                fontSelector.value = localStorage.getItem('fontType');
+                if (fontSelector.value !== 'default') {
+                    body.classList.add(fontSelector.value + '-font');
+                }
+            }
         });
     </script>
 </body>

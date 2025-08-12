@@ -51,43 +51,13 @@
         <h2>Event Details</h2>
         <p><strong>Date:</strong> August 25, 2025</p>
         <p><strong>Time:</strong> 6:00 PM - 11:00 PM</p>
-        <p><strong>Location:</strong> Royal Palace Gardens, OSRG's Kingdom<br>
-        <span style="font-size: 0.9em; color: #666;">Located in the Northern Mountains of Canada by the Arctic Ocean (Crystal Sea)</span></p>
+        <p><strong>Location:</strong> Royal Palace Gardens, OSRG's Kingdom</p>
+        <div style="background: #f5f5f5; padding: 15px; border-radius: 8px; margin: 15px 0;">
+            <p style="font-size: 0.95em; color: #444;">The Royal Palace Gardens are situated in the heart of OSRG's Kingdom, within the Mackenzie Mountains of Canada's Northwest Territories. The gardens extend over 50 hectares of terraced landscapes, featuring indigenous Canadian flora and crystalline waterways fed by mountain springs. The grand venue lies at the eastern wing of the Royal Castle, offering breathtaking views of Great Bear Lake and the distant Northern Lights.</p>
+            <p style="font-size: 0.95em; color: #444; margin-top: 10px;">Guests traveling from southern regions can reach the kingdom via the Royal Transportation Service from Yellowknife, the nearest major city. The journey offers spectacular views of the Canadian wilderness and typically takes 2 hours by air or 1 day by the scenic Royal Mountain Railway.</p>
+        </div>
         <p><strong>Dress Code:</strong> Formal Attire</p>
-        <div id="map" style="margin-top: 20px; height: 300px; border-radius: 8px;"></div>
     </div>
-
-    <script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyAAGk7e5nqt-tkDNr6kH1dkYbjd3N2a33w&callback=initMap" async defer></script>
-    <script>
-        function initMap() {
-            const map = new google.maps.Map(document.getElementById("map"), {
-                zoom: 5,
-                center: { lat: 67.0305, lng: -110.4305 },
-                mapTypeId: 'satellite'
-            });
-
-            const castle = new google.maps.Marker({
-                position: { lat: 67.0305, lng: -110.4305 },
-                map: map,
-                label: "🏰",
-                title: "Royal Palace Gardens"
-            });
-
-            // Add info window with event details
-            const infoWindow = new google.maps.InfoWindow({
-                content: `
-                    <h3>Royal Palace Gardens</h3>
-                    <p>Venue for The Harmony Gala</p>
-                    <p><strong>Date:</strong> August 25, 2025</p>
-                    <p><strong>Time:</strong> 6:00 PM - 11:00 PM</p>
-                `
-            });
-
-            castle.addListener("click", () => {
-                infoWindow.open(map, castle);
-            });
-        }
-    </script>
 
     <p>Join us for an enchanting evening celebrating the arts, culture, and unity of OSRG's Kingdom. The Harmony Gala is our premier annual event that brings together artists, musicians, and performers from all corners of the realm.</p>
 

@@ -23,35 +23,12 @@
     <header>
         <h1>👑 OSRG's Kingdom</h1>
         <p style="font-style: italic; color: #555;">A land of wisdom, harmony, and innovation</p>
-        <p style="color: #666;"><strong>Location:</strong> Nestled in the majestic Northern Mountains of Canada, bordered by the Arctic Ocean (Crystal Sea)</p>
-        <div id="map" style="margin: 20px 0; height: 400px; border-radius: 10px;"></div>
+        <div style="background: #f8f9fa; padding: 20px; border-radius: 10px; margin: 20px 0;">
+            <p style="color: #666; margin-bottom: 10px;"><strong>Location:</strong> OSRG's Kingdom is situated in the heart of Canada's Northwest Territories, specifically in the majestic Mackenzie Mountains. The Royal Castle, perched at an elevation of 2,000 meters, overlooks the pristine waters of Great Bear Lake to the east and extends to the Beaufort Sea (Crystal Sea) to the north.</p>
+            
+            <p style="color: #666;">The kingdom's territory spans from the Richardson Mountains in the west to the Coppermine Mountains in the east, encompassing vast boreal forests, crystal-clear lakes, and untouched wilderness. The capital city, nestled in a protected valley, experiences the mesmerizing Northern Lights during winter months and the magical midnight sun during summer.</p>
+        </div>
     </header>
-    <script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyAAGk7e5nqt-tkDNr6kH1dkYbjd3N2a33w&callback=initMap" async defer></script>
-    <script>
-        function initMap() {
-            const map = new google.maps.Map(document.getElementById("map"), {
-                zoom: 5,
-                center: { lat: 67.0305, lng: -110.4305 },
-                mapTypeId: 'satellite'
-            });
-
-            const castle = new google.maps.Marker({
-                position: { lat: 67.0305, lng: -110.4305 },
-                map: map,
-                label: "🏰",
-                title: "OSRG's Royal Castle"
-            });
-
-            // Add info window
-            const infoWindow = new google.maps.InfoWindow({
-                content: "<h3>OSRG's Royal Castle</h3><p>The majestic seat of power in the Northern Mountains</p>"
-            });
-
-            castle.addListener("click", () => {
-                infoWindow.open(map, castle);
-            });
-        }
-    </script>
     <section>
         <img src="https://images.unsplash.com/photo-1506744038136-46273834b3fb?auto=format&fit=crop&w=800&q=80" alt="OSRG's Kingdom" style="width:100%; max-width:600px; display:block; margin:20px auto; border-radius:10px;">
         <p>OSRG is the king of the world. He is a great leader and has many followers. OSRG's kingdom is vast and prosperous, with people living in harmony. He is known for his wisdom and fairness, always making decisions that benefit his subjects.</p>

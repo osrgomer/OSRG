@@ -147,6 +147,21 @@
         body.serif-font {
             font-family: Georgia, 'Times New Roman', serif;
         }
+        body.verdana-font {
+            font-family: Verdana, Arial, sans-serif;
+        }
+        body.tahoma-font {
+            font-family: Tahoma, Arial, sans-serif;
+        }
+        body.comic-font {
+            font-family: 'Comic Sans MS', 'Comic Sans', cursive;
+        }
+        body.mono-font {
+            font-family: 'Courier New', Courier, monospace;
+        }
+        body.helvetica-font {
+            font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;
+        }
         .option-group {
             margin: 15px 0;
             border-bottom: 1px solid #eee;
@@ -210,9 +225,14 @@
         <div class="option-group">
             <h4>Font Type</h4>
             <select id="font-selector" data-action="change-font">
-                <option value="default">Default Font</option>
-                <option value="serif">Serif Font</option>
+                <option value="default">Default Font (Arial)</option>
+                <option value="serif">Serif Font (Georgia)</option>
                 <option value="dyslexic">OpenDyslexic</option>
+                <option value="verdana">Verdana (Easy to Read)</option>
+                <option value="tahoma">Tahoma (Clear Display)</option>
+                <option value="comic">Comic Sans MS (Casual)</option>
+                <option value="mono">Courier New (Monospace)</option>
+                <option value="helvetica">Helvetica Neue</option>
             </select>
         </div>
 
@@ -356,7 +376,7 @@
             // Handle font selection
             const fontSelector = document.getElementById('font-selector');
             fontSelector.addEventListener('change', (event) => {
-                body.classList.remove('serif-font', 'dyslexic-font');
+                body.classList.remove('serif-font', 'dyslexic-font', 'verdana-font', 'tahoma-font', 'comic-font', 'mono-font', 'helvetica-font');
                 if (event.target.value !== 'default') {
                     body.classList.add(event.target.value + '-font');
                 }

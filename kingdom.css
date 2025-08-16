@@ -1,4 +1,4 @@
-body {
+body.kingdom {
   font-family: Arial, sans-serif;
   line-height: 1.6;
   margin: 20px;
@@ -192,7 +192,7 @@ body.helvetica-font {
   border-radius: 4px;
 }
 
-body {
+body.harmony-gala {
   font-family: Arial, sans-serif;
   line-height: 1.6;
   margin: 20px;

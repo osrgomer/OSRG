@@ -20,9 +20,12 @@
         </div>
 
         <!-- UI Elements -->
-        <div id="score-display">SCORE: 0</div>
+        <div id="score-container">
+            <span id="score-display">SCORE: 0</span>
+        </div>
         <div id="speed-display-container">
-            <span id="speed-value">10</span> km/h
+            <span id="speed-value">10</span>
+            <span class="speed-unit">km/h</span>
         </div>
         <div id="lives-display">❤️❤️❤️❤️</div>
         <div id="level-display"></div>
@@ -32,8 +35,12 @@
         <!-- Control Buttons -->
         <div id="controls">
             <button id="left-btn" class="control-btn">←</button>
-            <button id="pause-btn" class="icon-btn">⏸</button>
-            <button id="mute-btn" class="icon-btn">🔊</button>
+            <button id="pause-btn" class="icon-btn">
+                <span>&#10074;&#10074;</span>
+            </button>
+            <button id="mute-btn" class="icon-btn">
+                <span>&#128266;</span>
+            </button>
             <button id="right-btn" class="control-btn">→</button>
         </div>
 

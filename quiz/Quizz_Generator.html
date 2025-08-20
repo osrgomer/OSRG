@@ -115,7 +115,10 @@
         <div id="login" class="text-center">
             <h2 class="text-2xl font-bold mb-4">Quiz Access</h2>
             <input type="text" id="username" placeholder="Username" class="w-full p-3 border rounded mb-3 text-lg">
-            <input type="password" id="password" placeholder="Password" class="w-full p-3 border rounded mb-4 text-lg">
+            <div class="relative mb-4">
+                <input type="password" id="password" placeholder="Password" class="w-full p-3 border rounded text-lg pr-12">
+                <button type="button" onclick="togglePassword()" class="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-500 hover:text-gray-700">👁️</button>
+            </div>
             <button onclick="login()" class="action-button">Login</button>
         </div>
         <div id="quiz-content" style="display:none">
@@ -159,6 +162,11 @@
             'student': 'learn123',
             'quiz_master': 'questions456'
         };
+        
+        function togglePassword() {
+            const passwordField = document.getElementById('password');
+            passwordField.type = passwordField.type === 'password' ? 'text' : 'password';
+        }
         
         function login() {
             const username = document.getElementById('username').value.trim();

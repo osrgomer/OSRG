@@ -12,12 +12,12 @@ body {
 
 /* Home Link */
 #home-link {
-    position: absolute;
-    top: 5px;
-    left: 5px;
+    position: fixed;
+    top: 10px;
+    left: 10px;
     font-size: 24px;
     text-decoration: none;
-    z-index: 200;
+    z-index: 300;
     opacity: 0.8;
     transition: opacity 0.2s ease;
 }
@@ -108,18 +108,20 @@ body {
     z-index: 100;
 }
 #lives-display { /* Line 2 Left */
-    display: block;
-    background-color: #1a1a1a;
-    border: 2px solid #444;
+    display: block !important;
+    background-color: rgba(26, 26, 26, 0.9);
+    border: 2px solid #666;
     border-radius: 4px;
-    padding: 4px 8px;
+    padding: 6px 10px;
     position: absolute;
     top: 35px; /* Below Level/Score */
     left: 10px;
-    font-size: 18px;
-    z-index: 100;
-    box-shadow: inset 1px 1px 3px rgba(0,0,0,0.7);
+    font-size: 20px;
+    z-index: 150;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.5);
     white-space: nowrap;
+    color: #fff;
+    text-shadow: 1px 1px 2px #000;
 }
 /* --- End UI Positioning --- */
 

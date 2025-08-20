@@ -112,6 +112,13 @@
 </head>
 <body>
     <div class="quiz-container">
+        <div id="login" class="text-center">
+            <h2 class="text-2xl font-bold mb-4">Quiz Access</h2>
+            <input type="text" id="username" placeholder="Username" class="w-full p-3 border rounded mb-3 text-lg">
+            <input type="password" id="password" placeholder="Password" class="w-full p-3 border rounded mb-4 text-lg">
+            <button onclick="login()" class="action-button">Login</button>
+        </div>
+        <div id="quiz-content" style="display:none">
         <div class="flex justify-between items-center mb-6">
             <h1 class="text-3xl font-extrabold text-gray-800">Quiz Generator</h1>
             <button id="translate-btn" class="action-button w-auto px-4 py-2 ml-4">Translate to Hebrew</button>
@@ -142,11 +149,28 @@
         <div class="flex justify-center gap-4 mt-8">
             <button id="reload-btn" class="action-button w-1/2">Reload Page</button>
         </div>
-    </div>
+        </div>
 
     <div id="message-box" class="message-box"></div>
 
     <script>
+        const users = {
+            'teacher': 'quiz2024',
+            'student': 'learn123',
+            'quiz_master': 'questions456'
+        };
+        
+        function login() {
+            const username = document.getElementById('username').value.trim();
+            const password = document.getElementById('password').value;
+            
+            if (users[username] && users[username] === password) {
+                document.getElementById('login').style.display = 'none';
+                document.getElementById('quiz-content').style.display = 'block';
+            } else {
+                alert('Invalid username or password!');
+            }
+        }
         // Array of quiz questions
         const initialQuizQuestions = [
             {

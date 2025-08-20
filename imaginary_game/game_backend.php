@@ -2,7 +2,7 @@
 // game_backend.php
 // Receives actions, sends update to Gemini API, returns narrative
 
-// Replace with your Gemini API key
+// Your Gemini API key
 $GEMINI_API_KEY = 'AIzaSyAAGk7e5nqt-tkDNr6kH1dkYbjd3N2a33w';
 $GEMINI_API_URL = 'https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=' . $GEMINI_API_KEY;
 

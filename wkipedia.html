@@ -1,0 +1,327 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Wikipedia Style Page Renderer</title>
+    <!-- Load Tailwind CSS from CDN for modern styling -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        /*
+        Custom CSS to closely mimic the Wikipedia page design.
+        We're using a combination of serif and sans-serif fonts and a clean, spacious layout.
+        */
+        body {
+            font-family: ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, "Noto Sans", sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol", "Noto Color Emoji";
+            background-color: #f8f9fa;
+        }
+
+        .wiki-body-text {
+            font-family: Georgia, Cambria, "Times New Roman", Times, serif;
+            line-height: 1.65;
+            color: #202122;
+        }
+
+        .wiki-header {
+            font-family: "Linux Libertine O", "Georgia", Times, serif;
+        }
+
+        .wiki-content h1, .wiki-content h2, .wiki-content h3, .wiki-content h4, .wiki-content h5, .wiki-content h6 {
+            font-weight: normal;
+            margin-top: 1.5rem;
+            margin-bottom: 0.5rem;
+            line-height: 1.25;
+        }
+
+        .wiki-content h1 { font-size: 2.5em; font-weight: 300; border-bottom: 1px solid #a2a9b1; padding-bottom: 0.5rem; }
+        .wiki-content h2 { font-size: 1.5em; border-bottom: 1px solid #a2a9b1; padding-bottom: 0.25rem; }
+        .wiki-content h3 { font-size: 1.3em; }
+        .wiki-content h4 { font-size: 1.1em; }
+        .wiki-content h5 { font-size: 1em; }
+        .wiki-content h6 { font-size: 0.8em; }
+
+        .wiki-content p { margin-bottom: 1rem; }
+        .wiki-content a { color: #3366cc; text-decoration: none; }
+        .wiki-content a:hover { text-decoration: underline; }
+
+        .infobox {
+            float: right;
+            border: 1px solid #a2a9b1;
+            background-color: #f8f9fa;
+            font-size: 90%;
+            margin: 0.5em 0 0.5em 1em;
+            padding: 0.2em;
+            width: 22em;
+            clear: right;
+        }
+
+        .infobox-title {
+            text-align: center;
+            font-weight: bold;
+            font-size: 115%;
+            padding: 0.4em 0;
+            background-color: #f2f2f2;
+            border-bottom: 1px solid #a2a9b1;
+        }
+
+        .infobox img {
+            max-width: 100%;
+            height: auto;
+            display: block;
+            margin: 0 auto;
+        }
+
+        .infobox td {
+            padding: 0.3em;
+            vertical-align: top;
+        }
+
+        .toc {
+            border: 1px solid #a2a9b1;
+            background-color: #f8f9fa;
+            padding: 0.8em;
+            margin-bottom: 1rem;
+            border-radius: 0.5rem;
+            width: 200px; /* Adjust width as needed */
+        }
+
+        .toc-title {
+            font-weight: bold;
+            text-align: center;
+            margin-bottom: 0.5rem;
+        }
+        
+        /* Clear floating elements for better layout control */
+        .clearfix::after {
+            content: "";
+            display: table;
+            clear: both;
+        }
+    </style>
+</head>
+<body>
+    <div class="max-w-7xl mx-auto">
+        <!-- Main content area -->
+        <div class="grid grid-cols-1 md:grid-cols-4 lg:grid-cols-5 gap-8">
+            <!-- Left sidebar for TOC -->
+            <aside class="col-span-1 hidden md:block p-4 sm:p-8">
+                <div id="tocContainer">
+                    <!-- TOC will be rendered here dynamically -->
+                </div>
+            </aside>
+
+            <!-- Main article content area -->
+            <main class="col-span-1 md:col-span-3 lg:col-span-4 bg-white p-6 sm:p-8 rounded-xl shadow-lg wiki-body-text">
+                <div id="wikiOutput" class="wiki-content clearfix">
+                    <!-- The rendered HTML will appear here -->
+                </div>
+            </main>
+        </div>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const wikiOutput = document.getElementById('wikiOutput');
+            const tocContainer = document.getElementById('tocContainer');
+            
+            // This is the Wiki markup content you can edit directly.
+            const wikiMarkup = `
+{{Infobox hospital
+|name = Kaplan Medical Center
+|image = [[File:Kaplan Medical Center.jpg|250px|Kaplan Medical Center]]
+|caption = Main building of the Kaplan Medical Center
+|location = [[Rehovot]], [[Israel]]
+|region = [[Central District (Israel)|Central District]]
+|opened = 1953
+|beds = 627
+}}
+== About ==
+'''Kaplan Medical Center''' is a hospital in [[Rehovot]], [[Israel]]. It is a major hospital serving the [[Shfela]] region, and is associated with the [[Hebrew University of Jerusalem]].
+
+== History ==
+The hospital was named after [[Eliezer Kaplan]], an Israeli politician. It was founded in 1953 to serve the growing population of the area.
+
+== Services ==
+Kaplan offers a wide range of medical services, including:
+* General surgery
+* Pediatrics
+* Obstetrics and gynecology
+* Cardiology
+# A numbered item for demonstration.
+# Another item.
+----
+This is some more text about the hospital. It is a research and teaching institution and is an important part of the healthcare system in Israel.
+`;
+
+            // Global counter for heading IDs to create a Table of Contents
+            let headingCounter = 0;
+
+            const renderWikiMarkup = () => {
+                let html = '';
+                let tocHtml = '';
+                const lines = wikiMarkup.split('\n');
+                let inList = false;
+                let listType = '';
+
+                // First, find and parse the Infobox, if it exists
+                const infoboxMatch = wikiMarkup.match(/\{\{Infobox(?:.|\s)*?\}\}/i);
+                if (infoboxMatch) {
+                    const infoboxMarkup = infoboxMatch[0];
+                    html += parseInfobox(infoboxMarkup);
+                }
+
+                // Process the rest of the lines
+                let headingsFound = false;
+                lines.forEach(line => {
+                    const trimmedLine = line.trim();
+
+                    // Skip the infobox section as it's already handled
+                    if (infoboxMatch && infoboxMatch[0].includes(trimmedLine) && trimmedLine.length > 0) {
+                        return;
+                    }
+
+                    // Handle headings and build TOC
+                    const headingMatch = trimmedLine.match(/^(={1,6})\s*(.*?)\s*\1$/);
+                    if (headingMatch) {
+                        if (!headingsFound) {
+                            tocHtml += '<div class="toc-title">Contents</div>';
+                            tocHtml += '<ul class="p-0 list-none">';
+                            headingsFound = true;
+                        }
+                        const level = headingMatch[1].length;
+                        const text = headingMatch[2];
+                        const headingId = `heading-${++headingCounter}`;
+                        html += `<h${level} id="${headingId}">${text}</h${level}>`;
+                        tocHtml += `<li class="pl-${(level - 1) * 4}"><a href="#${headingId}">${text}</a></li>`;
+                        return;
+                    }
+
+                    // Handle lists
+                    const isUnordered = trimmedLine.startsWith('*') || trimmedLine.startsWith('-');
+                    const isOrdered = trimmedLine.startsWith('#');
+                    const isListItem = isUnordered || isOrdered;
+
+                    if (isListItem) {
+                        const currentListType = isUnordered ? 'ul' : 'ol';
+                        if (!inList || listType !== currentListType) {
+                            if (inList) { html += `</${listType}>`; }
+                            html += `<${currentListType} class="mt-2 ml-4 list-outside ${isUnordered ? 'list-disc' : 'list-decimal'}">`;
+                            inList = true;
+                            listType = currentListType;
+                        }
+                        
+                        let listItemText = trimmedLine.substring(1).trim();
+                        // Recursive parsing for nested lists
+                        while (listItemText.startsWith('*') || listItemText.startsWith('#') || listItemText.startsWith('-')) {
+                            listItemText = listItemText.substring(1).trim();
+                        }
+
+                        html += `<li>${parseInlineMarkup(listItemText)}</li>`;
+                    } else {
+                        if (inList) {
+                            html += `</${listType}>`;
+                            inList = false;
+                        }
+                        // Handle horizontal rule
+                        if (trimmedLine === '----') {
+                            html += '<hr class="my-4" />';
+                            return;
+                        }
+
+                        // Handle paragraphs
+                        if (trimmedLine.length > 0) {
+                            html += `<p>${parseInlineMarkup(trimmedLine)}</p>`;
+                        }
+                    }
+                });
+
+                if (inList) {
+                    html += `</${listType}>`;
+                }
+                
+                // Set the inner HTML for the output and TOC
+                wikiOutput.innerHTML = html;
+                if (headingsFound) {
+                    tocHtml += '</ul>';
+                    tocContainer.innerHTML = `<div class="toc">${tocHtml}</div>`;
+                }
+            };
+
+            // Function to handle inline markup (bold, italic, links, images)
+            const parseInlineMarkup = (text) => {
+                // Bold and Italic
+                text = text.replace(/'''(.*?)'''/g, '<b>$1</b>');
+                text = text.replace(/''(.*?)''/g, '<i>$1</i>');
+                text = text.replace(/'''''(.*?)'''''/g, '<b><i>$1</i></b>');
+
+                // Internal Links: [[Page title|Display text]] or [[Page title]]
+                text = text.replace(/\[\[(.*?)\]\]/g, (match, content) => {
+                    const parts = content.split('|');
+                    const link = parts[0];
+                    const displayText = parts[1] || link;
+                    const url = `https://en.wikipedia.org/wiki/${encodeURIComponent(link.replace(/ /g, '_'))}`;
+                    return `<a href="${url}" target="_blank">${displayText}</a>`;
+                });
+
+                // External Links: https://large-type.com/
+                text = text.replace(/\[(https?:\/\/[^\s]+)\s+(.*?)\]/g, '<a href="$1" target="_blank">${$2}</a>');
+
+                // Images: [[File:Example.jpg|thumb|Caption]]
+                text = text.replace(/\[\[File:(.*?)\|thumb\|(.*?)]]/g, (match, fileName, caption) => {
+                    // Using a placeholder service for images as we can't load real ones
+                    const imageUrl = `https://placehold.co/250x150/e0e0e0/000000?text=${encodeURIComponent(fileName)}`;
+                    return `
+                        <div class="thumb float-right clear-right m-2 border border-gray-300 rounded p-1" style="width: 252px;">
+                            <div class="thumbinner">
+                                <a href="${imageUrl}" class="image">
+                                    <img src="${imageUrl}" alt="${fileName}" />
+                                </a>
+                                <div class="thumbcaption p-1 text-xs">
+                                    ${caption}
+                                </div>
+                            </div>
+                        </div>
+                    `;
+                });
+
+                return text;
+            };
+
+            // Function to parse the infobox
+            const parseInfobox = (infoboxMarkup) => {
+                let infoboxHtml = `<div class="infobox"><div class="infobox-title">Infobox</div>`;
+                infoboxHtml += '<table class="w-full">';
+                const lines = infoboxMarkup.split('\n').map(line => line.trim()).filter(line => line.startsWith('|'));
+
+                lines.forEach(line => {
+                    const parts = line.substring(1).split('=').map(part => part.trim());
+                    if (parts.length === 2) {
+                        const key = parts[0].replace(/_/g, ' '); // Replace underscores with spaces
+                        let value = parts[1];
+
+                        if (key === 'name') {
+                            infoboxHtml = `<div class="infobox"><div class="infobox-title">${value}</div>` + infoboxHtml.substring(infoboxHtml.indexOf('<table'));
+                        } else if (key === 'image') {
+                            // Handle image tag within infobox
+                            const imageMatch = value.match(/\[\[File:(.*?)\|.*\]\]/);
+                            if (imageMatch) {
+                                const fileName = imageMatch[1];
+                                const imageUrl = `https://placehold.co/250x150/e0e0e0/000000?text=${encodeURIComponent(fileName)}`;
+                                infoboxHtml += `<tr><td colspan="2" class="text-center"><img src="${imageUrl}" alt="${fileName}" /></td></tr>`;
+                            }
+                        } else {
+                            // General key-value pairs
+                            infoboxHtml += `<tr><th class="font-normal text-left pr-2 text-gray-600">${key}:</th><td class="wiki-body-text">${parseInlineMarkup(value)}</td></tr>`;
+                        }
+                    }
+                });
+                infoboxHtml += '</table></div>';
+                return infoboxHtml;
+            };
+
+            // Initial render
+            renderWikiMarkup();
+        });
+    </script>
+</body>
+</html>

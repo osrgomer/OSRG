@@ -280,7 +280,7 @@ Through OSRG.lol and his [https://github.com/osrgomer GitHub profile], Rimon mai
                 });
 
                 // External Links: https://large-type.com/
-                text = text.replace(/\[(https?:\/\/[^\s]+)\s+(.*?)\]/g, '<a href="$1" target="_blank">${$2}</a>');
+                text = text.replace(/\[(https?:\/\/[^\s]+)\s+(.*?)\]/g, '<a href="$1" target="_blank">$2</a>');
 
                 // Images: [[File:Example.jpg|thumb|Caption]]
                 text = text.replace(/\[\[File:(.*?)\|thumb\|(.*?)]]/g, (match, fileName, caption) => {

@@ -56,7 +56,48 @@ if ($_POST['content'] ?? false) {
         .form-group { margin: 15px 0; }
         textarea { width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 5px; }
         button { background: #1877f2; color: white; padding: 10px 20px; border: none; border-radius: 5px; cursor: pointer; }
+        .notification-btn { background: #4caf50; margin-left: 10px; }
+        .notification-btn.disabled { background: #ccc; }
     </style>
+    <script>
+        let lastPostCount = 0;
+        
+        function requestNotificationPermission() {
+            if ('Notification' in window) {
+                Notification.requestPermission().then(function(permission) {
+                    if (permission === 'granted') {
+                        document.getElementById('notif-btn').textContent = 'Notifications On';
+                        checkForNewPosts();
+                    }
+                });
+            }
+        }
+        
+        function checkForNewPosts() {
+            if (Notification.permission === 'granted') {
+                setInterval(function() {
+                    fetch('check_posts.php')
+                        .then(response => response.json())
+                        .then(data => {
+                            if (lastPostCount > 0 && data.count > lastPostCount) {
+                                new Notification('New Post!', {
+                                    body: data.latest_post,
+                                    icon: 'data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="%231877f2"><path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z"/></svg>'
+                                });
+                            }
+                            lastPostCount = data.count;
+                        });
+                }, 5000);
+            }
+        }
+        
+        window.onload = function() {
+            if (Notification.permission === 'granted') {
+                document.getElementById('notif-btn').textContent = 'Notifications On';
+                checkForNewPosts();
+            }
+        }
+    </script>
 </head>
 <body>
     <div class="nav">
@@ -69,6 +110,7 @@ if ($_POST['content'] ?? false) {
     <div class="container">
         <div class="header">
             <h1>Your Private Feed</h1>
+            <button id="notif-btn" class="notification-btn" onclick="requestNotificationPermission()">Enable Notifications</button>
         </div>
 
         <?php if ($friend_requests): ?>

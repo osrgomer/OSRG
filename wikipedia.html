@@ -201,16 +201,21 @@ Through OSRG.lol and his [https://github.com/osrgomer GitHub profile], Rimon mai
                     // Handle headings and build TOC
                     const headingMatch = trimmedLine.match(/^(={1,6})\s*(.*?)\s*\1$/);
                     if (headingMatch) {
-                        if (!headingsFound) {
-                            tocHtml += '<div class="toc-title">Contents</div>';
-                            tocHtml += '<ul class="p-0 list-none">';
-                            headingsFound = true;
-                        }
                         const level = headingMatch[1].length;
                         const text = headingMatch[2];
                         const headingId = `heading-${++headingCounter}`;
                         html += `<h${level} id="${headingId}">${text}</h${level}>`;
-                        tocHtml += `<li class="pl-${(level - 1) * 4}"><a href="#${headingId}">${text}</a></li>`;
+                        
+                        // Only add to TOC if it's not the main title (level 1)
+                        if (level > 1) {
+                            if (!headingsFound) {
+                                tocHtml += '<div class="toc-title">Contents</div>';
+                                tocHtml += '<ul class="p-0 list-none">';
+                                tocHtml += '<li><a href="#heading-1">(Top)</a></li>';
+                                headingsFound = true;
+                            }
+                            tocHtml += `<li class="pl-${(level - 2) * 4}"><a href="#${headingId}">${text}</a></li>`;
+                        }
                         return;
                     }
 

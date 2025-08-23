@@ -1,34 +1,34 @@
 # Private Social Media Platform
 
-A secure, private social networking application built with Flask.
+A secure, private social networking application built with PHP.
 
 ## Features
 - User registration and authentication
 - Secure password hashing
 - Post creation and sharing
 - Private user feeds
+- Friend system
 - Session management
 
 ## Setup
-1. Install dependencies: `pip install -r requirements.txt`
-2. Run the application: `python app.py`
-3. Visit: `http://127.0.0.1:5000`
+1. Upload files to web server with PHP support
+2. Visit: `your-domain.com/private_social_platform/`
+3. Register an account and start using!
 
 ## Security Features
-- Password hashing with Werkzeug
+- Password hashing with PHP password_hash()
 - Session-based authentication
-- SQL injection protection
+- SQL injection protection with prepared statements
 - Private by design
 
 ## Project Structure
 ```
 private_social_platform/
-├── app.py              # Main Flask application
-├── templates/          # HTML templates
-│   ├── base.html      # Base template
-│   ├── login.html     # Login page
-│   ├── register.html  # Registration page
-│   └── feed.html      # Main feed
-├── requirements.txt    # Dependencies
+├── index.php          # Main feed page
+├── login.php          # Login page
+├── register.php       # Registration page
+├── users.php          # Find friends page
+├── logout.php         # Logout functionality
+├── config.php         # Database configuration
 └── README.md          # This file
 ```

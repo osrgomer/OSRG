@@ -9,7 +9,7 @@ if (!isset($_SESSION['user_id'])) {
 
 // Get posts
 $pdo = get_db();
-$stmt = $pdo->query("SELECT p.content, p.created_at, u.username 
+$stmt = $pdo->query("SELECT p.content, p.created_at, u.username, p.file_path, p.file_type
                      FROM posts p JOIN users u ON p.user_id = u.id 
                      ORDER BY p.created_at DESC");
 $posts = $stmt->fetchAll();
@@ -35,8 +35,28 @@ if ($_GET['decline'] ?? false) {
 
 // Handle new post
 if ($_POST['content'] ?? false) {
-    $stmt = $pdo->prepare("INSERT INTO posts (user_id, content) VALUES (?, ?)");
-    $stmt->execute([$_SESSION['user_id'], $_POST['content']]);
+    $file_path = null;
+    $file_type = null;
+    
+    // Handle file upload
+    if (isset($_FILES['file']) && $_FILES['file']['error'] == 0) {
+        $allowed = ['mp4', 'mp3', 'png', 'jpg', 'jpeg'];
+        $filename = $_FILES['file']['name'];
+        $file_ext = strtolower(pathinfo($filename, PATHINFO_EXTENSION));
+        
+        if (in_array($file_ext, $allowed)) {
+            $new_filename = uniqid() . '.' . $file_ext;
+            $upload_path = 'uploads/' . $new_filename;
+            
+            if (move_uploaded_file($_FILES['file']['tmp_name'], $upload_path)) {
+                $file_path = $upload_path;
+                $file_type = $file_ext;
+            }
+        }
+    }
+    
+    $stmt = $pdo->prepare("INSERT INTO posts (user_id, content, file_path, file_type) VALUES (?, ?, ?, ?)");
+    $stmt->execute([$_SESSION['user_id'], $_POST['content'], $file_path, $file_type]);
     header('Location: index.php');
     exit;
 }
@@ -104,6 +124,7 @@ if ($_POST['content'] ?? false) {
         <a href="index.php">Home</a>
         <a href="users.php">Find Friends</a>
         <a href="friends.php">My Friends</a>
+        <a href="messages.php">Messages</a>
         <a href="logout.php">Logout</a>
     </div>
     
@@ -130,9 +151,13 @@ if ($_POST['content'] ?? false) {
 
         <div class="post">
             <h3>Share something...</h3>
-            <form method="POST">
+            <form method="POST" enctype="multipart/form-data">
                 <div class="form-group">
                     <textarea name="content" placeholder="What's on your mind?" rows="3" required></textarea>
+                </div>
+                <div class="form-group">
+                    <input type="file" name="file" accept=".mp4,.mp3,.png,.jpg,.jpeg" style="margin-bottom: 10px;">
+                    <small style="color: #666;">Upload: MP4, MP3, PNG, JPG (optional)</small>
                 </div>
                 <button type="submit">Post</button>
             </form>
@@ -143,6 +168,21 @@ if ($_POST['content'] ?? false) {
             <div class="post">
                 <p><strong><?= htmlspecialchars($post['username']) ?></strong></p>
                 <p><?= htmlspecialchars($post['content']) ?></p>
+                
+                <?php if ($post['file_path']): ?>
+                    <?php if ($post['file_type'] == 'mp4'): ?>
+                        <video controls style="max-width: 100%; margin: 10px 0;">
+                            <source src="<?= $post['file_path'] ?>" type="video/mp4">
+                        </video>
+                    <?php elseif ($post['file_type'] == 'mp3'): ?>
+                        <audio controls style="width: 100%; margin: 10px 0;">
+                            <source src="<?= $post['file_path'] ?>" type="audio/mp3">
+                        </audio>
+                    <?php elseif (in_array($post['file_type'], ['png', 'jpg', 'jpeg'])): ?>
+                        <img src="<?= $post['file_path'] ?>" style="max-width: 100%; margin: 10px 0; border-radius: 8px;">
+                    <?php endif; ?>
+                <?php endif; ?>
+                
                 <small><?= $post['created_at'] ?></small>
             </div>
             <?php endforeach; ?>

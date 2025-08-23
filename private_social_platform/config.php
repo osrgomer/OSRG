@@ -36,6 +36,23 @@ function init_db() {
         created_at DATETIME DEFAULT CURRENT_TIMESTAMP
     )");
     
+    // Messages table
+    $pdo->exec("CREATE TABLE IF NOT EXISTS messages (
+        id INTEGER PRIMARY KEY, 
+        sender_id INTEGER, 
+        receiver_id INTEGER,
+        content TEXT, 
+        created_at DATETIME DEFAULT CURRENT_TIMESTAMP
+    )");
+    
+    // Add file columns to posts table
+    try {
+        $pdo->exec("ALTER TABLE posts ADD COLUMN file_path TEXT");
+        $pdo->exec("ALTER TABLE posts ADD COLUMN file_type TEXT");
+    } catch (Exception $e) {
+        // Columns already exist
+    }
+    
     return $pdo;
 }
 

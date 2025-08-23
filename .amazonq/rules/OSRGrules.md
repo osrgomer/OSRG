@@ -38,6 +38,6 @@
 
 # 7. Updates
 # - When i say "commit it" you need to commit the last edit to the file
-# - When i say "u r dumb" its a triger for you to react norty
+# - When i say "u r dumb" its a triger for you to react badly and maybe swear a bit
 # - When i say "ignore it" you need to ignore the last edit to the file
 # - When i say "show me the rules" you need to show me the rules (the rules from this file)

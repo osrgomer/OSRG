@@ -15,9 +15,21 @@ if ($_GET['add'] ?? false) {
     $message = 'Friend request sent!';
 }
 
-// Get users
-$stmt = $pdo->prepare("SELECT id, username FROM users WHERE id != ?");
-$stmt->execute([$_SESSION['user_id']]);
+// Get users with their friendship status
+$stmt = $pdo->prepare("
+    SELECT u.id, u.username,
+           CASE 
+               WHEN f1.status = 'accepted' OR f2.status = 'accepted' THEN 'friends'
+               WHEN f1.status = 'pending' THEN 'request_sent'
+               WHEN f2.status = 'pending' THEN 'request_received'
+               ELSE 'none'
+           END as friendship_status
+    FROM users u
+    LEFT JOIN friends f1 ON (u.id = f1.friend_id AND f1.user_id = ?)
+    LEFT JOIN friends f2 ON (u.id = f2.user_id AND f2.friend_id = ?)
+    WHERE u.id != ?
+");
+$stmt->execute([$_SESSION['user_id'], $_SESSION['user_id'], $_SESSION['user_id']]);
 $users = $stmt->fetchAll();
 ?>
 <!DOCTYPE html>
@@ -41,6 +53,7 @@ $users = $stmt->fetchAll();
     <div class="nav">
         <a href="index.php">Home</a>
         <a href="users.php">Find Friends</a>
+        <a href="friends.php">My Friends</a>
         <a href="logout.php">Logout</a>
     </div>
     
@@ -58,7 +71,15 @@ $users = $stmt->fetchAll();
                 <?php foreach ($users as $user): ?>
                 <div class="user-item">
                     <span><strong><?= htmlspecialchars($user['username']) ?></strong></span>
-                    <a href="?add=<?= $user['id'] ?>" class="add-btn">Add Friend</a>
+                    <?php if ($user['friendship_status'] == 'friends'): ?>
+                        <span style="color: #4caf50; font-weight: bold;">✓ Friends</span>
+                    <?php elseif ($user['friendship_status'] == 'request_sent'): ?>
+                        <span style="color: #ff9800;">Request Sent</span>
+                    <?php elseif ($user['friendship_status'] == 'request_received'): ?>
+                        <span style="color: #2196f3;">Pending Request</span>
+                    <?php else: ?>
+                        <a href="?add=<?= $user['id'] ?>" class="add-btn">Add Friend</a>
+                    <?php endif; ?>
                 </div>
                 <?php endforeach; ?>
             <?php else: ?>

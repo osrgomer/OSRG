@@ -1,0 +1,70 @@
+<?php
+require_once 'config.php';
+
+if (!isset($_SESSION['user_id'])) {
+    header('Location: login.php');
+    exit;
+}
+
+$pdo = get_db();
+
+// Handle add friend
+if ($_GET['add'] ?? false) {
+    $stmt = $pdo->prepare("INSERT OR IGNORE INTO friends (user_id, friend_id, status) VALUES (?, ?, 'pending')");
+    $stmt->execute([$_SESSION['user_id'], $_GET['add']]);
+    $message = 'Friend request sent!';
+}
+
+// Get users
+$stmt = $pdo->prepare("SELECT id, username FROM users WHERE id != ?");
+$stmt->execute([$_SESSION['user_id']]);
+$users = $stmt->fetchAll();
+?>
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Find Friends - Private Social</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: Arial, sans-serif; background: #f5f5f5; }
+        .container { max-width: 600px; margin: 0 auto; padding: 20px; }
+        .header { background: #1877f2; color: white; padding: 15px; text-align: center; }
+        .nav { background: white; padding: 10px; margin-bottom: 20px; border-radius: 8px; }
+        .nav a { color: #1877f2; text-decoration: none; margin-right: 15px; }
+        .post { background: white; padding: 15px; margin: 10px 0; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); }
+        .user-item { display: flex; justify-content: space-between; align-items: center; padding: 10px; border-bottom: 1px solid #eee; }
+        .add-btn { background: #1877f2; color: white; padding: 5px 10px; text-decoration: none; border-radius: 3px; }
+        .message { color: green; padding: 10px; }
+    </style>
+</head>
+<body>
+    <div class="nav">
+        <a href="index.php">Home</a>
+        <a href="users.php">Find Friends</a>
+        <a href="logout.php">Logout</a>
+    </div>
+    
+    <div class="container">
+        <div class="header">
+            <h1>Find Friends</h1>
+        </div>
+
+        <?php if (isset($message)): ?>
+            <div class="message"><?= $message ?></div>
+        <?php endif; ?>
+
+        <div class="post">
+            <?php if ($users): ?>
+                <?php foreach ($users as $user): ?>
+                <div class="user-item">
+                    <span><strong><?= htmlspecialchars($user['username']) ?></strong></span>
+                    <a href="?add=<?= $user['id'] ?>" class="add-btn">Add Friend</a>
+                </div>
+                <?php endforeach; ?>
+            <?php else: ?>
+                <p>No other users found.</p>
+            <?php endif; ?>
+        </div>
+    </div>
+</body>
+</html>

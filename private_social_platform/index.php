@@ -14,6 +14,25 @@ $stmt = $pdo->query("SELECT p.content, p.created_at, u.username
                      ORDER BY p.created_at DESC");
 $posts = $stmt->fetchAll();
 
+// Get friend requests
+$stmt = $pdo->prepare("SELECT f.id, u.username FROM friends f JOIN users u ON f.user_id = u.id WHERE f.friend_id = ? AND f.status = 'pending'");
+$stmt->execute([$_SESSION['user_id']]);
+$friend_requests = $stmt->fetchAll();
+
+// Handle friend request actions
+if ($_GET['accept'] ?? false) {
+    $stmt = $pdo->prepare("UPDATE friends SET status = 'accepted' WHERE id = ?");
+    $stmt->execute([$_GET['accept']]);
+    header('Location: index.php');
+    exit;
+}
+if ($_GET['decline'] ?? false) {
+    $stmt = $pdo->prepare("DELETE FROM friends WHERE id = ?");
+    $stmt->execute([$_GET['decline']]);
+    header('Location: index.php');
+    exit;
+}
+
 // Handle new post
 if ($_POST['content'] ?? false) {
     $stmt = $pdo->prepare("INSERT INTO posts (user_id, content) VALUES (?, ?)");
@@ -50,6 +69,21 @@ if ($_POST['content'] ?? false) {
         <div class="header">
             <h1>Your Private Feed</h1>
         </div>
+
+        <?php if ($friend_requests): ?>
+        <div class="post" style="background: #e3f2fd; border-left: 4px solid #1877f2;">
+            <h3>Friend Requests</h3>
+            <?php foreach ($friend_requests as $request): ?>
+            <div style="display: flex; justify-content: space-between; align-items: center; padding: 10px; border-bottom: 1px solid #ddd;">
+                <span><strong><?= htmlspecialchars($request['username']) ?></strong> wants to be your friend</span>
+                <div>
+                    <a href="?accept=<?= $request['id'] ?>" style="background: #42a5f5; color: white; padding: 5px 10px; text-decoration: none; border-radius: 3px; margin-right: 5px;">Accept</a>
+                    <a href="?decline=<?= $request['id'] ?>" style="background: #f44336; color: white; padding: 5px 10px; text-decoration: none; border-radius: 3px;">Decline</a>
+                </div>
+            </div>
+            <?php endforeach; ?>
+        </div>
+        <?php endif; ?>
 
         <div class="post">
             <h3>Share something...</h3>

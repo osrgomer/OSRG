@@ -10,13 +10,14 @@ $pdo = get_db();
 
 // Get all friends (accepted friendships)
 $stmt = $pdo->prepare("
-    SELECT DISTINCT u.id, u.username, f.created_at
+    SELECT u.id, u.username, MIN(f.created_at) as created_at
     FROM users u
     JOIN friends f ON (
         (f.user_id = ? AND f.friend_id = u.id AND f.status = 'accepted') OR
         (f.friend_id = ? AND f.user_id = u.id AND f.status = 'accepted')
     )
-    ORDER BY f.created_at DESC
+    GROUP BY u.id, u.username
+    ORDER BY created_at DESC
 ");
 $stmt->execute([$_SESSION['user_id'], $_SESSION['user_id']]);
 $friends = $stmt->fetchAll();

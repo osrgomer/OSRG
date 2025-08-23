@@ -115,9 +115,15 @@
         
         .main-content {
             background-color: white;
-            padding: 2rem;
+            padding: 1rem;
             border-radius: 12px;
             box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+        }
+        
+        @media (min-width: 768px) {
+            .main-content {
+                padding: 1.5rem;
+            }
         }
         
         .list-none {
@@ -153,11 +159,7 @@
             </aside>
 
             <!-- Main article content area -->
-            <main class="main-content wiki-body-text" style="
-                padding-top: 0px;
-                padding-bottom: 0px;
-                padding-left: 0px;
-            ">
+            <main class="main-content wiki-body-text">
                 <div id="wikiOutput" class="wiki-content clearfix">
                     <!-- The rendered HTML will appear here -->
                 </div>
@@ -437,7 +439,18 @@ Through OSRG.lol and his [https://github.com/osrgomer GitHub profile], Rimon mai
             if (headingsFound) {
                 tocHtml += '</ul>';
                 if (isMobile) {
-                    tocContainer.innerHTML += `<div class="toc" style="display: none;">${tocHtml}</div>`;
+                    const tocDiv = document.createElement('div');
+                    tocDiv.className = 'toc';
+                    tocDiv.style.display = 'none';
+                    tocDiv.innerHTML = tocHtml;
+                    tocContainer.appendChild(tocDiv);
+                    
+                    // Add click handler after TOC is created
+                    if (tocToggle) {
+                        tocToggle.onclick = () => {
+                            tocDiv.style.display = tocDiv.style.display === 'none' ? 'block' : 'none';
+                        };
+                    }
                 } else {
                     tocContainer.innerHTML = `<div class="toc">${tocHtml}</div>`;
                 }
@@ -460,19 +473,12 @@ Through OSRG.lol and his [https://github.com/osrgomer GitHub profile], Rimon mai
 
         // Mobile-friendly TOC toggle
         const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent) || window.innerWidth <= 768;
+        let tocToggle;
         if (isMobile) {
-            const tocToggle = document.createElement('button');
+            tocToggle = document.createElement('button');
             tocToggle.innerHTML = '📋 Contents';
             tocToggle.style.cssText = 'width: 100%; padding: 10px; margin-bottom: 10px; background: #f0f0f0; border: 1px solid #ccc; border-radius: 5px; cursor: pointer;';
-            tocToggle.onclick = () => {
-                const toc = tocContainer.querySelector('.toc');
-                if (toc) {
-                    toc.style.display = toc.style.display === 'none' ? 'block' : 'none';
-                }
-            };
             tocContainer.prepend(tocToggle);
-            const toc = tocContainer.querySelector('.toc');
-            if (toc) toc.style.display = 'none';
         }
 
         // Now, render the wiki content.

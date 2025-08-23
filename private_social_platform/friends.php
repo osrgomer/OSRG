@@ -45,6 +45,7 @@ $friends = $stmt->fetchAll();
         <a href="index.php">Home</a>
         <a href="users.php">Find Friends</a>
         <a href="friends.php">My Friends</a>
+        <a href="messages.php">Messages</a>
         <a href="logout.php">Logout</a>
     </div>
     

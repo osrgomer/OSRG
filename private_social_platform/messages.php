@@ -78,6 +78,52 @@ $friends = $stmt->fetchAll();
         input, textarea { width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 5px; }
         button { background: #1877f2; color: white; padding: 10px 20px; border: none; border-radius: 5px; cursor: pointer; }
     </style>
+    <script>
+        let lastMessageCount = 0;
+        let currentFriendId = <?= $friend_id ? $friend_id : 'null' ?>;
+        
+        function checkNewMessages() {
+            if (currentFriendId) {
+                fetch('check_messages.php?friend=' + currentFriendId)
+                    .then(response => response.json())
+                    .then(data => {
+                        if (lastMessageCount > 0 && data.count > lastMessageCount) {
+                            if ('Notification' in window && Notification.permission === 'granted') {
+                                new Notification('New Message!', {
+                                    body: data.latest_message,
+                                    icon: 'data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="%231877f2"><path d="M20 2H4c-1.1 0-2 .9-2 2v12c0 1.1.9 2 2 2h4l4 4 4-4h4c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2z"/></svg>'
+                                });
+                            }
+                            // Reload page to show new messages
+                            location.reload();
+                        }
+                        lastMessageCount = data.count;
+                    });
+            }
+        }
+        
+        // Auto-refresh every 3 seconds
+        setInterval(function() {
+            if (currentFriendId) {
+                checkNewMessages();
+            }
+        }, 3000);
+        
+        // Request notification permission on page load
+        window.onload = function() {
+            if ('Notification' in window && Notification.permission === 'default') {
+                Notification.requestPermission();
+            }
+            if (currentFriendId) {
+                // Get initial message count
+                fetch('check_messages.php?friend=' + currentFriendId)
+                    .then(response => response.json())
+                    .then(data => {
+                        lastMessageCount = data.count;
+                    });
+            }
+        }
+    </script>
 </head>
 <body>
     <div class="nav">

@@ -436,7 +436,11 @@ Through OSRG.lol and his [https://github.com/osrgomer GitHub profile], Rimon mai
             wikiOutput.innerHTML = html;
             if (headingsFound) {
                 tocHtml += '</ul>';
-                tocContainer.innerHTML = `<div class="toc">${tocHtml}</div>`;
+                if (isMobile) {
+                    tocContainer.innerHTML += `<div class="toc" style="display: none;">${tocHtml}</div>`;
+                } else {
+                    tocContainer.innerHTML = `<div class="toc">${tocHtml}</div>`;
+                }
             }
         };
 
@@ -453,6 +457,23 @@ Through OSRG.lol and his [https://github.com/osrgomer GitHub profile], Rimon mai
             </div>
         `;
         mainContent.prepend(searchContainer);
+
+        // Mobile-friendly TOC toggle
+        const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent) || window.innerWidth <= 768;
+        if (isMobile) {
+            const tocToggle = document.createElement('button');
+            tocToggle.innerHTML = '📋 Contents';
+            tocToggle.style.cssText = 'width: 100%; padding: 10px; margin-bottom: 10px; background: #f0f0f0; border: 1px solid #ccc; border-radius: 5px; cursor: pointer;';
+            tocToggle.onclick = () => {
+                const toc = tocContainer.querySelector('.toc');
+                if (toc) {
+                    toc.style.display = toc.style.display === 'none' ? 'block' : 'none';
+                }
+            };
+            tocContainer.prepend(tocToggle);
+            const toc = tocContainer.querySelector('.toc');
+            if (toc) toc.style.display = 'none';
+        }
 
         // Now, render the wiki content.
         renderWikiMarkup();

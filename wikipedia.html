@@ -4,8 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Omer Shalom Rimon Wikipedia Page</title>
-    <!-- Load Tailwind CSS from CDN for modern styling -->
-    <script src="https://cdn.tailwindcss.com"></script>
+
     <style>
         /*
         Custom CSS to closely mimic the Wikipedia page design.
@@ -92,6 +91,48 @@
             margin-bottom: 0.5rem;
         }
         
+        /* Layout styles */
+        .container {
+            max-width: 1280px;
+            margin: 0 auto;
+        }
+        
+        .grid {
+            display: grid;
+            gap: 2rem;
+            grid-template-columns: 1fr;
+        }
+        
+        @media (min-width: 768px) {
+            .grid {
+                grid-template-columns: 1fr 3fr;
+            }
+        }
+        
+        .sidebar {
+            padding: 2rem 1rem;
+        }
+        
+        .main-content {
+            background-color: white;
+            padding: 2rem;
+            border-radius: 12px;
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+        }
+        
+        .list-none {
+            list-style: none;
+            padding: 0;
+        }
+        
+        .list-disc {
+            list-style-type: disc;
+        }
+        
+        .list-decimal {
+            list-style-type: decimal;
+        }
+        
         /* Clear floating elements for better layout control */
         .clearfix::after {
             content: "";
@@ -101,18 +142,18 @@
     </style>
 </head>
 <body>
-    <div class="max-w-7xl mx-auto">
+    <div class="container">
         <!-- Main content area -->
-        <div class="grid grid-cols-1 md:grid-cols-4 lg:grid-cols-5 gap-8">
+        <div class="grid">
             <!-- Left sidebar for TOC -->
-            <aside class="col-span-1 hidden md:block p-4 sm:p-8">
+            <aside class="sidebar">
                 <div id="tocContainer">
                     <!-- TOC will be rendered here dynamically -->
                 </div>
             </aside>
 
             <!-- Main article content area -->
-            <main class="col-span-1 md:col-span-3 lg:col-span-4 bg-white p-6 sm:p-8 rounded-xl shadow-lg wiki-body-text">
+            <main class="main-content wiki-body-text">
                 <div id="wikiOutput" class="wiki-content clearfix">
                     <!-- The rendered HTML will appear here -->
                 </div>
@@ -223,11 +264,11 @@ Through OSRG.lol and his [https://github.com/osrgomer GitHub profile], Rimon mai
                         if (level > 1) {
                             if (!headingsFound) {
                                 tocHtml += '<div class="toc-title">Contents</div>';
-                                tocHtml += '<ul class="p-0 list-none">';
+                                tocHtml += '<ul class="list-none">';
                                 tocHtml += '<li><a href="#heading-1">(Top)</a></li>';
                                 headingsFound = true;
                             }
-                            tocHtml += `<li class="pl-${(level - 2) * 4}"><a href="#${headingId}">${text}</a></li>`;
+                            tocHtml += `<li style="padding-left: ${(level - 2) * 16}px;"><a href="#${headingId}">${text}</a></li>`;
                         }
                         return;
                     }
@@ -241,7 +282,7 @@ Through OSRG.lol and his [https://github.com/osrgomer GitHub profile], Rimon mai
                         const currentListType = isUnordered ? 'ul' : 'ol';
                         if (!inList || listType !== currentListType) {
                             if (inList) { html += `</${listType}>`; }
-                            html += `<${currentListType} class="mt-2 ml-4 list-outside ${isUnordered ? 'list-disc' : 'list-decimal'}">`;
+                            html += `<${currentListType} class="${isUnordered ? 'list-disc' : 'list-decimal'}" style="margin-top: 0.5rem; margin-left: 1rem;">`;
                             inList = true;
                             listType = currentListType;
                         }
@@ -260,7 +301,7 @@ Through OSRG.lol and his [https://github.com/osrgomer GitHub profile], Rimon mai
                         }
                         // Handle horizontal rule
                         if (trimmedLine === '----') {
-                            html += '<hr class="my-4" />';
+                            html += '<hr style="margin: 1rem 0;" />';
                             return;
                         }
 
@@ -310,12 +351,12 @@ Through OSRG.lol and his [https://github.com/osrgomer GitHub profile], Rimon mai
                     // Using a placeholder service for images as we can't load real ones
                     const imageUrl = `https://placehold.co/250x150/e0e0e0/000000?text=${encodeURIComponent(fileName)}`;
                     return `
-                        <div class="thumb float-right clear-right m-2 border border-gray-300 rounded p-1" style="width: 252px;">
+                        <div style="float: right; clear: right; margin: 0.5rem; border: 1px solid #d1d5db; border-radius: 4px; padding: 0.25rem; width: 252px;">
                             <div class="thumbinner">
                                 <a href="${imageUrl}" class="image">
                                     <img src="${imageUrl}" alt="${fileName}" />
                                 </a>
-                                <div class="thumbcaption p-1 text-xs">
+                                <div style="padding: 0.25rem; font-size: 0.75rem;">
                                     ${caption}
                                 </div>
                             </div>
@@ -329,7 +370,7 @@ Through OSRG.lol and his [https://github.com/osrgomer GitHub profile], Rimon mai
             // Function to parse the infobox
             const parseInfobox = (infoboxMarkup) => {
                 let infoboxHtml = `<div class="infobox"><div class="infobox-title">Infobox</div>`;
-                infoboxHtml += '<table class="w-full">';
+                infoboxHtml += '<table style="width: 100%;">';
                 const lines = infoboxMarkup.split('\n').map(line => line.trim()).filter(line => line.startsWith('|'));
 
                 lines.forEach(line => {
@@ -346,11 +387,11 @@ Through OSRG.lol and his [https://github.com/osrgomer GitHub profile], Rimon mai
                             if (imageMatch) {
                                 const fileName = imageMatch[1];
                                 const imageUrl = `https://placehold.co/250x150/e0e0e0/000000?text=${encodeURIComponent(fileName)}`;
-                                infoboxHtml += `<tr><td colspan="2" class="text-center"><img src="${imageUrl}" alt="${fileName}" /></td></tr>`;
+                                infoboxHtml += `<tr><td colspan="2" style="text-align: center;"><img src="${imageUrl}" alt="${fileName}" /></td></tr>`;
                             }
                         } else {
                             // General key-value pairs
-                            infoboxHtml += `<tr><th class="font-normal text-left pr-2 text-gray-600">${key}:</th><td class="wiki-body-text">${parseInlineMarkup(value)}</td></tr>`;
+                            infoboxHtml += `<tr><th style="font-weight: normal; text-align: left; padding-right: 0.5rem; color: #6b7280;">${key}:</th><td class="wiki-body-text">${parseInlineMarkup(value)}</td></tr>`;
                         }
                     }
                 });

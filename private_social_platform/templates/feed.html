@@ -22,11 +22,20 @@
 
 <!-- Posts Feed -->
 <div id="posts">
-    <!-- Posts will be loaded here -->
-    <div class="post">
-        <p><strong>Welcome!</strong></p>
-        <p>This is your private social media platform. Start by creating your first post above!</p>
-        <small>Just now</small>
-    </div>
+    {% if posts %}
+        {% for post in posts %}
+        <div class="post">
+            <p><strong>{{ post[2] }}</strong></p>
+            <p>{{ post[0] }}</p>
+            <small>{{ post[1].strftime('%Y-%m-%d %H:%M') if post[1].__class__.__name__ == 'datetime' else post[1] }}</small>
+        </div>
+        {% endfor %}
+    {% else %}
+        <div class="post">
+            <p><strong>Welcome!</strong></p>
+            <p>This is your private social media platform. Start by creating your first post above!</p>
+            <small>Just now</small>
+        </div>
+    {% endif %}
 </div>
 {% endblock %}

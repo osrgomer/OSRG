@@ -33,6 +33,11 @@ def init_db():
                  (id INTEGER PRIMARY KEY, user_id INTEGER, friend_id INTEGER,
                   status TEXT, created_at TIMESTAMP)''')
     
+    # Messages table
+    c.execute('''CREATE TABLE IF NOT EXISTS messages
+                 (id INTEGER PRIMARY KEY, sender_id INTEGER, receiver_id INTEGER,
+                  content TEXT, created_at TIMESTAMP)''')
+    
     conn.commit()
     conn.close()
 
@@ -40,7 +45,16 @@ def init_db():
 def home():
     if 'user_id' not in session:
         return redirect(url_for('login'))
-    return render_template('feed.html')
+    
+    conn = sqlite3.connect('private_social.db')
+    c = conn.cursor()
+    c.execute("""SELECT p.content, p.created_at, u.username 
+                 FROM posts p JOIN users u ON p.user_id = u.id 
+                 ORDER BY p.created_at DESC""")
+    posts = c.fetchall()
+    conn.close()
+    
+    return render_template('feed.html', posts=posts)
 
 @app.route('/register', methods=['GET', 'POST'])
 def register():
@@ -107,6 +121,34 @@ def create_post():
     conn.close()
     
     return redirect(url_for('home'))
+
+@app.route('/users')
+def users():
+    if 'user_id' not in session:
+        return redirect(url_for('login'))
+    
+    conn = sqlite3.connect('private_social.db')
+    c = conn.cursor()
+    c.execute("SELECT id, username FROM users WHERE id != ?", (session['user_id'],))
+    users = c.fetchall()
+    conn.close()
+    
+    return render_template('users.html', users=users)
+
+@app.route('/add_friend/<int:friend_id>')
+def add_friend(friend_id):
+    if 'user_id' not in session:
+        return redirect(url_for('login'))
+    
+    conn = sqlite3.connect('private_social.db')
+    c = conn.cursor()
+    c.execute("INSERT OR IGNORE INTO friends (user_id, friend_id, status, created_at) VALUES (?, ?, 'pending', ?)",
+             (session['user_id'], friend_id, datetime.now()))
+    conn.commit()
+    conn.close()
+    
+    flash('Friend request sent!')
+    return redirect(url_for('users'))
 
 if __name__ == '__main__':
     init_db()

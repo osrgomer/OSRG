@@ -1,5 +1,6 @@
 <?php
 session_start();
+date_default_timezone_set('Europe/Amsterdam'); // Adjust to your timezone
 
 // Database configuration
 $db_file = 'private_social.db';

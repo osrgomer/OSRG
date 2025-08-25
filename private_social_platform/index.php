@@ -212,7 +212,7 @@ if ($_POST['content'] ?? false) {
                     <?php endif; ?>
                 <?php endif; ?>
                 
-                <small><?= $post['created_at'] ?></small>
+                <small><?= date('M j, H:i', strtotime($post['created_at'] . ' +1 hour')) ?></small>
             </div>
             <?php endforeach; ?>
         <?php else: ?>

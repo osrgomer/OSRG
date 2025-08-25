@@ -19,15 +19,16 @@ if ($_GET['add'] ?? false) {
 $stmt = $pdo->prepare("
     SELECT u.id, u.username,
            CASE 
-               WHEN f1.status = 'accepted' OR f2.status = 'accepted' THEN 'friends'
-               WHEN f1.status = 'pending' THEN 'request_sent'
-               WHEN f2.status = 'pending' THEN 'request_received'
+               WHEN MAX(CASE WHEN f1.status = 'accepted' OR f2.status = 'accepted' THEN 1 ELSE 0 END) = 1 THEN 'friends'
+               WHEN MAX(CASE WHEN f1.status = 'pending' THEN 1 ELSE 0 END) = 1 THEN 'request_sent'
+               WHEN MAX(CASE WHEN f2.status = 'pending' THEN 1 ELSE 0 END) = 1 THEN 'request_received'
                ELSE 'none'
            END as friendship_status
     FROM users u
     LEFT JOIN friends f1 ON (u.id = f1.friend_id AND f1.user_id = ?)
     LEFT JOIN friends f2 ON (u.id = f2.user_id AND f2.friend_id = ?)
     WHERE u.id != ?
+    GROUP BY u.id, u.username
 ");
 $stmt->execute([$_SESSION['user_id'], $_SESSION['user_id'], $_SESSION['user_id']]);
 $users = $stmt->fetchAll();

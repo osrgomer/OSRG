@@ -49,8 +49,28 @@ if ($_GET['delete_post'] ?? false) {
     $message = 'Post deleted successfully!';
 }
 
+// Handle user approval
+if ($_GET['approve'] ?? false) {
+    $user_id = $_GET['approve'];
+    $stmt = $pdo->prepare("UPDATE users SET approved = 1 WHERE id = ?");
+    $stmt->execute([$user_id]);
+    $message = 'User approved successfully!';
+}
+
+// Handle user rejection
+if ($_GET['reject'] ?? false) {
+    $user_id = $_GET['reject'];
+    $stmt = $pdo->prepare("DELETE FROM users WHERE id = ?");
+    $stmt->execute([$user_id]);
+    $message = 'User registration rejected!';
+}
+
+// Get pending users
+$stmt = $pdo->query("SELECT id, username, email, created_at FROM users WHERE approved = 0 ORDER BY created_at DESC");
+$pending_users = $stmt->fetchAll();
+
 // Get all users
-$stmt = $pdo->query("SELECT id, username, email, created_at FROM users ORDER BY created_at DESC");
+$stmt = $pdo->query("SELECT id, username, email, created_at, approved FROM users ORDER BY created_at DESC");
 $users = $stmt->fetchAll();
 
 // Get all posts
@@ -137,17 +157,43 @@ $message_count = $stmt->fetch()['count'];
         </div>
 
         <div class="tabs">
-            <div class="tab active" onclick="showTab('users')">Manage Users</div>
+            <div class="tab active" onclick="showTab('pending')">Pending Approvals <?= count($pending_users) > 0 ? '(' . count($pending_users) . ')' : '' ?></div>
+            <div class="tab" onclick="showTab('users')">Manage Users</div>
             <div class="tab" onclick="showTab('posts')">Manage Posts</div>
         </div>
 
-        <div id="users" class="tab-content active">
+        <div id="pending" class="tab-content active">
+            <div class="post">
+                <h3>Pending User Approvals</h3>
+                <?php if ($pending_users): ?>
+                    <?php foreach ($pending_users as $user): ?>
+                    <div class="user-item">
+                        <div>
+                            <strong><?= htmlspecialchars($user['username']) ?></strong><br>
+                            <small><?= htmlspecialchars($user['email']) ?> • Registered <?= date('M j, Y', strtotime($user['created_at'])) ?></small>
+                        </div>
+                        <div>
+                            <a href="?approve=<?= $user['id'] ?>" style="background: #4caf50; color: white; padding: 5px 10px; text-decoration: none; border-radius: 3px; margin-right: 5px;">Approve</a>
+                            <a href="?reject=<?= $user['id'] ?>" class="delete-btn" onclick="return confirm('Reject this registration?')">Reject</a>
+                        </div>
+                    </div>
+                    <?php endforeach; ?>
+                <?php else: ?>
+                    <p style="text-align: center; color: #666; padding: 20px;">No pending approvals</p>
+                <?php endif; ?>
+            </div>
+        </div>
+
+        <div id="users" class="tab-content">
             <div class="post">
                 <h3>All Users</h3>
                 <?php foreach ($users as $user): ?>
                 <div class="user-item">
                     <div>
-                        <strong><?= htmlspecialchars($user['username']) ?></strong><br>
+                        <strong><?= htmlspecialchars($user['username']) ?></strong>
+                        <?php if (!$user['approved']): ?>
+                            <span style="color: #ff9800; font-size: 12px;">(Pending)</span>
+                        <?php endif; ?><br>
                         <small><?= htmlspecialchars($user['email']) ?> • Joined <?= date('M j, Y', strtotime($user['created_at'])) ?></small>
                     </div>
                     <?php if ($user['id'] != $_SESSION['user_id']): ?>

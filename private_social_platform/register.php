@@ -9,9 +9,15 @@ if ($_POST['username'] ?? false) {
     
     try {
         $password_hash = password_hash($_POST['password'], PASSWORD_DEFAULT);
-        $stmt = $pdo->prepare("INSERT INTO users (username, email, password_hash) VALUES (?, ?, ?)");
-        $stmt->execute([$_POST['username'], $_POST['email'], $password_hash]);
-        $message = 'Registration successful! <a href="login.php">Login here</a>';
+        $approved = ($_POST['username'] === 'OSRG') ? 1 : 0;
+        $stmt = $pdo->prepare("INSERT INTO users (username, email, password_hash, approved) VALUES (?, ?, ?, ?)");
+        $stmt->execute([$_POST['username'], $_POST['email'], $password_hash, $approved]);
+        
+        if ($approved) {
+            $message = 'Registration successful! <a href="login.php">Login here</a>';
+        } else {
+            $message = 'Registration submitted! Please wait for admin approval before logging in.';
+        }
     } catch (PDOException $e) {
         $message = 'Username or email already exists';
     }

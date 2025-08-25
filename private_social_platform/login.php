@@ -6,14 +6,18 @@ $error = '';
 
 if ($_POST['username'] ?? false) {
     $pdo = get_db();
-    $stmt = $pdo->prepare("SELECT id, password_hash FROM users WHERE username = ?");
+    $stmt = $pdo->prepare("SELECT id, password_hash, approved FROM users WHERE username = ?");
     $stmt->execute([$_POST['username']]);
     $user = $stmt->fetch();
     
     if ($user && password_verify($_POST['password'], $user['password_hash'])) {
-        $_SESSION['user_id'] = $user['id'];
-        header('Location: index.php');
-        exit;
+        if ($user['approved']) {
+            $_SESSION['user_id'] = $user['id'];
+            header('Location: index.php');
+            exit;
+        } else {
+            $error = 'Account pending admin approval';
+        }
     } else {
         $error = 'Invalid credentials';
     }

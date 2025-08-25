@@ -53,6 +53,15 @@ function init_db() {
         // Columns already exist
     }
     
+    // Add approval status to users table
+    try {
+        $pdo->exec("ALTER TABLE users ADD COLUMN approved INTEGER DEFAULT 0");
+        // Make OSRG auto-approved
+        $pdo->exec("UPDATE users SET approved = 1 WHERE username = 'OSRG'");
+    } catch (Exception $e) {
+        // Column already exists
+    }
+    
     return $pdo;
 }
 

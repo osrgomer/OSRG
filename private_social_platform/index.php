@@ -199,6 +199,7 @@ if ($_POST['content'] ?? false) {
                 <p><?= htmlspecialchars($post['content']) ?></p>
                 
                 <?php if ($post['file_path']): ?>
+                    <!-- DEBUG: File Path: <?= $post['file_path'] ?>, Type: <?= $post['file_type'] ?> -->
                     <?php if ($post['file_type'] == 'mp4'): ?>
                         <video controls style="max-width: 100%; margin: 10px 0;">
                             <source src="<?= $post['file_path'] ?>" type="video/mp4">
@@ -208,8 +209,12 @@ if ($_POST['content'] ?? false) {
                             <source src="<?= $post['file_path'] ?>" type="audio/mp3">
                         </audio>
                     <?php elseif (in_array($post['file_type'], ['png', 'jpg', 'jpeg'])): ?>
-                        <img src="<?= $post['file_path'] ?>" style="max-width: 100%; margin: 10px 0; border-radius: 8px;">
+                        <img src="<?= htmlspecialchars($post['file_path']) ?>" alt="Uploaded image" style="max-width: 100%; margin: 10px 0; border-radius: 8px;">
+                    <?php else: ?>
+                        <!-- DEBUG: Unknown file type: <?= $post['file_type'] ?> -->
                     <?php endif; ?>
+                <?php else: ?>
+                    <!-- DEBUG: No file path -->
                 <?php endif; ?>
                 
                 <small><?= date('M j, H:i', strtotime($post['created_at'] . ' +1 hour')) ?></small>

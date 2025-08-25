@@ -110,6 +110,17 @@ $friends = $stmt->fetchAll();
         }, 3000);
         
         // Request notification permission on page load
+        function handleEnter(event) {
+            if (event.key === 'Enter' && !event.shiftKey) {
+                event.preventDefault();
+                event.target.form.submit();
+            }
+        }
+        
+        function sendMessage(event) {
+            return true; // Allow form submission
+        }
+        
         window.onload = function() {
             if ('Notification' in window && Notification.permission === 'default') {
                 Notification.requestPermission();
@@ -164,9 +175,9 @@ $friends = $stmt->fetchAll();
                     <?php endforeach; ?>
                 </div>
 
-                <form method="POST" class="message-form">
+                <form method="POST" class="message-form" onsubmit="return sendMessage(event)">
                     <div style="display: flex; gap: 10px;">
-                        <textarea name="content" placeholder="Type your message..." rows="2" required></textarea>
+                        <textarea name="content" placeholder="Type your message..." rows="2" required onkeydown="handleEnter(event)"></textarea>
                         <button type="submit">Send</button>
                     </div>
                 </form>

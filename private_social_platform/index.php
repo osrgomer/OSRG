@@ -9,10 +9,18 @@ if (!isset($_SESSION['user_id'])) {
 
 // Get posts
 $pdo = get_db();
-$stmt = $pdo->query("SELECT p.content, p.created_at, u.username, p.file_path, p.file_type
-                     FROM posts p JOIN users u ON p.user_id = u.id 
-                     ORDER BY p.created_at DESC");
-$posts = $stmt->fetchAll();
+try {
+    $stmt = $pdo->query("SELECT p.content, p.created_at, u.username, p.file_path, p.file_type
+                         FROM posts p JOIN users u ON p.user_id = u.id 
+                         ORDER BY p.created_at DESC");
+    $posts = $stmt->fetchAll();
+} catch (Exception $e) {
+    // Fallback for old database without file columns
+    $stmt = $pdo->query("SELECT p.content, p.created_at, u.username, NULL as file_path, NULL as file_type
+                         FROM posts p JOIN users u ON p.user_id = u.id 
+                         ORDER BY p.created_at DESC");
+    $posts = $stmt->fetchAll();
+}
 
 // Get friend requests
 $stmt = $pdo->prepare("SELECT f.id, u.username FROM friends f JOIN users u ON f.user_id = u.id WHERE f.friend_id = ? AND f.status = 'pending'");
@@ -45,6 +53,11 @@ if ($_POST['content'] ?? false) {
         $file_ext = strtolower(pathinfo($filename, PATHINFO_EXTENSION));
         
         if (in_array($file_ext, $allowed)) {
+            // Ensure uploads directory exists
+            if (!is_dir('uploads')) {
+                mkdir('uploads', 0755, true);
+            }
+            
             $new_filename = uniqid() . '.' . $file_ext;
             $upload_path = 'uploads/' . $new_filename;
             
@@ -55,8 +68,15 @@ if ($_POST['content'] ?? false) {
         }
     }
     
-    $stmt = $pdo->prepare("INSERT INTO posts (user_id, content, file_path, file_type) VALUES (?, ?, ?, ?)");
-    $stmt->execute([$_SESSION['user_id'], $_POST['content'], $file_path, $file_type]);
+    try {
+        $stmt = $pdo->prepare("INSERT INTO posts (user_id, content, file_path, file_type) VALUES (?, ?, ?, ?)");
+        $stmt->execute([$_SESSION['user_id'], $_POST['content'], $file_path, $file_type]);
+    } catch (Exception $e) {
+        // Fallback for old database without file columns
+        $stmt = $pdo->prepare("INSERT INTO posts (user_id, content) VALUES (?, ?)");
+        $stmt->execute([$_SESSION['user_id'], $_POST['content']]);
+    }
+    
     header('Location: index.php');
     exit;
 }

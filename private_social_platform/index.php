@@ -265,8 +265,10 @@ if ($_POST['content'] ?? false) {
                             <source src="<?= $post['file_path'] ?>" type="video/mp4">
                         </video>
                     <?php elseif ($post['file_type'] == 'mp3'): ?>
-                        <audio controls style="width: 100%; display: block;">
+                        <audio controls preload="metadata" style="width: 100%; display: block;">
+                            <source src="<?= $post['file_path'] ?>" type="audio/mpeg">
                             <source src="<?= $post['file_path'] ?>" type="audio/mp3">
+                            Your browser does not support the audio element.
                         </audio>
                     <?php elseif (in_array($post['file_type'], ['png', 'jpg', 'jpeg'])): ?>
                         <img src="<?= htmlspecialchars($post['file_path']) ?>" alt="Uploaded image" style="width: 100%; max-width: 100%; display: block; border-radius: 8px;">

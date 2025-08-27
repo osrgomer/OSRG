@@ -98,43 +98,103 @@ if ($_POST['content'] ?? false) {
         button { background: #1877f2; color: white; padding: 10px 20px; border: none; border-radius: 5px; cursor: pointer; }
         .notification-btn { background: #4caf50; margin-left: 10px; }
         .notification-btn.disabled { background: #ccc; }
+        
+        @keyframes slideIn {
+            from { transform: translateX(100%); opacity: 0; }
+            to { transform: translateX(0); opacity: 1; }
+        }
+        @keyframes slideOut {
+            from { transform: translateX(0); opacity: 1; }
+            to { transform: translateX(100%); opacity: 0; }
+        }
     </style>
     <script>
         let lastPostCount = 0;
         
         function requestNotificationPermission() {
+            // Check if browser supports notifications (Chrome, Firefox, Safari on Mac/Windows/Linux)
             if ('Notification' in window) {
-                Notification.requestPermission().then(function(permission) {
-                    if (permission === 'granted') {
-                        document.getElementById('notif-btn').textContent = 'Notifications On';
-                        checkForNewPosts();
-                    }
-                });
+                if (Notification.permission === 'granted') {
+                    // Already granted - enable native notifications
+                    document.getElementById('notif-btn').textContent = 'Notifications On';
+                    document.getElementById('notif-btn').style.background = '#4caf50';
+                    checkForNewPosts();
+                } else if (Notification.permission === 'default') {
+                    // Request permission (works on Chrome Mac, Firefox, etc.)
+                    Notification.requestPermission().then(function(permission) {
+                        if (permission === 'granted') {
+                            document.getElementById('notif-btn').textContent = 'Notifications On';
+                            document.getElementById('notif-btn').style.background = '#4caf50';
+                            checkForNewPosts();
+                        } else {
+                            // User denied - fallback to visual alerts
+                            document.getElementById('notif-btn').textContent = 'Visual Alerts On';
+                            document.getElementById('notif-btn').style.background = '#ff9800';
+                            checkForNewPosts();
+                        }
+                    });
+                } else {
+                    // Permission denied - use visual alerts
+                    document.getElementById('notif-btn').textContent = 'Visual Alerts On';
+                    document.getElementById('notif-btn').style.background = '#ff9800';
+                    checkForNewPosts();
+                }
+            } else {
+                // Browser doesn't support notifications (old browsers, some mobile)
+                document.getElementById('notif-btn').textContent = 'Visual Alerts On';
+                document.getElementById('notif-btn').style.background = '#ff9800';
+                checkForNewPosts();
             }
         }
         
+        function showVisualAlert(message) {
+            // Create visual notification for iOS/unsupported browsers
+            const alert = document.createElement('div');
+            alert.style.cssText = 'position:fixed;top:20px;right:20px;background:#1877f2;color:white;padding:15px;border-radius:8px;box-shadow:0 4px 12px rgba(0,0,0,0.3);z-index:9999;max-width:300px;animation:slideIn 0.3s ease;';
+            alert.innerHTML = '<strong>🔔 New Activity!</strong><br>' + message;
+            document.body.appendChild(alert);
+            
+            // Auto-remove after 4 seconds
+            setTimeout(() => {
+                alert.style.animation = 'slideOut 0.3s ease';
+                setTimeout(() => alert.remove(), 300);
+            }, 4000);
+        }
+        
         function checkForNewPosts() {
-            if (Notification.permission === 'granted') {
-                setInterval(function() {
-                    fetch('check_posts.php')
-                        .then(response => response.json())
-                        .then(data => {
-                            if (lastPostCount > 0 && data.count > lastPostCount) {
+            setInterval(function() {
+                fetch('check_posts.php')
+                    .then(response => response.json())
+                    .then(data => {
+                        if (lastPostCount > 0 && data.count > lastPostCount) {
+                            // Try native notification first
+                            if ('Notification' in window && Notification.permission === 'granted') {
                                 new Notification('New Post!', {
                                     body: data.latest_post,
                                     icon: 'data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="%231877f2"><path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z"/></svg>'
                                 });
+                            } else {
+                                // Fallback visual alert for iOS/unsupported
+                                showVisualAlert(data.latest_post);
                             }
-                            lastPostCount = data.count;
-                        });
-                }, 5000);
-            }
+                            
+                            // Update page title for additional notification
+                            document.title = '🔔 New Post - Private Social';
+                            setTimeout(() => document.title = 'Feed - Private Social', 3000);
+                        }
+                        lastPostCount = data.count;
+                    });
+            }, 5000);
         }
         
         window.onload = function() {
-            if (Notification.permission === 'granted') {
+            if ('Notification' in window && Notification.permission === 'granted') {
                 document.getElementById('notif-btn').textContent = 'Notifications On';
-                checkForNewPosts();
+                document.getElementById('notif-btn').style.background = '#4caf50';
+            } else if (!('Notification' in window)) {
+                // iOS/unsupported - show visual alerts option
+                document.getElementById('notif-btn').textContent = 'Enable Visual Alerts';
+                document.getElementById('notif-btn').style.background = '#ff9800';
             }
         }
     </script>

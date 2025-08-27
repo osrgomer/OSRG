@@ -205,6 +205,7 @@ if ($_POST['content'] ?? false) {
         <a href="users.php">Find Friends</a>
         <a href="friends.php">My Friends</a>
         <a href="messages.php">Messages</a>
+        <a href="settings.php">Settings</a>
         <?php
         $pdo_nav = get_db();
         $stmt_nav = $pdo_nav->prepare("SELECT username FROM users WHERE id = ?");
@@ -277,7 +278,18 @@ if ($_POST['content'] ?? false) {
                 <?php endif; ?>
                 
                 <div style="clear: both; margin-top: 10px;">
-                    <small><?= date('M j, H:i', strtotime($post['created_at'] . ' +1 hour')) ?></small>
+                    <small><?php
+                    // Get user's timezone
+                    $stmt_tz = $pdo->prepare("SELECT timezone FROM users WHERE id = ?");
+                    $stmt_tz->execute([$_SESSION['user_id']]);
+                    $user_tz = $stmt_tz->fetch();
+                    $timezone = $user_tz['timezone'] ?? 'Europe/London';
+                    
+                    // Convert to user's timezone
+                    $date = new DateTime($post['created_at'], new DateTimeZone('UTC'));
+                    $date->setTimezone(new DateTimeZone($timezone));
+                    echo $date->format('M j, H:i');
+                    ?></small>
                 </div>
             </div>
             <?php endforeach; ?>

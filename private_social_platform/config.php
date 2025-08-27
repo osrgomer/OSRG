@@ -63,6 +63,13 @@ function init_db() {
         // Column already exists
     }
     
+    // Add timezone to users table
+    try {
+        $pdo->exec("ALTER TABLE users ADD COLUMN timezone TEXT DEFAULT 'Europe/London'");
+    } catch (Exception $e) {
+        // Column already exists
+    }
+    
     return $pdo;
 }
 

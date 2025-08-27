@@ -142,6 +142,16 @@ $friends = $stmt->fetchAll();
         <a href="users.php">Find Friends</a>
         <a href="friends.php">My Friends</a>
         <a href="messages.php">Messages</a>
+        <a href="settings.php">Settings</a>
+        <?php
+        $pdo_nav = get_db();
+        $stmt_nav = $pdo_nav->prepare("SELECT username FROM users WHERE id = ?");
+        $stmt_nav->execute([$_SESSION['user_id']]);
+        $user_nav = $stmt_nav->fetch();
+        if ($user_nav && $user_nav['username'] === 'OSRG'):
+        ?>
+        <a href="admin.php" style="color: #d32f2f; font-weight: bold;">Admin Panel</a>
+        <?php endif; ?>
         <a href="logout.php">Logout</a>
     </div>
     

@@ -199,20 +199,24 @@ if ($_POST['content'] ?? false) {
                 <p><?= htmlspecialchars($post['content']) ?></p>
                 
                 <?php if ($post['file_path']): ?>
+                <div style="margin: 10px 0;">
                     <?php if ($post['file_type'] == 'mp4'): ?>
-                        <video controls style="max-width: 100%; margin: 10px 0;">
+                        <video controls style="width: 100%; max-width: 100%; display: block;">
                             <source src="<?= $post['file_path'] ?>" type="video/mp4">
                         </video>
                     <?php elseif ($post['file_type'] == 'mp3'): ?>
-                        <audio controls style="width: 100%; margin: 10px 0;">
+                        <audio controls style="width: 100%; display: block;">
                             <source src="<?= $post['file_path'] ?>" type="audio/mp3">
                         </audio>
                     <?php elseif (in_array($post['file_type'], ['png', 'jpg', 'jpeg'])): ?>
-                        <img src="<?= htmlspecialchars($post['file_path']) ?>" alt="Uploaded image" style="max-width: 100%; margin: 10px 0; border-radius: 8px;">
+                        <img src="<?= htmlspecialchars($post['file_path']) ?>" alt="Uploaded image" style="width: 100%; max-width: 100%; display: block; border-radius: 8px;">
                     <?php endif; ?>
+                </div>
                 <?php endif; ?>
                 
-                <small><?= date('M j, H:i', strtotime($post['created_at'] . ' +1 hour')) ?></small>
+                <div style="clear: both; margin-top: 10px;">
+                    <small><?= date('M j, H:i', strtotime($post['created_at'] . ' +1 hour')) ?></small>
+                </div>
             </div>
             <?php endforeach; ?>
         <?php else: ?>

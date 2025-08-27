@@ -26,6 +26,7 @@ if ($_POST['username'] ?? false) {
 <!DOCTYPE html>
 <html>
 <head>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Register - Private Social</title>
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
@@ -33,9 +34,15 @@ if ($_POST['username'] ?? false) {
         .container { max-width: 600px; margin: 0 auto; padding: 20px; }
         .header { background: #1877f2; color: white; padding: 15px; text-align: center; }
         .form-group { margin: 15px 0; }
-        input { width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 5px; }
-        button { background: #1877f2; color: white; padding: 10px 20px; border: none; border-radius: 5px; cursor: pointer; }
+        input { width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 5px; font-size: 16px; }
+        button { background: #1877f2; color: white; padding: 10px 20px; border: none; border-radius: 5px; cursor: pointer; font-size: 16px; }
         .message { color: green; padding: 10px; }
+        
+        @media (max-width: 768px) {
+            .container { padding: 15px; margin: 10px; }
+            .header { padding: 20px 15px; }
+            input, button { padding: 12px; font-size: 16px; }
+        }
     </style>
 </head>
 <body>

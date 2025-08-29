@@ -224,7 +224,7 @@ if ($_POST['content'] ?? false) {
     
     <div class="container">
         <div class="header">
-            <h1>OSRG Connect</h1>
+            <h1>Public Feed</h1>
             <button id="notif-btn" class="notification-btn" onclick="requestNotificationPermission()">Enable Notifications</button>
         </div>
 

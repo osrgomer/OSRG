@@ -126,6 +126,7 @@ if ($_POST['content'] ?? false) {
             if (notificationsEnabled) {
                 // Disable notifications
                 notificationsEnabled = false;
+                localStorage.setItem('notificationsEnabled', 'false');
                 if (notificationInterval) {
                     clearInterval(notificationInterval);
                     notificationInterval = null;
@@ -138,6 +139,7 @@ if ($_POST['content'] ?? false) {
                     if (Notification.permission === 'granted') {
                         // Already granted - enable native notifications
                         notificationsEnabled = true;
+                        localStorage.setItem('notificationsEnabled', 'true');
                         document.getElementById('notif-btn').textContent = 'Disable Notifications';
                         document.getElementById('notif-btn').style.background = '#4caf50';
                         checkForNewPosts();
@@ -146,12 +148,14 @@ if ($_POST['content'] ?? false) {
                         Notification.requestPermission().then(function(permission) {
                             if (permission === 'granted') {
                                 notificationsEnabled = true;
+                                localStorage.setItem('notificationsEnabled', 'true');
                                 document.getElementById('notif-btn').textContent = 'Disable Notifications';
                                 document.getElementById('notif-btn').style.background = '#4caf50';
                                 checkForNewPosts();
                             } else {
                                 // User denied - fallback to visual alerts
                                 notificationsEnabled = true;
+                                localStorage.setItem('notificationsEnabled', 'true');
                                 document.getElementById('notif-btn').textContent = 'Disable Notifications';
                                 document.getElementById('notif-btn').style.background = '#ff9800';
                                 checkForNewPosts();
@@ -160,6 +164,7 @@ if ($_POST['content'] ?? false) {
                     } else {
                         // Permission denied - use visual alerts
                         notificationsEnabled = true;
+                        localStorage.setItem('notificationsEnabled', 'true');
                         document.getElementById('notif-btn').textContent = 'Disable Notifications';
                         document.getElementById('notif-btn').style.background = '#ff9800';
                         checkForNewPosts();
@@ -167,6 +172,7 @@ if ($_POST['content'] ?? false) {
                 } else {
                     // Browser doesn't support notifications
                     notificationsEnabled = true;
+                    localStorage.setItem('notificationsEnabled', 'true');
                     document.getElementById('notif-btn').textContent = 'Disable Notifications';
                     document.getElementById('notif-btn').style.background = '#ff9800';
                     checkForNewPosts();
@@ -221,9 +227,31 @@ if ($_POST['content'] ?? false) {
         }
         
         window.onload = function() {
-            // Initialize notification button state
-            document.getElementById('notif-btn').textContent = 'Enable Notifications';
-            document.getElementById('notif-btn').style.background = '#666';
+            // Check if notifications were previously enabled
+            const savedPreference = localStorage.getItem('notificationsEnabled');
+            
+            if (savedPreference === 'true') {
+                // Restore enabled state
+                if ('Notification' in window && Notification.permission === 'granted') {
+                    notificationsEnabled = true;
+                    document.getElementById('notif-btn').textContent = 'Disable Notifications';
+                    document.getElementById('notif-btn').style.background = '#4caf50';
+                    checkForNewPosts();
+                } else if ('Notification' in window && Notification.permission === 'denied') {
+                    notificationsEnabled = true;
+                    document.getElementById('notif-btn').textContent = 'Disable Notifications';
+                    document.getElementById('notif-btn').style.background = '#ff9800';
+                    checkForNewPosts();
+                } else {
+                    // Permission not granted yet, show enable button
+                    document.getElementById('notif-btn').textContent = 'Enable Notifications';
+                    document.getElementById('notif-btn').style.background = '#666';
+                }
+            } else {
+                // Default disabled state
+                document.getElementById('notif-btn').textContent = 'Enable Notifications';
+                document.getElementById('notif-btn').style.background = '#666';
+            }
         }
     </script>
 </head>

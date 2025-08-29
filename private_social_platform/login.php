@@ -93,7 +93,8 @@ if ($_POST['username'] ?? false) {
         </form>
 
         <p style="text-align: center; margin-top: 20px;">
-            Don't have an account? <a href="register.php">Register here</a>
+            Don't have an account? <a href="register.php">Register here</a><br>
+            <a href="forgot_password.php" style="color: #666; font-size: 14px;">Forgot your password?</a>
         </p>
     </div>
 </body>

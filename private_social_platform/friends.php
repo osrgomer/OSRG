@@ -61,7 +61,15 @@ try {
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
         body { font-family: Arial, sans-serif; background: #f5f5f5; }
-        .container { max-width: 600px; margin: 0 auto; padding: 20px; }
+        .container { max-width: 1200px; margin: 0 auto; padding: 20px; }
+        .content-wrapper { display: flex; gap: 20px; }
+        .friends-sidebar { width: 300px; }
+        .feed-main { flex: 1; }
+        
+        @media (max-width: 768px) {
+            .content-wrapper { flex-direction: column; }
+            .friends-sidebar { width: 100%; }
+        }
         .header { background: #1877f2; color: white; padding: 15px; text-align: center; }
         .nav { background: white; padding: 10px; margin-bottom: 20px; border-radius: 8px; }
         .nav a { color: #1877f2; text-decoration: none; margin-right: 15px; }
@@ -95,80 +103,88 @@ try {
             <h1>My Friends</h1>
         </div>
 
-        <div class="post">
-            <h3>Friends List</h3>
-            <?php if ($friends): ?>
-                <?php foreach ($friends as $friend): ?>
-                <div class="friend-item">
-                    <div class="friend-info">
-                        <span class="friend-name"><?= htmlspecialchars($friend['username']) ?></span>
-                        <span class="friend-since">Friends since <?= date('M j, Y', strtotime($friend['created_at'])) ?></span>
+        <div class="content-wrapper">
+            <!-- Left Sidebar: Friends List -->
+            <div class="friends-sidebar">
+                <div class="post">
+                    <h3>Friends List</h3>
+                    <?php if ($friends): ?>
+                        <?php foreach ($friends as $friend): ?>
+                        <div class="friend-item">
+                            <div class="friend-info">
+                                <span class="friend-name"><?= htmlspecialchars($friend['username']) ?></span>
+                                <span class="friend-since">Friends since <?= date('M j, Y', strtotime($friend['created_at'])) ?></span>
+                            </div>
+                            <span style="color: #4caf50; font-size: 18px;">✓</span>
+                        </div>
+                        <?php endforeach; ?>
+                    <?php else: ?>
+                        <p style="text-align: center; color: #666; padding: 20px;">
+                            You don't have any friends yet.<br>
+                            <a href="users.php" style="color: #1877f2;">Find some friends!</a>
+                        </p>
+                    <?php endif; ?>
+                </div>
+            </div>
+
+            <!-- Right Main: Friends Feed -->
+            <div class="feed-main">
+                <div class="header" style="margin-top: 0; margin-bottom: 20px;">
+                    <h1>Friends Feed</h1>
+                </div>
+
+                <?php if ($friend_posts): ?>
+                    <?php foreach ($friend_posts as $post): ?>
+                    <div class="post">
+                        <p><strong><?= htmlspecialchars($post['username']) ?></strong></p>
+                        <p><?= htmlspecialchars($post['content']) ?></p>
+                        
+                        <?php if ($post['file_path']): ?>
+                        <div style="margin: 10px 0;">
+                            <?php if ($post['file_type'] == 'mp4'): ?>
+                                <video controls style="width: 100%; max-width: 100%; display: block;">
+                                    <source src="<?= $post['file_path'] ?>" type="video/mp4">
+                                </video>
+                            <?php elseif ($post['file_type'] == 'mp3'): ?>
+                                <audio controls preload="metadata" style="width: 100%; display: block;">
+                                    <source src="<?= $post['file_path'] ?>" type="audio/mpeg">
+                                    <source src="<?= $post['file_path'] ?>" type="audio/mp3">
+                                    Your browser does not support the audio element.
+                                </audio>
+                            <?php elseif (in_array($post['file_type'], ['png', 'jpg', 'jpeg'])): ?>
+                                <img src="<?= htmlspecialchars($post['file_path']) ?>" alt="Uploaded image" style="width: 100%; max-width: 100%; display: block; border-radius: 8px;">
+                            <?php endif; ?>
+                        </div>
+                        <?php endif; ?>
+                        
+                        <div style="clear: both; margin-top: 10px;">
+                            <small><?php
+                            // Get user's timezone
+                            $stmt_tz = $pdo->prepare("SELECT timezone FROM users WHERE id = ?");
+                            $stmt_tz->execute([$_SESSION['user_id']]);
+                            $user_tz = $stmt_tz->fetch();
+                            $timezone = $user_tz['timezone'] ?? 'Europe/London';
+                            
+                            // Convert to user's timezone
+                            $date = new DateTime($post['created_at'], new DateTimeZone('UTC'));
+                            $date->setTimezone(new DateTimeZone($timezone));
+                            echo $date->format('M j, H:i');
+                            ?></small>
+                        </div>
                     </div>
-                    <span style="color: #4caf50; font-size: 18px;">✓</span>
-                </div>
-                <?php endforeach; ?>
-            <?php else: ?>
-                <p style="text-align: center; color: #666; padding: 20px;">
-                    You don't have any friends yet.<br>
-                    <a href="users.php" style="color: #1877f2;">Find some friends!</a>
-                </p>
-            <?php endif; ?>
-        </div>
-
-        <div class="header" style="margin-top: 20px;">
-            <h1>Friends Feed</h1>
-        </div>
-
-        <?php if ($friend_posts): ?>
-            <?php foreach ($friend_posts as $post): ?>
-            <div class="post">
-                <p><strong><?= htmlspecialchars($post['username']) ?></strong></p>
-                <p><?= htmlspecialchars($post['content']) ?></p>
-                
-                <?php if ($post['file_path']): ?>
-                <div style="margin: 10px 0;">
-                    <?php if ($post['file_type'] == 'mp4'): ?>
-                        <video controls style="width: 100%; max-width: 100%; display: block;">
-                            <source src="<?= $post['file_path'] ?>" type="video/mp4">
-                        </video>
-                    <?php elseif ($post['file_type'] == 'mp3'): ?>
-                        <audio controls preload="metadata" style="width: 100%; display: block;">
-                            <source src="<?= $post['file_path'] ?>" type="audio/mpeg">
-                            <source src="<?= $post['file_path'] ?>" type="audio/mp3">
-                            Your browser does not support the audio element.
-                        </audio>
-                    <?php elseif (in_array($post['file_type'], ['png', 'jpg', 'jpeg'])): ?>
-                        <img src="<?= htmlspecialchars($post['file_path']) ?>" alt="Uploaded image" style="width: 100%; max-width: 100%; display: block; border-radius: 8px;">
-                    <?php endif; ?>
-                </div>
+                    <?php endforeach; ?>
+                <?php else: ?>
+                    <div class="post">
+                        <p style="text-align: center; color: #666; padding: 20px;">
+                            No posts from friends yet.<br>
+                            <?php if (!$friends): ?>
+                                <a href="users.php" style="color: #1877f2;">Add some friends to see their posts!</a>
+                            <?php endif; ?>
+                        </p>
+                    </div>
                 <?php endif; ?>
-                
-                <div style="clear: both; margin-top: 10px;">
-                    <small><?php
-                    // Get user's timezone
-                    $stmt_tz = $pdo->prepare("SELECT timezone FROM users WHERE id = ?");
-                    $stmt_tz->execute([$_SESSION['user_id']]);
-                    $user_tz = $stmt_tz->fetch();
-                    $timezone = $user_tz['timezone'] ?? 'Europe/London';
-                    
-                    // Convert to user's timezone
-                    $date = new DateTime($post['created_at'], new DateTimeZone('UTC'));
-                    $date->setTimezone(new DateTimeZone($timezone));
-                    echo $date->format('M j, H:i');
-                    ?></small>
-                </div>
             </div>
-            <?php endforeach; ?>
-        <?php else: ?>
-            <div class="post">
-                <p style="text-align: center; color: #666; padding: 20px;">
-                    No posts from friends yet.<br>
-                    <?php if (!$friends): ?>
-                        <a href="users.php" style="color: #1877f2;">Add some friends to see their posts!</a>
-                    <?php endif; ?>
-                </p>
-            </div>
-        <?php endif; ?>
+        </div>
     </div>
 </body>
 </html>

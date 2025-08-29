@@ -52,9 +52,38 @@ if ($_GET['delete_post'] ?? false) {
 // Handle user approval
 if ($_GET['approve'] ?? false) {
     $user_id = $_GET['approve'];
+    
+    // Get user details before approval
+    $stmt = $pdo->prepare("SELECT username, email FROM users WHERE id = ?");
+    $stmt->execute([$user_id]);
+    $user_data = $stmt->fetch();
+    
+    // Approve user
     $stmt = $pdo->prepare("UPDATE users SET approved = 1 WHERE id = ?");
     $stmt->execute([$user_id]);
-    $message = 'User approved successfully!';
+    
+    // Send approval email
+    if ($user_data) {
+        $subject = "Account Approved - OSRG Connect";
+        $body = "Hi " . $user_data['username'] . ",\n\n";
+        $body .= "Great news! Your OSRG Connect account has been approved.\n\n";
+        $body .= "You can now login and start connecting with friends:\n";
+        $body .= "https://osrg.lol/osrg/private_social_platform/login.php\n\n";
+        $body .= "Welcome to OSRG Connect!\n\n";
+        $body .= "Best regards,\nOSRG Connect Team";
+        
+        $headers = "From: OSRG Connect <omer@osrg.lol>\r\n";
+        $headers .= "Reply-To: omer@osrg.lol\r\n";
+        $headers .= "X-Mailer: PHP/" . phpversion();
+        
+        ini_set('SMTP', 'smtp.hostinger.com');
+        ini_set('smtp_port', '465');
+        ini_set('sendmail_from', 'omer@osrg.lol');
+        
+        mail($user_data['email'], $subject, $body, $headers);
+    }
+    
+    $message = 'User approved successfully! Approval email sent.';
 }
 
 // Handle user rejection

@@ -33,8 +33,7 @@ if ($_POST['content'] ?? false && $friend_id) {
         $subject = "New Message - OSRG Connect";
         $body = "Hi " . $notification_data['username'] . ",\n\n";
         $body .= "You have received a new message from " . $notification_data['sender_name'] . " on OSRG Connect.\n\n";
-        $body .= "Message: " . $_POST['content'] . "\n\n";
-        $body .= "Login to reply: https://osrg.lol/osrg/private_social_platform/messages.php\n\n";
+        $body .= "Login to read and reply: https://osrg.lol/osrg/private_social_platform/messages.php\n\n";
         $body .= "Best regards,\nOSRG Connect Team";
         
         $headers = "From: OSRG Connect <omer@osrg.lol>\r\n";

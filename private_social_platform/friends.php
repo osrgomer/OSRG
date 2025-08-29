@@ -21,6 +21,38 @@ $stmt = $pdo->prepare("
 ");
 $stmt->execute([$_SESSION['user_id'], $_SESSION['user_id']]);
 $friends = $stmt->fetchAll();
+
+// Get posts from friends only
+try {
+    $stmt = $pdo->prepare("
+        SELECT p.content, p.created_at, u.username, p.file_path, p.file_type
+        FROM posts p 
+        JOIN users u ON p.user_id = u.id
+        JOIN friends f ON (
+            (f.user_id = ? AND f.friend_id = p.user_id AND f.status = 'accepted') OR
+            (f.friend_id = ? AND f.user_id = p.user_id AND f.status = 'accepted')
+        )
+        GROUP BY p.id
+        ORDER BY p.created_at DESC
+    ");
+    $stmt->execute([$_SESSION['user_id'], $_SESSION['user_id']]);
+    $friend_posts = $stmt->fetchAll();
+} catch (Exception $e) {
+    // Fallback for old database without file columns
+    $stmt = $pdo->prepare("
+        SELECT p.content, p.created_at, u.username, NULL as file_path, NULL as file_type
+        FROM posts p 
+        JOIN users u ON p.user_id = u.id
+        JOIN friends f ON (
+            (f.user_id = ? AND f.friend_id = p.user_id AND f.status = 'accepted') OR
+            (f.friend_id = ? AND f.user_id = p.user_id AND f.status = 'accepted')
+        )
+        GROUP BY p.id
+        ORDER BY p.created_at DESC
+    ");
+    $stmt->execute([$_SESSION['user_id'], $_SESSION['user_id']]);
+    $friend_posts = $stmt->fetchAll();
+}
 ?>
 <!DOCTYPE html>
 <html>
@@ -64,6 +96,7 @@ $friends = $stmt->fetchAll();
         </div>
 
         <div class="post">
+            <h3>Friends List</h3>
             <?php if ($friends): ?>
                 <?php foreach ($friends as $friend): ?>
                 <div class="friend-item">
@@ -81,6 +114,61 @@ $friends = $stmt->fetchAll();
                 </p>
             <?php endif; ?>
         </div>
+
+        <div class="header" style="margin-top: 20px;">
+            <h1>Friends Feed</h1>
+        </div>
+
+        <?php if ($friend_posts): ?>
+            <?php foreach ($friend_posts as $post): ?>
+            <div class="post">
+                <p><strong><?= htmlspecialchars($post['username']) ?></strong></p>
+                <p><?= htmlspecialchars($post['content']) ?></p>
+                
+                <?php if ($post['file_path']): ?>
+                <div style="margin: 10px 0;">
+                    <?php if ($post['file_type'] == 'mp4'): ?>
+                        <video controls style="width: 100%; max-width: 100%; display: block;">
+                            <source src="<?= $post['file_path'] ?>" type="video/mp4">
+                        </video>
+                    <?php elseif ($post['file_type'] == 'mp3'): ?>
+                        <audio controls preload="metadata" style="width: 100%; display: block;">
+                            <source src="<?= $post['file_path'] ?>" type="audio/mpeg">
+                            <source src="<?= $post['file_path'] ?>" type="audio/mp3">
+                            Your browser does not support the audio element.
+                        </audio>
+                    <?php elseif (in_array($post['file_type'], ['png', 'jpg', 'jpeg'])): ?>
+                        <img src="<?= htmlspecialchars($post['file_path']) ?>" alt="Uploaded image" style="width: 100%; max-width: 100%; display: block; border-radius: 8px;">
+                    <?php endif; ?>
+                </div>
+                <?php endif; ?>
+                
+                <div style="clear: both; margin-top: 10px;">
+                    <small><?php
+                    // Get user's timezone
+                    $stmt_tz = $pdo->prepare("SELECT timezone FROM users WHERE id = ?");
+                    $stmt_tz->execute([$_SESSION['user_id']]);
+                    $user_tz = $stmt_tz->fetch();
+                    $timezone = $user_tz['timezone'] ?? 'Europe/London';
+                    
+                    // Convert to user's timezone
+                    $date = new DateTime($post['created_at'], new DateTimeZone('UTC'));
+                    $date->setTimezone(new DateTimeZone($timezone));
+                    echo $date->format('M j, H:i');
+                    ?></small>
+                </div>
+            </div>
+            <?php endforeach; ?>
+        <?php else: ?>
+            <div class="post">
+                <p style="text-align: center; color: #666; padding: 20px;">
+                    No posts from friends yet.<br>
+                    <?php if (!$friends): ?>
+                        <a href="users.php" style="color: #1877f2;">Add some friends to see their posts!</a>
+                    <?php endif; ?>
+                </p>
+            </div>
+        <?php endif; ?>
     </div>
 </body>
 </html>

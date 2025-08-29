@@ -10,11 +10,54 @@ $pdo = get_db();
 $message = '';
 
 // Get current user settings
-$stmt = $pdo->prepare("SELECT timezone, email_notifications FROM users WHERE id = ?");
+$stmt = $pdo->prepare("SELECT username, email, timezone, email_notifications, avatar FROM users WHERE id = ?");
 $stmt->execute([$_SESSION['user_id']]);
 $user = $stmt->fetch();
 $current_timezone = $user['timezone'] ?? 'Europe/London';
 $email_notifications = $user['email_notifications'] ?? 0;
+$current_username = $user['username'] ?? '';
+$current_email = $user['email'] ?? '';
+$current_avatar = $user['avatar'] ?? '';
+
+// Handle profile update
+if ($_POST['update_profile'] ?? false) {
+    $new_username = $_POST['username'];
+    $new_email = $_POST['email'];
+    $avatar = $current_avatar;
+    
+    // Handle avatar upload
+    if (isset($_FILES['avatar']) && $_FILES['avatar']['error'] == 0) {
+        $allowed = ['png', 'jpg', 'jpeg'];
+        $file_ext = strtolower(pathinfo($_FILES['avatar']['name'], PATHINFO_EXTENSION));
+        $file_size = $_FILES['avatar']['size'];
+        $max_size = 2 * 1024 * 1024; // 2MB limit
+        
+        if ($file_size <= $max_size && in_array($file_ext, $allowed)) {
+            if (!is_dir('avatars')) {
+                mkdir('avatars', 0755, true);
+            }
+            $avatar_filename = 'avatar_' . $_SESSION['user_id'] . '_' . time() . '.' . $file_ext;
+            $avatar_path = 'avatars/' . $avatar_filename;
+            
+            if (move_uploaded_file($_FILES['avatar']['tmp_name'], $avatar_path)) {
+                $avatar = $avatar_path;
+            }
+        }
+    } elseif ($_POST['preset_avatar'] ?? false) {
+        $avatar = $_POST['preset_avatar'];
+    }
+    
+    try {
+        $stmt = $pdo->prepare("UPDATE users SET username = ?, email = ?, avatar = ? WHERE id = ?");
+        $stmt->execute([$new_username, $new_email, $avatar, $_SESSION['user_id']]);
+        $message = 'Profile updated successfully!';
+        $current_username = $new_username;
+        $current_email = $new_email;
+        $current_avatar = $avatar;
+    } catch (PDOException $e) {
+        $message = 'Error: Username or email already exists.';
+    }
+}
 
 // Handle settings update
 if ($_POST['timezone'] ?? false) {
@@ -96,6 +139,75 @@ $timezones = [
         <?php if ($message): ?>
             <div class="message"><?= $message ?></div>
         <?php endif; ?>
+        
+        <!-- Profile Settings -->
+        <div class="post">
+            <h3>Edit Profile</h3>
+            <form method="POST" enctype="multipart/form-data">
+                <div class="form-group">
+                    <label><strong>Username:</strong></label>
+                    <input type="text" name="username" value="<?= htmlspecialchars($current_username) ?>" required style="width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 5px;">
+                </div>
+                <div class="form-group">
+                    <label><strong>Email:</strong></label>
+                    <input type="email" name="email" value="<?= htmlspecialchars($current_email) ?>" required style="width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 5px;">
+                </div>
+                <div class="form-group">
+                    <label><strong>Avatar:</strong></label>
+                    <?php if ($current_avatar): ?>
+                        <div style="margin: 10px 0;">
+                            <?php if (strpos($current_avatar, 'avatars/') === 0): ?>
+                                <img src="<?= htmlspecialchars($current_avatar) ?>" alt="Current Avatar" style="width: 80px; height: 80px; border-radius: 50%; object-fit: cover;">
+                            <?php else: ?>
+                                <span style="font-size: 60px;"><?= htmlspecialchars($current_avatar) ?></span>
+                            <?php endif; ?>
+                            <small style="display: block; color: #666;">Current Avatar</small>
+                        </div>
+                    <?php endif; ?>
+                    <input type="file" name="avatar" accept=".png,.jpg,.jpeg" style="margin-bottom: 10px;">
+                    <small style="color: #666; display: block;">Upload custom avatar (PNG, JPG - max 2MB)</small>
+                    
+                    <div style="margin: 15px 0;">
+                        <label><strong>Or choose preset avatar:</strong></label>
+                        <div style="display: flex; gap: 10px; margin-top: 10px; flex-wrap: wrap;">
+                            <label style="cursor: pointer;">
+                                <input type="radio" name="preset_avatar" value="👤" style="margin-right: 5px;">
+                                <span style="font-size: 40px;">👤</span>
+                            </label>
+                            <label style="cursor: pointer;">
+                                <input type="radio" name="preset_avatar" value="👨" style="margin-right: 5px;">
+                                <span style="font-size: 40px;">👨</span>
+                            </label>
+                            <label style="cursor: pointer;">
+                                <input type="radio" name="preset_avatar" value="👩" style="margin-right: 5px;">
+                                <span style="font-size: 40px;">👩</span>
+                            </label>
+                            <label style="cursor: pointer;">
+                                <input type="radio" name="preset_avatar" value="🧑" style="margin-right: 5px;">
+                                <span style="font-size: 40px;">🧑</span>
+                            </label>
+                            <label style="cursor: pointer;">
+                                <input type="radio" name="preset_avatar" value="👶" style="margin-right: 5px;">
+                                <span style="font-size: 40px;">👶</span>
+                            </label>
+                            <label style="cursor: pointer;">
+                                <input type="radio" name="preset_avatar" value="🐱" style="margin-right: 5px;">
+                                <span style="font-size: 40px;">🐱</span>
+                            </label>
+                            <label style="cursor: pointer;">
+                                <input type="radio" name="preset_avatar" value="🐶" style="margin-right: 5px;">
+                                <span style="font-size: 40px;">🐶</span>
+                            </label>
+                            <label style="cursor: pointer;">
+                                <input type="radio" name="preset_avatar" value="🦊" style="margin-right: 5px;">
+                                <span style="font-size: 40px;">🦊</span>
+                            </label>
+                        </div>
+                    </div>
+                </div>
+                <button type="submit" name="update_profile" value="1">Update Profile</button>
+            </form>
+        </div>
 
         <div class="post">
             <h3>Timezone Settings</h3>

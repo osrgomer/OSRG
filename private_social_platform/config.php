@@ -77,6 +77,13 @@ function init_db() {
         // Column already exists
     }
     
+    // Add avatar column
+    try {
+        $pdo->exec("ALTER TABLE users ADD COLUMN avatar TEXT DEFAULT NULL");
+    } catch (Exception $e) {
+        // Column already exists
+    }
+    
     // Comments table
     $pdo->exec("CREATE TABLE IF NOT EXISTS comments (
         id INTEGER PRIMARY KEY,

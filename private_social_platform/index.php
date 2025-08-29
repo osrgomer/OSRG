@@ -11,7 +11,7 @@ if (!isset($_SESSION['user_id'])) {
 $pdo = get_db();
 try {
     $stmt = $pdo->prepare("
-        SELECT p.id, p.content, p.created_at, u.username, p.file_path, p.file_type,
+        SELECT p.id, p.content, p.created_at, u.username, u.avatar, p.file_path, p.file_type,
                COUNT(DISTINCT r.id) as reaction_count,
                COUNT(DISTINCT c.id) as comment_count,
                ur.reaction_type as user_reaction
@@ -28,7 +28,7 @@ try {
     $posts = $stmt->fetchAll();
 } catch (Exception $e) {
     // Fallback for old database
-    $stmt = $pdo->query("SELECT p.id, p.content, p.created_at, u.username, NULL as file_path, NULL as file_type,
+    $stmt = $pdo->query("SELECT p.id, p.content, p.created_at, u.username, u.avatar, NULL as file_path, NULL as file_type,
                          0 as reaction_count, 0 as comment_count, NULL as user_reaction
                          FROM posts p JOIN users u ON p.user_id = u.id 
                          ORDER BY p.created_at DESC");
@@ -155,8 +155,32 @@ if ($_POST['content'] ?? false) {
             to { transform: translateX(100%); opacity: 0; }
         }
     </style>
+    <link href="https://cdn.quilljs.com/1.3.6/quill.snow.css" rel="stylesheet">
+    <script src="https://cdn.quilljs.com/1.3.6/quill.min.js"></script>
     <script>
         let lastPostCount = 0;
+        let quill;
+        
+        // Initialize WYSIWYG editor
+        document.addEventListener('DOMContentLoaded', function() {
+            quill = new Quill('#editor', {
+                theme: 'snow',
+                placeholder: "What's on your mind?",
+                modules: {
+                    toolbar: [
+                        ['bold', 'italic', 'underline'],
+                        [{ 'list': 'ordered'}, { 'list': 'bullet' }],
+                        ['link'],
+                        ['clean']
+                    ]
+                }
+            });
+            
+            // Update hidden textarea when form is submitted
+            document.querySelector('form').addEventListener('submit', function() {
+                document.getElementById('content').value = quill.root.innerHTML;
+            });
+        });
         
         let notificationsEnabled = false;
         let notificationInterval = null;
@@ -338,7 +362,8 @@ if ($_POST['content'] ?? false) {
             <h3>Share something...</h3>
             <form method="POST" enctype="multipart/form-data">
                 <div class="form-group">
-                    <textarea name="content" placeholder="What's on your mind?" rows="3" required></textarea>
+                    <div id="editor" style="border: 1px solid #ddd; border-radius: 5px; min-height: 100px; padding: 10px; background: white;"></div>
+                    <textarea name="content" id="content" style="display: none;" required></textarea>
                 </div>
                 <div class="form-group">
                     <input type="file" name="file" accept=".mp4,.mp3,.png,.jpg,.jpeg" style="margin-bottom: 10px;">
@@ -351,8 +376,19 @@ if ($_POST['content'] ?? false) {
         <?php if ($posts): ?>
             <?php foreach ($posts as $post): ?>
             <div class="post">
-                <p><strong><?= htmlspecialchars($post['username']) ?></strong></p>
-                <p><?= htmlspecialchars($post['content']) ?></p>
+                <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 10px;">
+                    <?php if ($post['avatar']): ?>
+                        <?php if (strpos($post['avatar'], 'avatars/') === 0): ?>
+                            <img src="<?= htmlspecialchars($post['avatar']) ?>" alt="Avatar" style="width: 40px; height: 40px; border-radius: 50%; object-fit: cover;">
+                        <?php else: ?>
+                            <span style="font-size: 30px;"><?= htmlspecialchars($post['avatar']) ?></span>
+                        <?php endif; ?>
+                    <?php else: ?>
+                        <span style="font-size: 30px;">👤</span>
+                    <?php endif; ?>
+                    <strong><?= htmlspecialchars($post['username']) ?></strong>
+                </div>
+                <div><?= $post['content'] ?></div>
                 
                 <?php if ($post['file_path']): ?>
                 <div style="margin: 10px 0;">

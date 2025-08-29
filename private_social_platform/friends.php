@@ -46,7 +46,7 @@ $friends = $stmt->fetchAll();
 // Get posts from friends only with reactions and comments
 try {
     $stmt = $pdo->prepare("
-        SELECT p.id, p.content, p.created_at, u.username, p.file_path, p.file_type,
+        SELECT p.id, p.content, p.created_at, u.username, u.avatar, p.file_path, p.file_type,
                COUNT(DISTINCT r.id) as reaction_count,
                COUNT(DISTINCT c.id) as comment_count,
                ur.reaction_type as user_reaction
@@ -68,7 +68,7 @@ try {
 } catch (Exception $e) {
     // Fallback for old database
     $stmt = $pdo->prepare("
-        SELECT p.id, p.content, p.created_at, u.username, NULL as file_path, NULL as file_type,
+        SELECT p.id, p.content, p.created_at, u.username, u.avatar, NULL as file_path, NULL as file_type,
                0 as reaction_count, 0 as comment_count, NULL as user_reaction
         FROM posts p 
         JOIN users u ON p.user_id = u.id
@@ -139,8 +139,19 @@ require_once 'header.php';
                 <?php if ($friend_posts): ?>
                     <?php foreach ($friend_posts as $post): ?>
                     <div class="post">
-                        <p><strong><?= htmlspecialchars($post['username']) ?></strong></p>
-                        <p><?= htmlspecialchars($post['content']) ?></p>
+                        <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 10px;">
+                            <?php if ($post['avatar']): ?>
+                                <?php if (strpos($post['avatar'], 'avatars/') === 0): ?>
+                                    <img src="<?= htmlspecialchars($post['avatar']) ?>" alt="Avatar" style="width: 40px; height: 40px; border-radius: 50%; object-fit: cover;">
+                                <?php else: ?>
+                                    <span style="font-size: 30px;"><?= htmlspecialchars($post['avatar']) ?></span>
+                                <?php endif; ?>
+                            <?php else: ?>
+                                <span style="font-size: 30px;">👤</span>
+                            <?php endif; ?>
+                            <strong><?= htmlspecialchars($post['username']) ?></strong>
+                        </div>
+                        <div><?= $post['content'] ?></div>
                         
                         <?php if ($post['file_path']): ?>
                         <div style="margin: 10px 0;">

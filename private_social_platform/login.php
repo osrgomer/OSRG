@@ -42,12 +42,29 @@ if ($_POST['username'] ?? false) {
         button { background: #1877f2; color: white; padding: 10px 20px; border: none; border-radius: 5px; cursor: pointer; font-size: 16px; }
         .error { color: red; padding: 10px; }
         
+        .password-container { position: relative; }
+        .show-password { position: absolute; right: 10px; top: 50%; transform: translateY(-50%); background: none; border: none; cursor: pointer; color: #666; font-size: 14px; }
+        
         @media (max-width: 768px) {
             .container { padding: 15px; margin: 10px; }
             .header { padding: 20px 15px; }
             input, button { padding: 12px; font-size: 16px; }
         }
     </style>
+    <script>
+        function togglePassword() {
+            const passwordField = document.getElementById('password');
+            const showButton = document.querySelector('.show-password');
+            
+            if (passwordField.type === 'password') {
+                passwordField.type = 'text';
+                showButton.textContent = '🙈';
+            } else {
+                passwordField.type = 'password';
+                showButton.textContent = '👁️';
+            }
+        }
+    </script>
 </head>
 <body>
     <div class="container">
@@ -65,7 +82,10 @@ if ($_POST['username'] ?? false) {
                 <input type="text" name="username" placeholder="Username" required>
             </div>
             <div class="form-group">
-                <input type="password" name="password" placeholder="Password" required>
+                <div class="password-container">
+                    <input type="password" id="password" name="password" placeholder="Password" required>
+                    <button type="button" class="show-password" onclick="togglePassword()">👁️</button>
+                </div>
             </div>
             <div class="form-group">
                 <button type="submit">Login</button>

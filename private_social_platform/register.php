@@ -42,12 +42,66 @@ if ($_POST['username'] ?? false) {
         button { background: #1877f2; color: white; padding: 10px 20px; border: none; border-radius: 5px; cursor: pointer; font-size: 16px; }
         .message { color: green; padding: 10px; }
         
+        .password-container { position: relative; }
+        .show-password { position: absolute; right: 10px; top: 50%; transform: translateY(-50%); background: none; border: none; cursor: pointer; color: #666; font-size: 14px; }
+        .password-strength { margin-top: 5px; font-size: 12px; }
+        .strength-weak { color: #f44336; }
+        .strength-medium { color: #ff9800; }
+        .strength-strong { color: #4caf50; }
+        
         @media (max-width: 768px) {
             .container { padding: 15px; margin: 10px; }
             .header { padding: 20px 15px; }
             input, button { padding: 12px; font-size: 16px; }
         }
     </style>
+    <script>
+        function togglePassword() {
+            const passwordField = document.getElementById('password');
+            const showButton = document.querySelector('.show-password');
+            
+            if (passwordField.type === 'password') {
+                passwordField.type = 'text';
+                showButton.textContent = '🙈';
+            } else {
+                passwordField.type = 'password';
+                showButton.textContent = '👁️';
+            }
+        }
+        
+        function checkPasswordStrength() {
+            const password = document.getElementById('password').value;
+            const strengthDiv = document.getElementById('password-strength');
+            
+            if (password.length === 0) {
+                strengthDiv.textContent = '';
+                return;
+            }
+            
+            let score = 0;
+            
+            // Length check
+            if (password.length >= 8) score++;
+            if (password.length >= 12) score++;
+            
+            // Character variety checks
+            if (/[a-z]/.test(password)) score++;
+            if (/[A-Z]/.test(password)) score++;
+            if (/[0-9]/.test(password)) score++;
+            if (/[^A-Za-z0-9]/.test(password)) score++;
+            
+            if (score < 3) {
+                strengthDiv.textContent = 'Weak password';
+                strengthDiv.className = 'password-strength strength-weak';
+            } else if (score < 5) {
+                strengthDiv.textContent = 'Medium password';
+                strengthDiv.className = 'password-strength strength-medium';
+            } else {
+                strengthDiv.textContent = 'Strong password';
+                strengthDiv.className = 'password-strength strength-strong';
+            }
+        }
+    </script>
 </head>
 <body>
     <div class="container">
@@ -68,7 +122,11 @@ if ($_POST['username'] ?? false) {
                 <input type="email" name="email" placeholder="Email" required>
             </div>
             <div class="form-group">
-                <input type="password" name="password" placeholder="Password" required>
+                <div class="password-container">
+                    <input type="password" id="password" name="password" placeholder="Password" required oninput="checkPasswordStrength()">
+                    <button type="button" class="show-password" onclick="togglePassword()">👁️</button>
+                </div>
+                <div id="password-strength" class="password-strength"></div>
             </div>
             <div class="form-group">
                 <button type="submit">Register</button>

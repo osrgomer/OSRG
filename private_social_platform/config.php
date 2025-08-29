@@ -77,6 +77,29 @@ function init_db() {
         // Column already exists
     }
     
+    // Comments table
+    $pdo->exec("CREATE TABLE IF NOT EXISTS comments (
+        id INTEGER PRIMARY KEY,
+        post_id INTEGER,
+        user_id INTEGER,
+        content TEXT,
+        created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+        FOREIGN KEY(post_id) REFERENCES posts(id),
+        FOREIGN KEY(user_id) REFERENCES users(id)
+    )");
+    
+    // Reactions table
+    $pdo->exec("CREATE TABLE IF NOT EXISTS reactions (
+        id INTEGER PRIMARY KEY,
+        post_id INTEGER,
+        user_id INTEGER,
+        reaction_type TEXT,
+        created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+        FOREIGN KEY(post_id) REFERENCES posts(id),
+        FOREIGN KEY(user_id) REFERENCES users(id),
+        UNIQUE(post_id, user_id)
+    )");
+    
     return $pdo;
 }
 

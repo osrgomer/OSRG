@@ -84,7 +84,11 @@ if ($_POST['content'] ?? false) {
 <!DOCTYPE html>
 <html>
 <head>
-    <title>Feed - Private Social</title>
+    <link rel="icon" type="image/x-icon" href="favicon.ico">
+    <link rel="icon" type="image/png" sizes="32x32" href="favicon-32x32.png">
+    <link rel="icon" type="image/png" sizes="16x16" href="favicon-16x16.png">
+    <link rel="apple-touch-icon" sizes="180x180" href="apple-touch-icon.png">
+    <title>Feed - OSRG Connect</title>
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
         body { font-family: Arial, sans-serif; background: #f5f5f5; }
@@ -220,7 +224,7 @@ if ($_POST['content'] ?? false) {
     
     <div class="container">
         <div class="header">
-            <h1>Your Private Feed</h1>
+            <h1>OSRG Connect</h1>
             <button id="notif-btn" class="notification-btn" onclick="requestNotificationPermission()">Enable Notifications</button>
         </div>
 

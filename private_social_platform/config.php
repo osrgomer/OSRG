@@ -70,6 +70,13 @@ function init_db() {
         // Column already exists
     }
     
+    // Add email notifications preference
+    try {
+        $pdo->exec("ALTER TABLE users ADD COLUMN email_notifications INTEGER DEFAULT 0");
+    } catch (Exception $e) {
+        // Column already exists
+    }
+    
     return $pdo;
 }
 

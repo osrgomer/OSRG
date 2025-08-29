@@ -9,18 +9,21 @@ if (!isset($_SESSION['user_id'])) {
 $pdo = get_db();
 $message = '';
 
-// Get current user timezone
-$stmt = $pdo->prepare("SELECT timezone FROM users WHERE id = ?");
+// Get current user settings
+$stmt = $pdo->prepare("SELECT timezone, email_notifications FROM users WHERE id = ?");
 $stmt->execute([$_SESSION['user_id']]);
 $user = $stmt->fetch();
 $current_timezone = $user['timezone'] ?? 'Europe/London';
+$email_notifications = $user['email_notifications'] ?? 0;
 
-// Handle timezone update
+// Handle settings update
 if ($_POST['timezone'] ?? false) {
-    $stmt = $pdo->prepare("UPDATE users SET timezone = ? WHERE id = ?");
-    $stmt->execute([$_POST['timezone'], $_SESSION['user_id']]);
-    $message = 'Timezone updated successfully!';
+    $email_notif = isset($_POST['email_notifications']) ? 1 : 0;
+    $stmt = $pdo->prepare("UPDATE users SET timezone = ?, email_notifications = ? WHERE id = ?");
+    $stmt->execute([$_POST['timezone'], $email_notif, $_SESSION['user_id']]);
+    $message = 'Settings updated successfully!';
     $current_timezone = $_POST['timezone'];
+    $email_notifications = $email_notif;
 }
 
 // Common timezones
@@ -116,7 +119,14 @@ $timezones = [
                         <?php endforeach; ?>
                     </select>
                 </div>
-                <button type="submit">Update Timezone</button>
+                <div class="form-group">
+                    <label style="display: flex; align-items: center; gap: 10px;">
+                        <input type="checkbox" name="email_notifications" <?= $email_notifications ? 'checked' : '' ?>>
+                        <strong>Send me notifications by email</strong>
+                    </label>
+                    <small style="color: #666; margin-left: 30px;">Get email alerts when you receive new messages</small>
+                </div>
+                <button type="submit">Update Settings</button>
             </form>
         </div>
 

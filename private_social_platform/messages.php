@@ -23,6 +23,31 @@ if ($friend_id) {
 if ($_POST['content'] ?? false && $friend_id) {
     $stmt = $pdo->prepare("INSERT INTO messages (sender_id, receiver_id, content) VALUES (?, ?, ?)");
     $stmt->execute([$_SESSION['user_id'], $friend_id, $_POST['content']]);
+    
+    // Check if receiver wants email notifications
+    $stmt = $pdo->prepare("SELECT u.email, u.username, u.email_notifications, s.username as sender_name FROM users u, users s WHERE u.id = ? AND s.id = ?");
+    $stmt->execute([$friend_id, $_SESSION['user_id']]);
+    $notification_data = $stmt->fetch();
+    
+    if ($notification_data && $notification_data['email_notifications']) {
+        $subject = "New Message - OSRG Connect";
+        $body = "Hi " . $notification_data['username'] . ",\n\n";
+        $body .= "You have received a new message from " . $notification_data['sender_name'] . " on OSRG Connect.\n\n";
+        $body .= "Message: " . $_POST['content'] . "\n\n";
+        $body .= "Login to reply: https://osrg.lol/osrg/private_social_platform/messages.php\n\n";
+        $body .= "Best regards,\nOSRG Connect Team";
+        
+        $headers = "From: OSRG Connect <omer@osrg.lol>\r\n";
+        $headers .= "Reply-To: omer@osrg.lol\r\n";
+        $headers .= "X-Mailer: PHP/" . phpversion();
+        
+        ini_set('SMTP', 'smtp.hostinger.com');
+        ini_set('smtp_port', '465');
+        ini_set('sendmail_from', 'omer@osrg.lol');
+        
+        mail($notification_data['email'], $subject, $body, $headers);
+    }
+    
     header("Location: messages.php?friend=$friend_id");
     exit;
 }

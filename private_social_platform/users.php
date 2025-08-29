@@ -15,22 +15,45 @@ if ($_GET['add'] ?? false) {
     $message = 'Friend request sent!';
 }
 
+// Get search term
+$search = $_GET['search'] ?? '';
+
 // Get users with their friendship status
-$stmt = $pdo->prepare("
-    SELECT u.id, u.username,
-           CASE 
-               WHEN MAX(CASE WHEN f1.status = 'accepted' OR f2.status = 'accepted' THEN 1 ELSE 0 END) = 1 THEN 'friends'
-               WHEN MAX(CASE WHEN f1.status = 'pending' THEN 1 ELSE 0 END) = 1 THEN 'request_sent'
-               WHEN MAX(CASE WHEN f2.status = 'pending' THEN 1 ELSE 0 END) = 1 THEN 'request_received'
-               ELSE 'none'
-           END as friendship_status
-    FROM users u
-    LEFT JOIN friends f1 ON (u.id = f1.friend_id AND f1.user_id = ?)
-    LEFT JOIN friends f2 ON (u.id = f2.user_id AND f2.friend_id = ?)
-    WHERE u.id != ?
-    GROUP BY u.id, u.username
-");
-$stmt->execute([$_SESSION['user_id'], $_SESSION['user_id'], $_SESSION['user_id']]);
+if ($search) {
+    $stmt = $pdo->prepare("
+        SELECT u.id, u.username,
+               CASE 
+                   WHEN MAX(CASE WHEN f1.status = 'accepted' OR f2.status = 'accepted' THEN 1 ELSE 0 END) = 1 THEN 'friends'
+                   WHEN MAX(CASE WHEN f1.status = 'pending' THEN 1 ELSE 0 END) = 1 THEN 'request_sent'
+                   WHEN MAX(CASE WHEN f2.status = 'pending' THEN 1 ELSE 0 END) = 1 THEN 'request_received'
+                   ELSE 'none'
+               END as friendship_status
+        FROM users u
+        LEFT JOIN friends f1 ON (u.id = f1.friend_id AND f1.user_id = ?)
+        LEFT JOIN friends f2 ON (u.id = f2.user_id AND f2.friend_id = ?)
+        WHERE u.id != ? AND u.username LIKE ?
+        GROUP BY u.id, u.username
+        ORDER BY u.username
+    ");
+    $stmt->execute([$_SESSION['user_id'], $_SESSION['user_id'], $_SESSION['user_id'], '%' . $search . '%']);
+} else {
+    $stmt = $pdo->prepare("
+        SELECT u.id, u.username,
+               CASE 
+                   WHEN MAX(CASE WHEN f1.status = 'accepted' OR f2.status = 'accepted' THEN 1 ELSE 0 END) = 1 THEN 'friends'
+                   WHEN MAX(CASE WHEN f1.status = 'pending' THEN 1 ELSE 0 END) = 1 THEN 'request_sent'
+                   WHEN MAX(CASE WHEN f2.status = 'pending' THEN 1 ELSE 0 END) = 1 THEN 'request_received'
+                   ELSE 'none'
+               END as friendship_status
+        FROM users u
+        LEFT JOIN friends f1 ON (u.id = f1.friend_id AND f1.user_id = ?)
+        LEFT JOIN friends f2 ON (u.id = f2.user_id AND f2.friend_id = ?)
+        WHERE u.id != ?
+        GROUP BY u.id, u.username
+        ORDER BY u.username
+    ");
+    $stmt->execute([$_SESSION['user_id'], $_SESSION['user_id'], $_SESSION['user_id']]);
+}
 $users = $stmt->fetchAll();
 // Set page variables for header
 $page_title = 'Find Friends - OSRG Connect';
@@ -54,8 +77,25 @@ require_once 'header.php';
         <?php if (isset($message)): ?>
             <div class="message"><?= $message ?></div>
         <?php endif; ?>
+        
+        <!-- Search Form -->
+        <div class="post">
+            <form method="GET" style="display: flex; gap: 10px; align-items: center;">
+                <input type="text" name="search" placeholder="Search by username..." value="<?= htmlspecialchars($search) ?>" style="flex: 1; padding: 10px; border: 1px solid #ddd; border-radius: 5px;">
+                <button type="submit" style="padding: 10px 20px; background: #1877f2; color: white; border: none; border-radius: 5px; cursor: pointer;">Search</button>
+                <?php if ($search): ?>
+                    <a href="users.php" style="padding: 10px 15px; background: #666; color: white; text-decoration: none; border-radius: 5px;">Clear</a>
+                <?php endif; ?>
+            </form>
+        </div>
 
         <div class="post">
+            <?php if ($search): ?>
+                <h3>Search Results for "<?= htmlspecialchars($search) ?>" (<?= count($users) ?> found)</h3>
+            <?php else: ?>
+                <h3>All Users</h3>
+            <?php endif; ?>
+            
             <?php if ($users): ?>
                 <?php foreach ($users as $user): ?>
                 <div class="user-item">
@@ -72,7 +112,11 @@ require_once 'header.php';
                 </div>
                 <?php endforeach; ?>
             <?php else: ?>
-                <p>No other users found.</p>
+                <?php if ($search): ?>
+                    <p style="text-align: center; color: #666; padding: 20px;">No users found matching "<?= htmlspecialchars($search) ?>"</p>
+                <?php else: ?>
+                    <p style="text-align: center; color: #666; padding: 20px;">No other users found.</p>
+                <?php endif; ?>
             <?php endif; ?>
         </div>
     </div>

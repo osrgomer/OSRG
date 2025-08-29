@@ -8,7 +8,7 @@ $valid_token = false;
 // Check if token is provided and valid
 if ($_GET['token'] ?? false) {
     $pdo = get_db();
-    $stmt = $pdo->prepare("SELECT pr.*, u.username FROM password_resets pr JOIN users u ON pr.user_id = u.id WHERE pr.token = ? AND pr.expires > NOW()");
+    $stmt = $pdo->prepare("SELECT pr.*, u.username FROM password_resets pr JOIN users u ON pr.user_id = u.id WHERE pr.token = ? AND pr.expires > datetime('now')");
     $stmt->execute([$_GET['token']]);
     $reset_data = $stmt->fetch();
     

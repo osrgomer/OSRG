@@ -121,7 +121,7 @@ require_once 'header.php';
                                     Your browser does not support the audio element.
                                 </audio>
                             <?php elseif (in_array($post['file_type'], ['png', 'jpg', 'jpeg'])): ?>
-                                <img src="<?= htmlspecialchars($post['file_path']) ?>" alt="Uploaded image" style="width: 100%; max-width: 100%; display: block; border-radius: 8px;">
+                                <img src="<?= htmlspecialchars($post['file_path']) ?>" alt="Uploaded image" style="max-width: 300px; width: auto; display: block; border-radius: 8px;">
                             <?php endif; ?>
                         </div>
                         <?php endif; ?>

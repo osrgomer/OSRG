@@ -51,8 +51,12 @@ if ($_POST['content'] ?? false) {
         $allowed = ['mp4', 'mp3', 'png', 'jpg', 'jpeg'];
         $filename = $_FILES['file']['name'];
         $file_ext = strtolower(pathinfo($filename, PATHINFO_EXTENSION));
+        $file_size = $_FILES['file']['size'];
+        $max_size = 10 * 1024 * 1024; // 10MB limit
         
-        if (in_array($file_ext, $allowed)) {
+        if ($file_size > $max_size) {
+            // File too large - skip upload
+        } elseif (in_array($file_ext, $allowed)) {
             // Ensure uploads directory exists
             if (!is_dir('uploads')) {
                 mkdir('uploads', 0755, true);
@@ -115,39 +119,58 @@ if ($_POST['content'] ?? false) {
     <script>
         let lastPostCount = 0;
         
-        function requestNotificationPermission() {
-            // Check if browser supports notifications (Chrome, Firefox, Safari on Mac/Windows/Linux)
-            if ('Notification' in window) {
-                if (Notification.permission === 'granted') {
-                    // Already granted - enable native notifications
-                    document.getElementById('notif-btn').textContent = 'Notifications On';
-                    document.getElementById('notif-btn').style.background = '#4caf50';
-                    checkForNewPosts();
-                } else if (Notification.permission === 'default') {
-                    // Request permission (works on Chrome Mac, Firefox, etc.)
-                    Notification.requestPermission().then(function(permission) {
-                        if (permission === 'granted') {
-                            document.getElementById('notif-btn').textContent = 'Notifications On';
-                            document.getElementById('notif-btn').style.background = '#4caf50';
-                            checkForNewPosts();
-                        } else {
-                            // User denied - fallback to visual alerts
-                            document.getElementById('notif-btn').textContent = 'Visual Alerts On';
-                            document.getElementById('notif-btn').style.background = '#ff9800';
-                            checkForNewPosts();
-                        }
-                    });
+        let notificationsEnabled = false;
+        let notificationInterval = null;
+        
+        function toggleNotifications() {
+            if (notificationsEnabled) {
+                // Disable notifications
+                notificationsEnabled = false;
+                if (notificationInterval) {
+                    clearInterval(notificationInterval);
+                    notificationInterval = null;
+                }
+                document.getElementById('notif-btn').textContent = 'Enable Notifications';
+                document.getElementById('notif-btn').style.background = '#666';
+            } else {
+                // Enable notifications
+                if ('Notification' in window) {
+                    if (Notification.permission === 'granted') {
+                        // Already granted - enable native notifications
+                        notificationsEnabled = true;
+                        document.getElementById('notif-btn').textContent = 'Disable Notifications';
+                        document.getElementById('notif-btn').style.background = '#4caf50';
+                        checkForNewPosts();
+                    } else if (Notification.permission === 'default') {
+                        // Request permission
+                        Notification.requestPermission().then(function(permission) {
+                            if (permission === 'granted') {
+                                notificationsEnabled = true;
+                                document.getElementById('notif-btn').textContent = 'Disable Notifications';
+                                document.getElementById('notif-btn').style.background = '#4caf50';
+                                checkForNewPosts();
+                            } else {
+                                // User denied - fallback to visual alerts
+                                notificationsEnabled = true;
+                                document.getElementById('notif-btn').textContent = 'Disable Notifications';
+                                document.getElementById('notif-btn').style.background = '#ff9800';
+                                checkForNewPosts();
+                            }
+                        });
+                    } else {
+                        // Permission denied - use visual alerts
+                        notificationsEnabled = true;
+                        document.getElementById('notif-btn').textContent = 'Disable Notifications';
+                        document.getElementById('notif-btn').style.background = '#ff9800';
+                        checkForNewPosts();
+                    }
                 } else {
-                    // Permission denied - use visual alerts
-                    document.getElementById('notif-btn').textContent = 'Visual Alerts On';
+                    // Browser doesn't support notifications
+                    notificationsEnabled = true;
+                    document.getElementById('notif-btn').textContent = 'Disable Notifications';
                     document.getElementById('notif-btn').style.background = '#ff9800';
                     checkForNewPosts();
                 }
-            } else {
-                // Browser doesn't support notifications (old browsers, some mobile)
-                document.getElementById('notif-btn').textContent = 'Visual Alerts On';
-                document.getElementById('notif-btn').style.background = '#ff9800';
-                checkForNewPosts();
             }
         }
         
@@ -166,7 +189,13 @@ if ($_POST['content'] ?? false) {
         }
         
         function checkForNewPosts() {
-            setInterval(function() {
+            if (notificationInterval) {
+                clearInterval(notificationInterval);
+            }
+            
+            notificationInterval = setInterval(function() {
+                if (!notificationsEnabled) return;
+                
                 fetch('check_posts.php')
                     .then(response => response.json())
                     .then(data => {
@@ -183,8 +212,8 @@ if ($_POST['content'] ?? false) {
                             }
                             
                             // Update page title for additional notification
-                            document.title = '🔔 New Post - Private Social';
-                            setTimeout(() => document.title = 'Feed - Private Social', 3000);
+                            document.title = '🔔 New Post - OSRG Connect';
+                            setTimeout(() => document.title = 'Feed - OSRG Connect', 3000);
                         }
                         lastPostCount = data.count;
                     });
@@ -192,14 +221,9 @@ if ($_POST['content'] ?? false) {
         }
         
         window.onload = function() {
-            if ('Notification' in window && Notification.permission === 'granted') {
-                document.getElementById('notif-btn').textContent = 'Notifications On';
-                document.getElementById('notif-btn').style.background = '#4caf50';
-            } else if (!('Notification' in window)) {
-                // iOS/unsupported - show visual alerts option
-                document.getElementById('notif-btn').textContent = 'Enable Visual Alerts';
-                document.getElementById('notif-btn').style.background = '#ff9800';
-            }
+            // Initialize notification button state
+            document.getElementById('notif-btn').textContent = 'Enable Notifications';
+            document.getElementById('notif-btn').style.background = '#666';
         }
     </script>
 </head>
@@ -225,7 +249,7 @@ if ($_POST['content'] ?? false) {
     <div class="container">
         <div class="header">
             <h1>Public Feed</h1>
-            <button id="notif-btn" class="notification-btn" onclick="requestNotificationPermission()">Enable Notifications</button>
+            <button id="notif-btn" class="notification-btn" onclick="toggleNotifications()">Enable Notifications</button>
         </div>
 
         <?php if ($friend_requests): ?>
@@ -251,7 +275,7 @@ if ($_POST['content'] ?? false) {
                 </div>
                 <div class="form-group">
                     <input type="file" name="file" accept=".mp4,.mp3,.png,.jpg,.jpeg" style="margin-bottom: 10px;">
-                    <small style="color: #666;">Upload: MP4, MP3, PNG, JPG (optional)</small>
+                    <small style="color: #666;">Upload: MP4, MP3, PNG, JPG (max 10MB)</small>
                 </div>
                 <button type="submit">Post</button>
             </form>

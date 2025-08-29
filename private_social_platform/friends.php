@@ -1,11 +1,6 @@
 <?php
 require_once 'config.php';
 
-if (!isset($_SESSION['user_id'])) {
-    header('Location: login.php');
-    exit;
-}
-
 $pdo = get_db();
 
 // Get all friends (accepted friendships)
@@ -53,14 +48,9 @@ try {
     $stmt->execute([$_SESSION['user_id'], $_SESSION['user_id']]);
     $friend_posts = $stmt->fetchAll();
 }
-?>
-<!DOCTYPE html>
-<html>
-<head>
-    <title>My Friends - Private Social</title>
-    <style>
-        * { margin: 0; padding: 0; box-sizing: border-box; }
-        body { font-family: Arial, sans-serif; background: #f5f5f5; }
+// Set page variables for header
+$page_title = 'My Friends - OSRG Connect';
+$additional_css = '
         .container { max-width: 1200px; margin: 0 auto; padding: 20px; }
         .content-wrapper { display: flex; gap: 20px; }
         .friends-sidebar { width: 300px; }
@@ -71,38 +61,17 @@ try {
             .friends-sidebar { width: 100%; }
         }
         .header { background: #1877f2; color: white; padding: 15px; text-align: center; }
-        .nav { background: white; padding: 10px; margin-bottom: 20px; border-radius: 8px; }
-        .nav a { color: #1877f2; text-decoration: none; margin-right: 15px; }
         .post { background: white; padding: 15px; margin: 10px 0; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); }
         .friend-item { display: flex; justify-content: space-between; align-items: center; padding: 15px; border-bottom: 1px solid #eee; }
         .friend-info { display: flex; flex-direction: column; }
         .friend-name { font-weight: bold; font-size: 16px; }
         .friend-since { color: #666; font-size: 12px; }
-    </style>
-</head>
-<body>
-    <div class="nav">
-        <a href="index.php">Home</a>
-        <a href="users.php">Find Friends</a>
-        <a href="friends.php">My Friends</a>
-        <a href="messages.php">Messages</a>
-        <?php
-        $pdo_nav = get_db();
-        $stmt_nav = $pdo_nav->prepare("SELECT username FROM users WHERE id = ?");
-        $stmt_nav->execute([$_SESSION['user_id']]);
-        $user_nav = $stmt_nav->fetch();
-        if ($user_nav && $user_nav['username'] === 'OSRG'):
-        ?>
-        <a href="admin.php" style="color: #d32f2f; font-weight: bold;">Admin Panel</a>
-        <?php endif; ?>
-        <a href="logout.php">Logout</a>
-    </div>
+';
+
+require_once 'header.php';
+?>
     
     <div class="container">
-        <div class="header">
-            <h1>My Friends</h1>
-        </div>
-
         <div class="content-wrapper">
             <!-- Left Sidebar: Friends List -->
             <div class="friends-sidebar">

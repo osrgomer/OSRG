@@ -157,6 +157,38 @@ if ($_POST['content'] ?? false) {
             from { transform: translateX(0); opacity: 1; }
             to { transform: translateX(100%); opacity: 0; }
         }
+        
+        @media (max-width: 768px) {
+            .nav {
+                padding: 5px !important;
+                overflow-x: auto;
+                white-space: nowrap;
+                -webkit-overflow-scrolling: touch;
+            }
+            .nav a {
+                display: inline-block;
+                padding: 8px 12px !important;
+                margin: 2px 4px !important;
+                background: #f0f2f5;
+                border-radius: 20px;
+                font-size: 14px;
+                white-space: nowrap;
+            }
+            .friend-request-item {
+                flex-direction: column !important;
+                align-items: flex-start !important;
+                gap: 10px;
+            }
+            .friend-request-buttons {
+                display: flex;
+                gap: 10px;
+                width: 100%;
+            }
+            .friend-request-buttons a {
+                flex: 1;
+                text-align: center;
+            }
+        }
     </style>
     <link href="https://cdn.quilljs.com/1.3.6/quill.snow.css" rel="stylesheet">
     <script src="https://cdn.quilljs.com/1.3.6/quill.min.js"></script>
@@ -166,6 +198,15 @@ if ($_POST['content'] ?? false) {
         
         // Initialize WYSIWYG editor
         document.addEventListener('DOMContentLoaded', function() {
+            // Mobile detection for file input
+            const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent) || window.innerWidth <= 768;
+            if (isMobile) {
+                const fileInput = document.getElementById('fileInput');
+                fileInput.removeAttribute('capture');
+                // Default to gallery on mobile
+                fileInput.setAttribute('accept', 'image/*,video/*,audio/*');
+            }
+            
             quill = new Quill('#editor', {
                 theme: 'snow',
                 placeholder: "What's on your mind?",
@@ -300,6 +341,25 @@ if ($_POST['content'] ?? false) {
         }
         
         window.onload = function() {
+            // Restore scroll position after comment submission
+            const scrollPos = sessionStorage.getItem('scrollPos');
+            if (scrollPos) {
+                // Mobile detection
+                const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent) || window.innerWidth <= 768;
+                
+                if (isMobile) {
+                    // Use setTimeout for mobile compatibility
+                    setTimeout(() => {
+                        window.scrollTo(0, parseInt(scrollPos));
+                        sessionStorage.removeItem('scrollPos');
+                    }, 100);
+                } else {
+                    // Immediate scroll for desktop
+                    window.scrollTo(0, parseInt(scrollPos));
+                    sessionStorage.removeItem('scrollPos');
+                }
+            }
+            
             // Check if notifications were previously enabled
             const savedPreference = localStorage.getItem('notificationsEnabled');
             
@@ -357,9 +417,9 @@ if ($_POST['content'] ?? false) {
         <div class="post" style="background: #e3f2fd; border-left: 4px solid #1877f2;">
             <h3>Friend Requests</h3>
             <?php foreach ($friend_requests as $request): ?>
-            <div style="display: flex; justify-content: space-between; align-items: center; padding: 10px; border-bottom: 1px solid #ddd;">
+            <div class="friend-request-item" style="display: flex; justify-content: space-between; align-items: center; padding: 10px; border-bottom: 1px solid #ddd;">
                 <span><strong><?= htmlspecialchars($request['username']) ?></strong> wants to be your friend</span>
-                <div>
+                <div class="friend-request-buttons">
                     <a href="?accept=<?= $request['id'] ?>" style="background: #42a5f5; color: white; padding: 5px 10px; text-decoration: none; border-radius: 3px; margin-right: 5px;">Accept</a>
                     <a href="?decline=<?= $request['id'] ?>" style="background: #f44336; color: white; padding: 5px 10px; text-decoration: none; border-radius: 3px;">Decline</a>
                 </div>
@@ -376,7 +436,7 @@ if ($_POST['content'] ?? false) {
                     <textarea name="content" id="content" style="display: none;"></textarea>
                 </div>
                 <div class="form-group">
-                    <input type="file" name="file" accept=".mp4,.mp3,.png,.jpg,.jpeg" style="margin-bottom: 10px;">
+                    <input type="file" name="file" id="fileInput" accept=".mp4,.mp3,.png,.jpg,.jpeg" style="margin-bottom: 10px;">
                     <small style="color: #666;">Upload: MP4, MP3, PNG, JPG (max 10MB)</small>
                 </div>
                 <button type="submit">Post</button>
@@ -483,7 +543,7 @@ if ($_POST['content'] ?? false) {
                     <?php endif; ?>
                     
                     <!-- Add Comment -->
-                    <form method="POST" style="margin-top: 10px;">
+                    <form method="POST" style="margin-top: 10px;" onsubmit="sessionStorage.setItem('scrollPos', window.pageYOffset);">
                         <input type="hidden" name="post_id" value="<?= $post['id'] ?>">
                         <div style="display: flex; gap: 10px;">
                             <input type="text" name="comment" placeholder="Write a comment..." style="flex: 1; padding: 8px; border: 1px solid #ddd; border-radius: 20px; font-size: 14px;" required>

@@ -107,6 +107,28 @@ $mobile_viewport = '<meta name="viewport" content="width=device-width, initial-s
 
 require_once 'header.php';
 ?>
+<script>
+    window.onload = function() {
+        // Restore scroll position after comment submission
+        const scrollPos = sessionStorage.getItem('scrollPos');
+        if (scrollPos) {
+            // Mobile detection
+            const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent) || window.innerWidth <= 768;
+            
+            if (isMobile) {
+                // Use setTimeout for mobile compatibility and prevent iOS scroll issues
+                setTimeout(() => {
+                    window.scrollTo(0, parseInt(scrollPos));
+                    sessionStorage.removeItem('scrollPos');
+                }, 100);
+            } else {
+                // Immediate scroll for desktop
+                window.scrollTo(0, parseInt(scrollPos));
+                sessionStorage.removeItem('scrollPos');
+            }
+        }
+    }
+</script>
     
     <div class="container">
         <div class="content-wrapper">
@@ -239,7 +261,7 @@ require_once 'header.php';
                             <?php endif; ?>
                             
                             <!-- Add Comment -->
-                            <form method="POST" style="margin-top: 10px;">
+                            <form method="POST" style="margin-top: 10px;" onsubmit="sessionStorage.setItem('scrollPos', window.pageYOffset);">
                                 <input type="hidden" name="post_id" value="<?= $post['id'] ?>">
                                 <div style="display: flex; gap: 10px;">
                                     <input type="text" name="comment" placeholder="Write a comment..." style="flex: 1; padding: 8px; border: 1px solid #ddd; border-radius: 20px; font-size: 14px;" required>

@@ -258,13 +258,122 @@ $timezones = [
                 </div>
                 <button type="submit">Update Settings</button>
             </form>
+            
+            <div style="margin-top: 25px; padding-top: 20px; border-top: 1px solid #e1e5e9;">
+                <h4 style="color: #1877f2; margin-bottom: 10px; display: flex; align-items: center; gap: 8px;">
+                    🌍 About Timezones
+                </h4>
+                <p style="color: #606770; font-size: 14px; line-height: 1.5;">
+                    Setting your timezone ensures that all timestamps (posts, messages, etc.) are displayed in your local time. The default timezone is London (GMT/BST).
+                </p>
+            </div>
+            </div>
+        </div>
+        
+        <!-- Account Statistics -->
+        <div class="post">
+            <h3>📊 Account Statistics</h3>
+            <?php
+            // Get user stats
+            $stmt = $pdo->prepare("SELECT COUNT(*) as post_count FROM posts WHERE user_id = ?");
+            $stmt->execute([$_SESSION['user_id']]);
+            $post_count = $stmt->fetch()['post_count'];
+            
+            $stmt = $pdo->prepare("SELECT COUNT(*) as friend_count FROM friends WHERE (user_id = ? OR friend_id = ?) AND status = 'accepted'");
+            $stmt->execute([$_SESSION['user_id'], $_SESSION['user_id']]);
+            $friend_count = $stmt->fetch()['friend_count'];
+            
+            $stmt = $pdo->prepare("SELECT COUNT(*) as reaction_count FROM reactions r JOIN posts p ON r.post_id = p.id WHERE p.user_id = ?");
+            $stmt->execute([$_SESSION['user_id']]);
+            $reactions_received = $stmt->fetch()['reaction_count'];
+            
+            $stmt = $pdo->prepare("SELECT created_at FROM users WHERE id = ?");
+            $stmt->execute([$_SESSION['user_id']]);
+            $join_date = $stmt->fetch()['created_at'];
+            ?>
+            <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 15px; margin-top: 15px;">
+                <div style="text-align: center; padding: 15px; background: rgba(24,119,242,0.1); border-radius: 10px;">
+                    <div style="font-size: 28px; font-weight: bold; color: #1877f2;"><?= $post_count ?></div>
+                    <div style="color: #666; font-size: 14px; font-weight: 500;">Posts Created</div>
+                </div>
+                <div style="text-align: center; padding: 15px; background: rgba(66,165,245,0.1); border-radius: 10px;">
+                    <div style="font-size: 28px; font-weight: bold; color: #42a5f5;"><?= $friend_count ?></div>
+                    <div style="color: #666; font-size: 14px; font-weight: 500;">Friends</div>
+                </div>
+                <div style="text-align: center; padding: 15px; background: rgba(76,175,80,0.1); border-radius: 10px;">
+                    <div style="font-size: 28px; font-weight: bold; color: #4caf50;"><?= $reactions_received ?></div>
+                    <div style="color: #666; font-size: 14px; font-weight: 500;">Reactions Received</div>
+                </div>
+                <div style="text-align: center; padding: 15px; background: rgba(255,152,0,0.1); border-radius: 10px;">
+                    <div style="font-size: 28px; font-weight: bold; color: #ff9800;"><?= date('M Y', strtotime($join_date)) ?></div>
+                    <div style="color: #666; font-size: 14px; font-weight: 500;">Member Since</div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Privacy & Security -->
+        <div class="post">
+            <h3>🔒 Privacy & Security</h3>
+            <div style="margin-top: 15px;">
+                <div style="display: flex; justify-content: space-between; align-items: center; padding: 15px 0; border-bottom: 1px solid rgba(225,229,233,0.5);">
+                    <div>
+                        <div style="font-weight: 600; color: #333; margin-bottom: 4px;">Change Password</div>
+                        <div style="color: #666; font-size: 14px;">Update your account password for security</div>
+                    </div>
+                    <a href="forgot_password.php" style="background: linear-gradient(135deg, #1877f2, #42a5f5); color: white; padding: 10px 20px; text-decoration: none; border-radius: 8px; font-size: 14px; font-weight: 500;">Change</a>
+                </div>
+                <div style="display: flex; justify-content: space-between; align-items: center; padding: 15px 0; border-bottom: 1px solid rgba(225,229,233,0.5);">
+                    <div>
+                        <div style="font-weight: 600; color: #333; margin-bottom: 4px;">Account Status</div>
+                        <div style="color: #666; font-size: 14px;">Your account is active and verified</div>
+                    </div>
+                    <span style="background: linear-gradient(135deg, #4caf50, #66bb6a); color: white; padding: 6px 16px; border-radius: 20px; font-size: 12px; font-weight: 600;">✓ Active</span>
+                </div>
+                <div style="display: flex; justify-content: space-between; align-items: center; padding: 15px 0;">
+                    <div>
+                        <div style="font-weight: 600; color: #333; margin-bottom: 4px;">Data Privacy</div>
+                        <div style="color: #666; font-size: 14px;">Your data is secure and encrypted</div>
+                    </div>
+                    <span style="background: rgba(76,175,80,0.1); color: #4caf50; padding: 6px 16px; border-radius: 20px; font-size: 12px; font-weight: 600;">🔒 Protected</span>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Quick Actions -->
+        <div class="post">
+            <h3>⚡ Quick Actions</h3>
+            <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 15px; margin-top: 15px;">
+                <a href="users.php" style="display: flex; align-items: center; gap: 12px; padding: 18px; background: linear-gradient(135deg, rgba(227,242,253,0.8), rgba(187,222,251,0.8)); border-radius: 12px; text-decoration: none; color: #1565c0; transition: transform 0.2s;" onmouseover="this.style.transform='translateY(-2px)'" onmouseout="this.style.transform='translateY(0)'">
+                    <span style="font-size: 24px;">👥</span>
+                    <div>
+                        <div style="font-weight: 600; margin-bottom: 2px;">Find Friends</div>
+                        <div style="font-size: 12px; opacity: 0.8;">Discover new connections</div>
+                    </div>
+                </a>
+                <a href="messages.php" style="display: flex; align-items: center; gap: 12px; padding: 18px; background: linear-gradient(135deg, rgba(232,245,232,0.8), rgba(200,230,201,0.8)); border-radius: 12px; text-decoration: none; color: #2e7d32; transition: transform 0.2s;" onmouseover="this.style.transform='translateY(-2px)'" onmouseout="this.style.transform='translateY(0)'">
+                    <span style="font-size: 24px;">💬</span>
+                    <div>
+                        <div style="font-weight: 600; margin-bottom: 2px;">Messages</div>
+                        <div style="font-size: 12px; opacity: 0.8;">Chat with friends</div>
+                    </div>
+                </a>
+                <a href="index.php" style="display: flex; align-items: center; gap: 12px; padding: 18px; background: linear-gradient(135deg, rgba(255,243,224,0.8), rgba(255,224,178,0.8)); border-radius: 12px; text-decoration: none; color: #ef6c00; transition: transform 0.2s;" onmouseover="this.style.transform='translateY(-2px)'" onmouseout="this.style.transform='translateY(0)'">
+                    <span style="font-size: 24px;">🏠</span>
+                    <div>
+                        <div style="font-weight: 600; margin-bottom: 2px;">Public Feed</div>
+                        <div style="font-size: 12px; opacity: 0.8;">See what's happening</div>
+                    </div>
+                </a>
+                <a href="friends.php" style="display: flex; align-items: center; gap: 12px; padding: 18px; background: linear-gradient(135deg, rgba(252,228,236,0.8), rgba(248,187,208,0.8)); border-radius: 12px; text-decoration: none; color: #c2185b; transition: transform 0.2s;" onmouseover="this.style.transform='translateY(-2px)'" onmouseout="this.style.transform='translateY(0)'">
+                    <span style="font-size: 24px;">❤️</span>
+                    <div>
+                        <div style="font-weight: 600; margin-bottom: 2px;">Friends Feed</div>
+                        <div style="font-size: 12px; opacity: 0.8;">Friends-only content</div>
+                    </div>
+                </a>
             </div>
         </div>
 
-        <div class="post">
-            <h3>🌍 About Timezones</h3>
-            <p>Setting your timezone ensures that all timestamps (posts, messages, etc.) are displayed in your local time. The default timezone is London (GMT/BST).</p>
-        </div>
     </div>
 </body>
 </html>

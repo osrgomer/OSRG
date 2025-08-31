@@ -114,4 +114,60 @@ function get_db() {
     global $db_file;
     return new PDO("sqlite:$db_file");
 }
+
+function get_link_preview($url) {
+    $ch = curl_init();
+    curl_setopt($ch, CURLOPT_URL, $url);
+    curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+    curl_setopt($ch, CURLOPT_FOLLOWLOCATION, true);
+    curl_setopt($ch, CURLOPT_TIMEOUT, 10);
+    curl_setopt($ch, CURLOPT_USERAGENT, 'Mozilla/5.0 (compatible; OSRG-Bot)');
+    $html = curl_exec($ch);
+    curl_close($ch);
+    
+    if (!$html) return null;
+    
+    $doc = new DOMDocument();
+    @$doc->loadHTML($html);
+    $xpath = new DOMXPath($doc);
+    
+    $title = $xpath->query('//meta[@property="og:title"]/@content');
+    $description = $xpath->query('//meta[@property="og:description"]/@content');
+    $image = $xpath->query('//meta[@property="og:image"]/@content');
+    
+    if ($title->length == 0) {
+        $title = $xpath->query('//title');
+        $title = $title->length > 0 ? $title->item(0)->textContent : parse_url($url, PHP_URL_HOST);
+    } else {
+        $title = $title->item(0)->value;
+    }
+    
+    return [
+        'title' => $title,
+        'description' => $description->length > 0 ? $description->item(0)->value : '',
+        'image' => $image->length > 0 ? $image->item(0)->value : '',
+        'url' => $url
+    ];
+}
+
+function process_content_with_links($content) {
+    $url_pattern = '/https?:\/\/[^\s]+/i';
+    preg_match_all($url_pattern, $content, $matches);
+    
+    $processed_content = $content;
+    $link_previews = [];
+    
+    foreach ($matches[0] as $url) {
+        $processed_content = str_replace($url, '<a href="' . $url . '" target="_blank" style="color: #1877f2; text-decoration: none;">' . $url . '</a>', $processed_content);
+        $preview = get_link_preview($url);
+        if ($preview) {
+            $link_previews[] = $preview;
+        }
+    }
+    
+    return [
+        'content' => $processed_content,
+        'previews' => $link_previews
+    ];
+}
 ?>

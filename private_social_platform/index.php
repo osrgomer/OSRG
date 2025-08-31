@@ -12,7 +12,9 @@ $pdo = get_db();
 try {
     $stmt = $pdo->prepare("
         SELECT p.id, p.content, p.created_at, u.username, u.avatar, p.file_path, p.file_type,
-               COUNT(DISTINCT r.id) as reaction_count,
+               COUNT(DISTINCT CASE WHEN r.reaction_type = 'like' THEN r.id END) as like_count,
+               COUNT(DISTINCT CASE WHEN r.reaction_type = 'love' THEN r.id END) as love_count,
+               COUNT(DISTINCT CASE WHEN r.reaction_type = 'laugh' THEN r.id END) as laugh_count,
                COUNT(DISTINCT c.id) as comment_count,
                ur.reaction_type as user_reaction
         FROM posts p 
@@ -29,7 +31,7 @@ try {
 } catch (Exception $e) {
     // Fallback for old database
     $stmt = $pdo->query("SELECT p.id, p.content, p.created_at, u.username, u.avatar, NULL as file_path, NULL as file_type,
-                         0 as reaction_count, 0 as comment_count, NULL as user_reaction
+                         0 as like_count, 0 as love_count, 0 as laugh_count, 0 as comment_count, NULL as user_reaction
                          FROM posts p JOIN users u ON p.user_id = u.id 
                          ORDER BY p.created_at DESC");
     $posts = $stmt->fetchAll();
@@ -396,7 +398,27 @@ if ($_POST['content'] ?? false) {
                     <?php endif; ?>
                     <strong><?= htmlspecialchars($post['username']) ?></strong>
                 </div>
-                <div><?= $post['content'] ?></div>
+                <?php
+                $processed = process_content_with_links($post['content']);
+                ?>
+                <div><?= $processed['content'] ?></div>
+                
+                <?php if (!empty($processed['previews'])): ?>
+                    <?php foreach ($processed['previews'] as $preview): ?>
+                    <div style="border: 1px solid #e1e5e9; border-radius: 8px; margin: 10px 0; overflow: hidden; max-width: 400px;">
+                        <?php if ($preview['image']): ?>
+                        <img src="<?= htmlspecialchars($preview['image']) ?>" alt="Preview" style="width: 100%; height: 200px; object-fit: cover;">
+                        <?php endif; ?>
+                        <div style="padding: 12px;">
+                            <div style="font-weight: bold; margin-bottom: 5px; color: #1d2129;"><?= htmlspecialchars($preview['title']) ?></div>
+                            <?php if ($preview['description']): ?>
+                            <div style="color: #606770; font-size: 14px; margin-bottom: 8px;"><?= htmlspecialchars(substr($preview['description'], 0, 100)) ?>...</div>
+                            <?php endif; ?>
+                            <div style="color: #8a8d91; font-size: 12px; text-transform: uppercase;"><?= parse_url($preview['url'], PHP_URL_HOST) ?></div>
+                        </div>
+                    </div>
+                    <?php endforeach; ?>
+                <?php endif; ?>
                 
                 <?php if ($post['file_path']): ?>
                 <div style="margin: 10px 0;">
@@ -423,21 +445,21 @@ if ($_POST['content'] ?? false) {
                             <input type="hidden" name="post_id" value="<?= $post['id'] ?>">
                             <button type="submit" name="reaction" value="<?= $post['user_reaction'] === 'like' ? 'remove' : 'like' ?>" 
                                     style="background: none; border: none; font-size: 20px; cursor: pointer; padding: 10px; touch-action: manipulation; <?= $post['user_reaction'] === 'like' ? 'color: #1877f2;' : '' ?>">
-                                👍 <?= $post['reaction_count'] > 0 ? $post['reaction_count'] : '' ?>
+                                👍 <?= $post['like_count'] > 0 ? $post['like_count'] : '' ?>
                             </button>
                         </form>
                         <form method="POST" style="display: inline;">
                             <input type="hidden" name="post_id" value="<?= $post['id'] ?>">
                             <button type="submit" name="reaction" value="<?= $post['user_reaction'] === 'love' ? 'remove' : 'love' ?>" 
                                     style="background: none; border: none; font-size: 20px; cursor: pointer; padding: 10px; touch-action: manipulation; <?= $post['user_reaction'] === 'love' ? 'color: #e91e63;' : '' ?>">
-                                ❤️
+                                ❤️ <?= $post['love_count'] > 0 ? $post['love_count'] : '' ?>
                             </button>
                         </form>
                         <form method="POST" style="display: inline;">
                             <input type="hidden" name="post_id" value="<?= $post['id'] ?>">
                             <button type="submit" name="reaction" value="<?= $post['user_reaction'] === 'laugh' ? 'remove' : 'laugh' ?>" 
                                     style="background: none; border: none; font-size: 20px; cursor: pointer; padding: 10px; touch-action: manipulation; <?= $post['user_reaction'] === 'laugh' ? 'color: #ff9800;' : '' ?>">
-                                😂
+                                😂 <?= $post['laugh_count'] > 0 ? $post['laugh_count'] : '' ?>
                             </button>
                         </form>
                         <span style="color: #666; font-size: 14px;">💬 <?= $post['comment_count'] ?></span>

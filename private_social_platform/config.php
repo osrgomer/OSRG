@@ -151,17 +151,24 @@ function get_link_preview($url) {
 }
 
 function process_content_with_links($content) {
-    $url_pattern = '/https?:\/\/[^\s]+/i';
-    preg_match_all($url_pattern, $content, $matches);
+    // Extract text content from HTML to find URLs
+    $text_content = strip_tags($content);
+    $url_pattern = '/https?:\/\/[^\s<>"]+/i';
+    preg_match_all($url_pattern, $text_content, $matches);
     
     $processed_content = $content;
     $link_previews = [];
     
     foreach ($matches[0] as $url) {
-        $processed_content = str_replace($url, '<a href="' . $url . '" target="_blank" style="color: #1877f2; text-decoration: none;">' . $url . '</a>', $processed_content);
-        $preview = get_link_preview($url);
-        if ($preview) {
-            $link_previews[] = $preview;
+        // Clean URL from any HTML entities
+        $clean_url = html_entity_decode($url);
+        // Only process if URL is not already a link
+        if (strpos($processed_content, 'href="' . $clean_url . '"') === false) {
+            $processed_content = str_replace($clean_url, '<a href="' . $clean_url . '" target="_blank" style="color: #1877f2; text-decoration: none;">' . $clean_url . '</a>', $processed_content);
+            $preview = get_link_preview($clean_url);
+            if ($preview) {
+                $link_previews[] = $preview;
+            }
         }
     }
     

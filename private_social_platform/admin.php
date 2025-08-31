@@ -94,6 +94,32 @@ if ($_GET['reject'] ?? false) {
     $message = 'User registration rejected!';
 }
 
+// Handle database backup
+if ($_GET['backup'] ?? false) {
+    $backup_file = 'backup_' . date('Y-m-d_H-i-s') . '.db';
+    if (copy('private_social.db', 'backups/' . $backup_file)) {
+        if (!is_dir('backups')) mkdir('backups', 0755, true);
+        copy('private_social.db', 'backups/' . $backup_file);
+        $message = 'Database backup created: ' . $backup_file;
+    } else {
+        $message = 'Backup failed!';
+    }
+}
+
+// Handle cleanup old data
+if ($_GET['cleanup'] ?? false) {
+    // Delete posts older than 1 year
+    $stmt = $pdo->prepare("DELETE FROM posts WHERE created_at < datetime('now', '-1 year')");
+    $stmt->execute();
+    $deleted_posts = $stmt->rowCount();
+    
+    // Delete orphaned reactions and comments
+    $pdo->exec("DELETE FROM reactions WHERE post_id NOT IN (SELECT id FROM posts)");
+    $pdo->exec("DELETE FROM comments WHERE post_id NOT IN (SELECT id FROM posts)");
+    
+    $message = "Cleanup completed. Deleted {$deleted_posts} old posts and orphaned data.";
+}
+
 // Get pending users
 $stmt = $pdo->query("SELECT id, username, email, created_at FROM users WHERE approved = 0 ORDER BY created_at DESC");
 $pending_users = $stmt->fetchAll();
@@ -115,6 +141,26 @@ $post_count = $stmt->fetch()['count'];
 
 $stmt = $pdo->query("SELECT COUNT(*) as count FROM messages");
 $message_count = $stmt->fetch()['count'];
+
+$stmt = $pdo->query("SELECT COUNT(*) as count FROM reactions");
+$reaction_count = $stmt->fetch()['count'];
+
+$stmt = $pdo->query("SELECT COUNT(*) as count FROM comments");
+$comment_count = $stmt->fetch()['count'];
+
+// Get recent activity
+$stmt = $pdo->query("SELECT u.username, 'registered' as action, u.created_at as timestamp FROM users u WHERE u.created_at > datetime('now', '-7 days') UNION ALL SELECT u.username, 'posted' as action, p.created_at as timestamp FROM posts p JOIN users u ON p.user_id = u.id WHERE p.created_at > datetime('now', '-7 days') ORDER BY timestamp DESC LIMIT 10");
+$recent_activity = $stmt->fetchAll();
+
+// Get system info
+$db_size = filesize('private_social.db');
+$uploads_size = 0;
+if (is_dir('uploads')) {
+    $files = new RecursiveIteratorIterator(new RecursiveDirectoryIterator('uploads'));
+    foreach ($files as $file) {
+        if ($file->isFile()) $uploads_size += $file->getSize();
+    }
+}
 ?>
 <!DOCTYPE html>
 <html>
@@ -134,7 +180,7 @@ $message_count = $stmt->fetch()['count'];
         .nav a { color: #1877f2; text-decoration: none; margin-right: 15px; }
         .admin-nav { color: #d32f2f; font-weight: bold; }
         .post { background: white; padding: 15px; margin: 10px 0; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); }
-        .stats { display: flex; gap: 20px; margin-bottom: 20px; }
+        .stats { display: flex; gap: 15px; margin-bottom: 20px; flex-wrap: wrap; }
         .stat-box { background: white; padding: 20px; border-radius: 8px; text-align: center; flex: 1; }
         .stat-number { font-size: 24px; font-weight: bold; color: #1877f2; }
         .user-item, .post-item { display: flex; justify-content: space-between; align-items: center; padding: 10px; border-bottom: 1px solid #eee; }
@@ -188,12 +234,22 @@ $message_count = $stmt->fetch()['count'];
                 <div class="stat-number"><?= $message_count ?></div>
                 <div>Total Messages</div>
             </div>
+            <div class="stat-box">
+                <div class="stat-number"><?= $reaction_count ?></div>
+                <div>Total Reactions</div>
+            </div>
+            <div class="stat-box">
+                <div class="stat-number"><?= $comment_count ?></div>
+                <div>Total Comments</div>
+            </div>
         </div>
 
         <div class="tabs">
             <div class="tab active" onclick="showTab('pending')">Pending Approvals <?= count($pending_users) > 0 ? '(' . count($pending_users) . ')' : '' ?></div>
             <div class="tab" onclick="showTab('users')">Manage Users</div>
             <div class="tab" onclick="showTab('posts')">Manage Posts</div>
+            <div class="tab" onclick="showTab('activity')">Activity Monitor</div>
+            <div class="tab" onclick="showTab('system')">System Info</div>
             <div class="tab" onclick="showTab('tools')">Admin Tools</div>
         </div>
 
@@ -257,6 +313,47 @@ $message_count = $stmt->fetch()['count'];
             </div>
         </div>
 
+        <div id="activity" class="tab-content">
+            <div class="post">
+                <h3>📊 Recent Activity (Last 7 Days)</h3>
+                <?php if ($recent_activity): ?>
+                    <?php foreach ($recent_activity as $activity): ?>
+                    <div style="padding: 8px; border-bottom: 1px solid #eee; font-size: 14px;">
+                        <strong><?= htmlspecialchars($activity['username']) ?></strong> 
+                        <?= $activity['action'] === 'registered' ? '🆕 registered' : '📝 posted' ?>
+                        <small style="color: #666; float: right;"><?= date('M j, H:i', strtotime($activity['timestamp'])) ?></small>
+                    </div>
+                    <?php endforeach; ?>
+                <?php else: ?>
+                    <p style="text-align: center; color: #666; padding: 20px;">No recent activity</p>
+                <?php endif; ?>
+            </div>
+        </div>
+
+        <div id="system" class="tab-content">
+            <div class="post">
+                <h3>💻 System Information</h3>
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px;">
+                    <div style="padding: 15px; background: #f8f9fa; border-radius: 5px;">
+                        <strong>Database Size</strong><br>
+                        <span style="color: #1877f2; font-size: 18px;"><?= round($db_size / 1024 / 1024, 2) ?> MB</span>
+                    </div>
+                    <div style="padding: 15px; background: #f8f9fa; border-radius: 5px;">
+                        <strong>Uploads Size</strong><br>
+                        <span style="color: #1877f2; font-size: 18px;"><?= round($uploads_size / 1024 / 1024, 2) ?> MB</span>
+                    </div>
+                    <div style="padding: 15px; background: #f8f9fa; border-radius: 5px;">
+                        <strong>PHP Version</strong><br>
+                        <span style="color: #1877f2; font-size: 18px;"><?= phpversion() ?></span>
+                    </div>
+                    <div style="padding: 15px; background: #f8f9fa; border-radius: 5px;">
+                        <strong>Server Time</strong><br>
+                        <span style="color: #1877f2; font-size: 18px;"><?= date('H:i:s') ?></span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
         <div id="tools" class="tab-content">
             <div class="post">
                 <h3>🔧 Admin Tools</h3>
@@ -266,6 +363,20 @@ $message_count = $stmt->fetch()['count'];
                         <span>Clean up HTML corruption from WYSIWYG editor in post content</span>
                     </div>
                     <a href="fix_posts.php" style="background: #ffc107; color: #212529; padding: 5px 10px; text-decoration: none; border-radius: 3px; font-weight: bold;">Run Tool</a>
+                </div>
+                <div class="post-item">
+                    <div>
+                        <strong>Database Backup</strong><br>
+                        <span>Create a backup copy of the database</span>
+                    </div>
+                    <a href="?backup=1" style="background: #28a745; color: white; padding: 5px 10px; text-decoration: none; border-radius: 3px; font-weight: bold;" onclick="return confirm('Create database backup?')">Backup Now</a>
+                </div>
+                <div class="post-item">
+                    <div>
+                        <strong>Cleanup Old Data</strong><br>
+                        <span>Remove posts older than 1 year and orphaned data</span>
+                    </div>
+                    <a href="?cleanup=1" style="background: #dc3545; color: white; padding: 5px 10px; text-decoration: none; border-radius: 3px; font-weight: bold;" onclick="return confirm('This will permanently delete old data. Continue?')">Cleanup</a>
                 </div>
             </div>
         </div>

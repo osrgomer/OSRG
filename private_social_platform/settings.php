@@ -279,8 +279,8 @@ $timezones = [
             $stmt->execute([$_SESSION['user_id']]);
             $post_count = $stmt->fetch()['post_count'];
             
-            $stmt = $pdo->prepare("SELECT COUNT(*) as friend_count FROM friends WHERE (user_id = ? OR friend_id = ?) AND status = 'accepted'");
-            $stmt->execute([$_SESSION['user_id'], $_SESSION['user_id']]);
+            $stmt = $pdo->prepare("SELECT COUNT(DISTINCT CASE WHEN user_id = ? THEN friend_id WHEN friend_id = ? THEN user_id END) as friend_count FROM friends WHERE (user_id = ? OR friend_id = ?) AND status = 'accepted'");
+            $stmt->execute([$_SESSION['user_id'], $_SESSION['user_id'], $_SESSION['user_id'], $_SESSION['user_id']]);
             $friend_count = $stmt->fetch()['friend_count'];
             
             $stmt = $pdo->prepare("SELECT COUNT(*) as reaction_count FROM reactions r JOIN posts p ON r.post_id = p.id WHERE p.user_id = ?");

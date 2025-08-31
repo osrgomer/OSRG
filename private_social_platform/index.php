@@ -127,6 +127,7 @@ if ($_POST['content'] ?? false) {
 <!DOCTYPE html>
 <html>
 <head>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <link rel="icon" type="image/x-icon" href="favicon.ico">
     <link rel="icon" type="image/png" sizes="32x32" href="favicon-32x32.png">
     <link rel="icon" type="image/png" sizes="16x16" href="favicon-16x16.png">
@@ -421,21 +422,21 @@ if ($_POST['content'] ?? false) {
                         <form method="POST" style="display: inline;">
                             <input type="hidden" name="post_id" value="<?= $post['id'] ?>">
                             <button type="submit" name="reaction" value="<?= $post['user_reaction'] === 'like' ? 'remove' : 'like' ?>" 
-                                    style="background: none; border: none; font-size: 16px; cursor: pointer; <?= $post['user_reaction'] === 'like' ? 'color: #1877f2;' : '' ?>">
+                                    style="background: none; border: none; font-size: 20px; cursor: pointer; padding: 10px; touch-action: manipulation; <?= $post['user_reaction'] === 'like' ? 'color: #1877f2;' : '' ?>">
                                 👍 <?= $post['reaction_count'] > 0 ? $post['reaction_count'] : '' ?>
                             </button>
                         </form>
                         <form method="POST" style="display: inline;">
                             <input type="hidden" name="post_id" value="<?= $post['id'] ?>">
                             <button type="submit" name="reaction" value="<?= $post['user_reaction'] === 'love' ? 'remove' : 'love' ?>" 
-                                    style="background: none; border: none; font-size: 16px; cursor: pointer; <?= $post['user_reaction'] === 'love' ? 'color: #e91e63;' : '' ?>">
+                                    style="background: none; border: none; font-size: 20px; cursor: pointer; padding: 10px; touch-action: manipulation; <?= $post['user_reaction'] === 'love' ? 'color: #e91e63;' : '' ?>">
                                 ❤️
                             </button>
                         </form>
                         <form method="POST" style="display: inline;">
                             <input type="hidden" name="post_id" value="<?= $post['id'] ?>">
                             <button type="submit" name="reaction" value="<?= $post['user_reaction'] === 'laugh' ? 'remove' : 'laugh' ?>" 
-                                    style="background: none; border: none; font-size: 16px; cursor: pointer; <?= $post['user_reaction'] === 'laugh' ? 'color: #ff9800;' : '' ?>">
+                                    style="background: none; border: none; font-size: 20px; cursor: pointer; padding: 10px; touch-action: manipulation; <?= $post['user_reaction'] === 'laugh' ? 'color: #ff9800;' : '' ?>">
                                 😂
                             </button>
                         </form>

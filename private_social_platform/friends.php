@@ -101,6 +101,7 @@ $additional_css = '
         .friend-name { font-weight: bold; font-size: 16px; }
         .friend-since { color: #666; font-size: 12px; }
 ';
+$mobile_viewport = '<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">';
 
 require_once 'header.php';
 ?>
@@ -177,21 +178,21 @@ require_once 'header.php';
                                 <form method="POST" style="display: inline;">
                                     <input type="hidden" name="post_id" value="<?= $post['id'] ?>">
                                     <button type="submit" name="reaction" value="<?= $post['user_reaction'] === 'like' ? 'remove' : 'like' ?>" 
-                                            style="background: none; border: none; font-size: 16px; cursor: pointer; <?= $post['user_reaction'] === 'like' ? 'color: #1877f2;' : '' ?>">
+                                            style="background: none; border: none; font-size: 20px; cursor: pointer; padding: 10px; touch-action: manipulation; <?= $post['user_reaction'] === 'like' ? 'color: #1877f2;' : '' ?>">
                                         👍 <?= $post['reaction_count'] > 0 ? $post['reaction_count'] : '' ?>
                                     </button>
                                 </form>
                                 <form method="POST" style="display: inline;">
                                     <input type="hidden" name="post_id" value="<?= $post['id'] ?>">
                                     <button type="submit" name="reaction" value="<?= $post['user_reaction'] === 'love' ? 'remove' : 'love' ?>" 
-                                            style="background: none; border: none; font-size: 16px; cursor: pointer; <?= $post['user_reaction'] === 'love' ? 'color: #e91e63;' : '' ?>">
+                                            style="background: none; border: none; font-size: 20px; cursor: pointer; padding: 10px; touch-action: manipulation; <?= $post['user_reaction'] === 'love' ? 'color: #e91e63;' : '' ?>">
                                         ❤️
                                     </button>
                                 </form>
                                 <form method="POST" style="display: inline;">
                                     <input type="hidden" name="post_id" value="<?= $post['id'] ?>">
                                     <button type="submit" name="reaction" value="<?= $post['user_reaction'] === 'laugh' ? 'remove' : 'laugh' ?>" 
-                                            style="background: none; border: none; font-size: 16px; cursor: pointer; <?= $post['user_reaction'] === 'laugh' ? 'color: #ff9800;' : '' ?>">
+                                            style="background: none; border: none; font-size: 20px; cursor: pointer; padding: 10px; touch-action: manipulation; <?= $post['user_reaction'] === 'laugh' ? 'color: #ff9800;' : '' ?>">
                                         😂
                                     </button>
                                 </form>

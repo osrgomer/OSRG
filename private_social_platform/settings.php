@@ -95,20 +95,36 @@ $timezones = [
     <title>Settings - Private Social</title>
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
-        body { font-family: Arial, sans-serif; background: #f5f5f5; }
-        .container { max-width: 600px; margin: 0 auto; padding: 20px; }
-        .header { background: #1877f2; color: white; padding: 15px; text-align: center; }
-        .nav { background: white; padding: 10px; margin-bottom: 20px; border-radius: 8px; }
-        .nav a { color: #1877f2; text-decoration: none; margin-right: 15px; }
-        .post { background: white; padding: 15px; margin: 10px 0; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); }
-        .form-group { margin: 15px 0; }
-        select, button { width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 5px; font-size: 16px; }
-        button { background: #1877f2; color: white; border: none; cursor: pointer; }
-        .message { color: green; padding: 10px; background: #e8f5e8; border-radius: 5px; margin-bottom: 10px; }
-        .current-time { background: #e3f2fd; padding: 10px; border-radius: 5px; margin: 10px 0; }
+        body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); min-height: 100vh; }
+        .container { max-width: 800px; margin: 0 auto; padding: 20px; }
+        .header { background: linear-gradient(135deg, #1877f2, #42a5f5); color: white; padding: 25px; text-align: center; border-radius: 15px; margin-bottom: 30px; box-shadow: 0 8px 32px rgba(0,0,0,0.1); }
+        .header h1 { font-size: 2.2em; margin-bottom: 8px; }
+        .nav { background: rgba(255,255,255,0.95); backdrop-filter: blur(10px); padding: 15px; margin-bottom: 25px; border-radius: 15px; box-shadow: 0 4px 20px rgba(0,0,0,0.1); }
+        .nav a { color: #1877f2; text-decoration: none; margin-right: 20px; font-weight: 500; transition: color 0.3s; }
+        .nav a:hover { color: #0d47a1; }
+        .settings-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 25px; }
+        .post { background: rgba(255,255,255,0.95); backdrop-filter: blur(10px); padding: 25px; margin: 15px 0; border-radius: 15px; box-shadow: 0 8px 32px rgba(0,0,0,0.1); border: 1px solid rgba(255,255,255,0.2); }
+        .post h3 { color: #1877f2; margin-bottom: 20px; font-size: 1.4em; display: flex; align-items: center; gap: 10px; }
+        .form-group { margin: 20px 0; }
+        .form-group label { display: block; margin-bottom: 8px; font-weight: 600; color: #333; }
+        input, select, button { width: 100%; padding: 12px 15px; border: 2px solid #e1e5e9; border-radius: 10px; font-size: 16px; transition: all 0.3s; }
+        input:focus, select:focus { outline: none; border-color: #1877f2; box-shadow: 0 0 0 3px rgba(24,119,242,0.1); }
+        button { background: linear-gradient(135deg, #1877f2, #42a5f5); color: white; border: none; cursor: pointer; font-weight: 600; margin-top: 10px; }
+        button:hover { transform: translateY(-2px); box-shadow: 0 8px 25px rgba(24,119,242,0.3); }
+        .message { color: #2e7d32; padding: 15px; background: linear-gradient(135deg, #e8f5e8, #c8e6c9); border-radius: 10px; margin-bottom: 20px; border-left: 4px solid #4caf50; }
+        .current-time { background: linear-gradient(135deg, #e3f2fd, #bbdefb); padding: 15px; border-radius: 10px; margin: 15px 0; border-left: 4px solid #2196f3; }
+        .avatar-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; margin-top: 15px; }
+        .avatar-option { display: flex; align-items: center; justify-content: center; padding: 10px; border: 2px solid #e1e5e9; border-radius: 10px; cursor: pointer; transition: all 0.3s; }
+        .avatar-option:hover { border-color: #1877f2; background: #f8f9fa; }
+        .avatar-option input[type="radio"] { display: none; }
+        .avatar-option input[type="radio"]:checked + span { transform: scale(1.2); }
+        .current-avatar { text-align: center; margin: 15px 0; }
         
         @media (max-width: 768px) {
-            .container { padding: 15px; margin: 10px; }
+            .container { padding: 15px; }
+            .settings-grid { grid-template-columns: 1fr; }
+            .header h1 { font-size: 1.8em; }
+            .avatar-grid { grid-template-columns: repeat(3, 1fr); }
         }
     </style>
 </head>
@@ -140,9 +156,10 @@ $timezones = [
             <div class="message"><?= $message ?></div>
         <?php endif; ?>
         
-        <!-- Profile Settings -->
-        <div class="post">
-            <h3>Edit Profile</h3>
+        <div class="settings-grid">
+            <!-- Profile Settings -->
+            <div class="post">
+                <h3>👤 Edit Profile</h3>
             <form method="POST" enctype="multipart/form-data">
                 <div class="form-group">
                     <label><strong>Username:</strong></label>
@@ -209,8 +226,9 @@ $timezones = [
             </form>
         </div>
 
-        <div class="post">
-            <h3>Timezone Settings</h3>
+            <!-- Timezone & Notification Settings -->
+            <div class="post">
+                <h3>⚙️ Preferences</h3>
             
             <div class="current-time">
                 <strong>Current time in your timezone:</strong><br>
@@ -240,10 +258,11 @@ $timezones = [
                 </div>
                 <button type="submit">Update Settings</button>
             </form>
+            </div>
         </div>
 
         <div class="post">
-            <h3>About Timezones</h3>
+            <h3>🌍 About Timezones</h3>
             <p>Setting your timezone ensures that all timestamps (posts, messages, etc.) are displayed in your local time. The default timezone is London (GMT/BST).</p>
         </div>
     </div>

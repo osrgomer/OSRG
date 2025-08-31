@@ -194,12 +194,7 @@ $message_count = $stmt->fetch()['count'];
             <div class="tab active" onclick="showTab('pending')">Pending Approvals <?= count($pending_users) > 0 ? '(' . count($pending_users) . ')' : '' ?></div>
             <div class="tab" onclick="showTab('users')">Manage Users</div>
             <div class="tab" onclick="showTab('posts')">Manage Posts</div>
-        </div>
-        
-        <div class="post" style="background: #fff3cd; border-left: 4px solid #ffc107;">
-            <h3>🔧 Admin Tools</h3>
-            <p style="margin-bottom: 15px;">Additional administrative tools for platform maintenance.</p>
-            <a href="fix_posts.php" style="background: #ffc107; color: #212529; padding: 10px 20px; text-decoration: none; border-radius: 5px; font-weight: bold;">Fix Corrupted Posts</a>
+            <div class="tab" onclick="showTab('tools')">Admin Tools</div>
         </div>
 
         <div id="pending" class="tab-content active">
@@ -259,6 +254,19 @@ $message_count = $stmt->fetch()['count'];
                     <a href="?delete_post=<?= $post['id'] ?>" class="delete-btn" onclick="return confirm('Delete this post?')">Delete</a>
                 </div>
                 <?php endforeach; ?>
+            </div>
+        </div>
+
+        <div id="tools" class="tab-content">
+            <div class="post">
+                <h3>🔧 Admin Tools</h3>
+                <div class="post-item">
+                    <div>
+                        <strong>Fix Corrupted Posts</strong><br>
+                        <span>Clean up HTML corruption from WYSIWYG editor in post content</span>
+                    </div>
+                    <a href="fix_posts.php" style="background: #ffc107; color: #212529; padding: 5px 10px; text-decoration: none; border-radius: 3px; font-weight: bold;">Run Tool</a>
+                </div>
             </div>
         </div>
     </div>

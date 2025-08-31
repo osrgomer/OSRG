@@ -120,6 +120,57 @@ if ($_GET['cleanup'] ?? false) {
     $message = "Cleanup completed. Deleted {$deleted_posts} old posts and orphaned data.";
 }
 
+// Handle website backup
+if ($_GET['website_backup'] ?? false) {
+    $backup_name = 'website_backup_' . date('Y-m-d_H-i-s') . '.zip';
+    $zip = new ZipArchive();
+    
+    if ($zip->open($backup_name, ZipArchive::CREATE) === TRUE) {
+        // Add all PHP files
+        $files = glob('*.php');
+        foreach ($files as $file) {
+            $zip->addFile($file);
+        }
+        
+        // Add database
+        if (file_exists('private_social.db')) {
+            $zip->addFile('private_social.db');
+        }
+        
+        // Add uploads folder
+        if (is_dir('uploads')) {
+            $iterator = new RecursiveIteratorIterator(new RecursiveDirectoryIterator('uploads'));
+            foreach ($iterator as $file) {
+                if ($file->isFile()) {
+                    $zip->addFile($file->getPathname(), $file->getPathname());
+                }
+            }
+        }
+        
+        // Add avatars folder
+        if (is_dir('avatars')) {
+            $iterator = new RecursiveIteratorIterator(new RecursiveDirectoryIterator('avatars'));
+            foreach ($iterator as $file) {
+                if ($file->isFile()) {
+                    $zip->addFile($file->getPathname(), $file->getPathname());
+                }
+            }
+        }
+        
+        $zip->close();
+        
+        // Download the file
+        header('Content-Type: application/zip');
+        header('Content-Disposition: attachment; filename="' . $backup_name . '"');
+        header('Content-Length: ' . filesize($backup_name));
+        readfile($backup_name);
+        unlink($backup_name); // Delete after download
+        exit;
+    } else {
+        $message = 'Failed to create website backup!';
+    }
+}
+
 // Get pending users
 $stmt = $pdo->query("SELECT id, username, email, created_at FROM users WHERE approved = 0 ORDER BY created_at DESC");
 $pending_users = $stmt->fetchAll();
@@ -377,6 +428,13 @@ if (is_dir('uploads')) {
                         <span>Remove posts older than 1 year and orphaned data</span>
                     </div>
                     <a href="?cleanup=1" style="background: #dc3545; color: white; padding: 5px 10px; text-decoration: none; border-radius: 3px; font-weight: bold;" onclick="return confirm('This will permanently delete old data. Continue?')">Cleanup</a>
+                </div>
+                <div class="post-item">
+                    <div>
+                        <strong>Download Website Backup</strong><br>
+                        <span>Download complete ZIP backup of all files, database, and uploads</span>
+                    </div>
+                    <a href="?website_backup=1" style="background: #6f42c1; color: white; padding: 5px 10px; text-decoration: none; border-radius: 3px; font-weight: bold;" onclick="return confirm('Create and download complete website backup?')">Download ZIP</a>
                 </div>
             </div>
         </div>

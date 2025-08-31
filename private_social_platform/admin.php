@@ -195,6 +195,12 @@ $message_count = $stmt->fetch()['count'];
             <div class="tab" onclick="showTab('users')">Manage Users</div>
             <div class="tab" onclick="showTab('posts')">Manage Posts</div>
         </div>
+        
+        <div class="post" style="background: #fff3cd; border-left: 4px solid #ffc107;">
+            <h3>🔧 Admin Tools</h3>
+            <p style="margin-bottom: 15px;">Additional administrative tools for platform maintenance.</p>
+            <a href="fix_posts.php" style="background: #ffc107; color: #212529; padding: 10px 20px; text-decoration: none; border-radius: 5px; font-weight: bold;">Fix Corrupted Posts</a>
+        </div>
 
         <div id="pending" class="tab-content active">
             <div class="post">

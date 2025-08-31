@@ -168,17 +168,24 @@ if ($_POST['content'] ?? false) {
                 placeholder: "What's on your mind?",
                 modules: {
                     toolbar: [
-                        ['bold', 'italic', 'underline'],
-                        [{ 'list': 'ordered'}, { 'list': 'bullet' }],
-                        ['link'],
-                        ['clean']
+                        ['bold', 'italic'],
+                        [{ 'list': 'ordered'}, { 'list': 'bullet' }]
                     ]
                 }
             });
             
             // Update hidden textarea when form is submitted
-            document.querySelector('form').addEventListener('submit', function() {
+            document.getElementById('postForm').addEventListener('submit', function(e) {
+                // Always set the content first
                 document.getElementById('content').value = quill.root.innerHTML;
+                
+                const content = quill.getText().trim();
+                if (content.length === 0) {
+                    e.preventDefault();
+                    alert('Please write something before posting!');
+                    return false;
+                }
+                return true;
             });
         });
         
@@ -360,10 +367,10 @@ if ($_POST['content'] ?? false) {
 
         <div class="post">
             <h3>Share something...</h3>
-            <form method="POST" enctype="multipart/form-data">
+            <form method="POST" enctype="multipart/form-data" id="postForm">
                 <div class="form-group">
                     <div id="editor" style="border: 1px solid #ddd; border-radius: 5px; min-height: 100px; padding: 10px; background: white;"></div>
-                    <textarea name="content" id="content" style="display: none;" required></textarea>
+                    <textarea name="content" id="content" style="display: none;"></textarea>
                 </div>
                 <div class="form-group">
                     <input type="file" name="file" accept=".mp4,.mp3,.png,.jpg,.jpeg" style="margin-bottom: 10px;">

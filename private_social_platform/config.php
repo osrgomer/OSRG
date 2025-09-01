@@ -142,10 +142,32 @@ function get_link_preview($url) {
         $title = $title->item(0)->value;
     }
     
+    $image_url = '';
+    if ($image->length > 0) {
+        $image_url = $image->item(0)->value;
+        // Convert relative URLs to absolute
+        if ($image_url && !filter_var($image_url, FILTER_VALIDATE_URL)) {
+            $parsed_url = parse_url($url);
+            $base_url = $parsed_url['scheme'] . '://' . $parsed_url['host'];
+            if (isset($parsed_url['port'])) {
+                $base_url .= ':' . $parsed_url['port'];
+            }
+            
+            if (strpos($image_url, '/') === 0) {
+                // Absolute path
+                $image_url = $base_url . $image_url;
+            } else {
+                // Relative path
+                $path = dirname($parsed_url['path'] ?? '/');
+                $image_url = $base_url . rtrim($path, '/') . '/' . $image_url;
+            }
+        }
+    }
+    
     return [
         'title' => $title,
         'description' => $description->length > 0 ? $description->item(0)->value : '',
-        'image' => $image->length > 0 ? $image->item(0)->value : '',
+        'image' => $image_url,
         'url' => $url
     ];
 }

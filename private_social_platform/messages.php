@@ -81,7 +81,7 @@ $friends = $stmt->fetchAll();
 <!DOCTYPE html>
 <html>
 <head>
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <link rel="icon" type="image/x-icon" href="favicon.ico">
     <link rel="icon" type="image/png" sizes="32x32" href="favicon-32x32.png">
     <link rel="icon" type="image/png" sizes="16x16" href="favicon-16x16.png">
@@ -106,6 +106,84 @@ $friends = $stmt->fetchAll();
         .friend-item.active { background: #e3f2fd; }
         input, textarea { width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 5px; }
         button { background: #1877f2; color: white; padding: 10px 20px; border: none; border-radius: 5px; cursor: pointer; }
+        
+        @media (max-width: 768px) {
+            body {
+                margin: 0;
+                padding: 0;
+            }
+            .container {
+                flex-direction: column;
+                padding: 5px;
+                gap: 10px;
+                max-width: 100%;
+                margin: 0;
+            }
+            .friends-list {
+                width: 100%;
+                max-height: 150px;
+                overflow-y: auto;
+                padding: 10px;
+            }
+            .chat-area {
+                height: calc(100vh - 300px);
+                min-height: 300px;
+                width: 100%;
+            }
+            .messages {
+                max-height: calc(100vh - 400px);
+                min-height: 200px;
+                padding: 10px;
+            }
+            .message {
+                margin: 8px 0;
+                padding: 8px 12px;
+                max-width: 85%;
+                word-wrap: break-word;
+            }
+            .message.sent {
+                margin-left: 15%;
+                margin-right: 0;
+            }
+            .message.received {
+                margin-right: 15%;
+                margin-left: 0;
+            }
+            .message-form {
+                padding: 8px;
+                position: sticky;
+                bottom: 0;
+                background: white;
+            }
+            .message-form textarea {
+                font-size: 16px;
+                resize: none;
+                min-height: 40px;
+            }
+            .message-form button {
+                padding: 8px 16px;
+                white-space: nowrap;
+            }
+            .header {
+                margin-bottom: 5px;
+                padding: 8px;
+            }
+            .nav {
+                padding: 5px;
+                overflow-x: auto;
+                white-space: nowrap;
+                -webkit-overflow-scrolling: touch;
+            }
+            .nav a {
+                display: inline-block;
+                padding: 8px 12px;
+                margin: 2px 4px;
+                background: #f0f2f5;
+                border-radius: 20px;
+                font-size: 14px;
+                white-space: nowrap;
+            }
+        }
     </style>
     <script>
         let lastMessageCount = 0;

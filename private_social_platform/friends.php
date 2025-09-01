@@ -105,8 +105,30 @@ $additional_css = '
 ';
 $mobile_viewport = '<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">';
 
+// Add Open Graph meta tags
+$og_tags = '
+    <!-- Open Graph Meta Tags -->
+    <meta property="og:title" content="OSRG Connect - Friends Feed">
+    <meta property="og:description" content="Stay connected with your friends on OSRG Connect - View posts from your friend network.">
+    <meta property="og:type" content="website">
+    <meta property="og:url" content="https://osrg.lol/osrg/private_social_platform/friends.php">
+    <meta property="og:site_name" content="OSRG Connect">
+    <meta property="og:locale" content="en_US">
+    
+    <!-- Twitter Card Meta Tags -->
+    <meta name="twitter:card" content="summary">
+    <meta name="twitter:title" content="OSRG Connect - Friends Feed">
+    <meta name="twitter:description" content="Stay connected with your friends on OSRG Connect - View posts from your friend network.">
+    
+    <!-- Additional Meta Tags -->
+    <meta name="description" content="OSRG Connect Friends Feed - See what your friends are sharing and stay connected with your network.">
+    <meta name="keywords" content="friends feed, social media, private platform, friend posts, OSRG">
+    <meta name="author" content="OSRG">
+';
+
 require_once 'header.php';
 ?>
+<?= $og_tags ?>
 <script>
     window.onload = function() {
         // Restore scroll position after comment submission

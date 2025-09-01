@@ -135,6 +135,19 @@ if ($_POST['content'] ?? false) {
     <link rel="icon" type="image/png" sizes="16x16" href="favicon-16x16.png">
     <link rel="apple-touch-icon" sizes="180x180" href="apple-touch-icon.png">
     <title>Feed - OSRG Connect</title>
+    
+    <!-- Open Graph Meta Tags -->
+    <meta property="og:title" content="OSRG Connect - Public Feed">
+    <meta property="og:description" content="Connect with friends and share your thoughts on OSRG Connect - A private social media platform.">
+    <meta property="og:type" content="website">
+    <meta property="og:url" content="https://osrg.lol/osrg/private_social_platform/index.php">
+    <meta property="og:site_name" content="OSRG Connect">
+    <meta property="og:locale" content="en_US">
+    
+    <!-- Twitter Card Meta Tags -->
+    <meta name="twitter:card" content="summary">
+    <meta name="twitter:title" content="OSRG Connect - Public Feed">
+    <meta name="twitter:description" content="Connect with friends and share your thoughts on OSRG Connect - A private social media platform.">
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
         body { font-family: Arial, sans-serif; background: #f5f5f5; }
@@ -191,6 +204,11 @@ if ($_POST['content'] ?? false) {
         }
     </style>
     <link href="https://cdn.quilljs.com/1.3.6/quill.snow.css" rel="stylesheet">
+    
+    <!-- Additional Meta Tags -->
+    <meta name="description" content="OSRG Connect - Share posts, connect with friends, and engage with your community on our private social platform.">
+    <meta name="keywords" content="social media, private platform, friends, posts, community, OSRG">
+    <meta name="author" content="OSRG">
     <script src="https://cdn.quilljs.com/1.3.6/quill.min.js"></script>
     <script>
         let lastPostCount = 0;

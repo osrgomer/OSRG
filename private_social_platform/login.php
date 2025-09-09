@@ -5,33 +5,15 @@ init_db();
 $error = '';
 
 if ($_POST['username'] ?? false) {
-    // Try WordPress authentication first
+    // WordPress authentication only
     $wp_user = wp_social_authenticate($_POST['username'], $_POST['password']);
     
     if ($wp_user) {
-        // Sync WordPress user to social network
-        $social_user_id = sync_wp_user($wp_user);
-        $_SESSION['user_id'] = $social_user_id;
+        $_SESSION['user_id'] = $wp_user['id'];
         header('Location: index.php');
         exit;
     } else {
-        // Fallback to social network authentication
-        $pdo = get_db();
-        $stmt = $pdo->prepare("SELECT id, password_hash, approved FROM users WHERE username = ?");
-        $stmt->execute([$_POST['username']]);
-        $user = $stmt->fetch();
-        
-        if ($user && password_verify($_POST['password'], $user['password_hash'])) {
-            if ($user['approved']) {
-                $_SESSION['user_id'] = $user['id'];
-                header('Location: index.php');
-                exit;
-            } else {
-                $error = 'Account pending admin approval';
-            }
-        } else {
-            $error = 'Invalid WordPress or social network credentials';
-        }
+        $error = 'Invalid WordPress credentials';
     }
 }
 ?>

@@ -2,24 +2,26 @@
 session_start();
 date_default_timezone_set('Europe/London');
 
-// Database configuration
-$db_file = 'private_social.db';
-
-// WordPress database configuration
+// WordPress database configuration - now the ONLY database
 $wp_db_host = 'localhost';
 $wp_db_name = 'u542077544_OSRGConnect';
 $wp_db_user = 'u542077544_Omer';
 $wp_db_pass = 'V0Zw7celP]AO9';
 $wp_table_prefix = 'wp_';
 
-// Get WordPress database connection
-function get_wp_db() {
+// Get database connection (WordPress MySQL)
+function get_db() {
     global $wp_db_host, $wp_db_name, $wp_db_user, $wp_db_pass;
     try {
         return new PDO("mysql:host=$wp_db_host;dbname=$wp_db_name", $wp_db_user, $wp_db_pass);
     } catch (PDOException $e) {
         return null;
     }
+}
+
+// Alias for compatibility
+function get_wp_db() {
+    return get_db();
 }
 
 // WordPress password verification
@@ -41,11 +43,11 @@ function wp_check_password($password, $hash) {
 // WordPress authentication function
 function wp_social_authenticate($username, $password) {
     global $wp_table_prefix;
-    $wp_pdo = get_wp_db();
-    if (!$wp_pdo) return false;
+    $pdo = get_db();
+    if (!$pdo) return false;
     
     try {
-        $stmt = $wp_pdo->prepare("SELECT ID, user_login, user_email, user_pass FROM {$wp_table_prefix}users WHERE user_login = ? OR user_email = ?");
+        $stmt = $pdo->prepare("SELECT ID, user_login, user_email, user_pass FROM {$wp_table_prefix}users WHERE user_login = ? OR user_email = ?");
         $stmt->execute([$username, $username]);
         $wp_user = $stmt->fetch();
         
@@ -131,133 +133,84 @@ class PasswordHash {
     }
 }
 
-// Sync WordPress user to social network
+// No sync needed - using WordPress users directly
 function sync_wp_user($wp_user) {
-    $pdo = get_db();
-    
-    // Check if user exists in social network
-    $stmt = $pdo->prepare("SELECT id FROM users WHERE username = ? OR email = ?");
-    $stmt->execute([$wp_user['username'], $wp_user['email']]);
-    $existing = $stmt->fetch();
-    
-    if (!$existing) {
-        // Create new user in social network
-        $stmt = $pdo->prepare("INSERT INTO users (username, email, password_hash, approved) VALUES (?, ?, ?, 1)");
-        $stmt->execute([$wp_user['username'], $wp_user['email'], 'wp_synced']);
-        return $pdo->lastInsertId();
-    }
-    
-    return $existing['id'];
+    return $wp_user['id'];
 }
 
-// Initialize SQLite database
+// Initialize WordPress MySQL database with social network tables
 function init_db() {
-    global $db_file;
-    $pdo = new PDO("sqlite:$db_file");
+    global $wp_table_prefix;
+    $pdo = get_db();
+    if (!$pdo) return null;
     
-    // Users table
-    $pdo->exec("CREATE TABLE IF NOT EXISTS users (
-        id INTEGER PRIMARY KEY, 
-        username TEXT UNIQUE, 
-        email TEXT UNIQUE, 
-        password_hash TEXT, 
-        created_at DATETIME DEFAULT CURRENT_TIMESTAMP
+    // Social network posts table
+    $pdo->exec("CREATE TABLE IF NOT EXISTS {$wp_table_prefix}social_posts (
+        id INT AUTO_INCREMENT PRIMARY KEY, 
+        user_id BIGINT(20) UNSIGNED, 
+        content LONGTEXT, 
+        file_path VARCHAR(255),
+        file_type VARCHAR(50),
+        created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+        FOREIGN KEY(user_id) REFERENCES {$wp_table_prefix}users(ID)
     )");
     
-    // Posts table
-    $pdo->exec("CREATE TABLE IF NOT EXISTS posts (
-        id INTEGER PRIMARY KEY, 
-        user_id INTEGER, 
+    // Social network friends table
+    $pdo->exec("CREATE TABLE IF NOT EXISTS {$wp_table_prefix}social_friends (
+        id INT AUTO_INCREMENT PRIMARY KEY, 
+        user_id BIGINT(20) UNSIGNED, 
+        friend_id BIGINT(20) UNSIGNED,
+        status VARCHAR(20), 
+        created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+        FOREIGN KEY(user_id) REFERENCES {$wp_table_prefix}users(ID),
+        FOREIGN KEY(friend_id) REFERENCES {$wp_table_prefix}users(ID)
+    )");
+    
+    // Social network messages table
+    $pdo->exec("CREATE TABLE IF NOT EXISTS {$wp_table_prefix}social_messages (
+        id INT AUTO_INCREMENT PRIMARY KEY, 
+        sender_id BIGINT(20) UNSIGNED, 
+        receiver_id BIGINT(20) UNSIGNED,
         content TEXT, 
         created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
-        FOREIGN KEY(user_id) REFERENCES users(id)
+        FOREIGN KEY(sender_id) REFERENCES {$wp_table_prefix}users(ID),
+        FOREIGN KEY(receiver_id) REFERENCES {$wp_table_prefix}users(ID)
     )");
     
-    // Friends table
-    $pdo->exec("CREATE TABLE IF NOT EXISTS friends (
-        id INTEGER PRIMARY KEY, 
-        user_id INTEGER, 
-        friend_id INTEGER,
-        status TEXT, 
-        created_at DATETIME DEFAULT CURRENT_TIMESTAMP
+    // Social network comments table
+    $pdo->exec("CREATE TABLE IF NOT EXISTS {$wp_table_prefix}social_comments (
+        id INT AUTO_INCREMENT PRIMARY KEY,
+        post_id INT,
+        user_id BIGINT(20) UNSIGNED,
+        content TEXT,
+        created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+        FOREIGN KEY(post_id) REFERENCES {$wp_table_prefix}social_posts(id),
+        FOREIGN KEY(user_id) REFERENCES {$wp_table_prefix}users(ID)
     )");
     
-    // Messages table
-    $pdo->exec("CREATE TABLE IF NOT EXISTS messages (
-        id INTEGER PRIMARY KEY, 
-        sender_id INTEGER, 
-        receiver_id INTEGER,
-        content TEXT, 
-        created_at DATETIME DEFAULT CURRENT_TIMESTAMP
+    // Social network reactions table
+    $pdo->exec("CREATE TABLE IF NOT EXISTS {$wp_table_prefix}social_reactions (
+        id INT AUTO_INCREMENT PRIMARY KEY,
+        post_id INT,
+        user_id BIGINT(20) UNSIGNED,
+        reaction_type VARCHAR(20),
+        created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+        FOREIGN KEY(post_id) REFERENCES {$wp_table_prefix}social_posts(id),
+        FOREIGN KEY(user_id) REFERENCES {$wp_table_prefix}users(ID),
+        UNIQUE(post_id, user_id)
     )");
     
-    // Add file columns to posts table
+    // Add social network fields to WordPress users table
     try {
-        $pdo->exec("ALTER TABLE posts ADD COLUMN file_path TEXT");
-        $pdo->exec("ALTER TABLE posts ADD COLUMN file_type TEXT");
+        $pdo->exec("ALTER TABLE {$wp_table_prefix}users ADD COLUMN social_approved TINYINT(1) DEFAULT 1");
+        $pdo->exec("ALTER TABLE {$wp_table_prefix}users ADD COLUMN social_timezone VARCHAR(50) DEFAULT 'Europe/London'");
+        $pdo->exec("ALTER TABLE {$wp_table_prefix}users ADD COLUMN social_email_notifications TINYINT(1) DEFAULT 0");
+        $pdo->exec("ALTER TABLE {$wp_table_prefix}users ADD COLUMN social_avatar VARCHAR(255) DEFAULT NULL");
     } catch (Exception $e) {
         // Columns already exist
     }
     
-    // Add approval status to users table
-    try {
-        $pdo->exec("ALTER TABLE users ADD COLUMN approved INTEGER DEFAULT 0");
-        // Make OSRG auto-approved
-        $pdo->exec("UPDATE users SET approved = 1 WHERE username = 'OSRG'");
-    } catch (Exception $e) {
-        // Column already exists
-    }
-    
-    // Add timezone to users table
-    try {
-        $pdo->exec("ALTER TABLE users ADD COLUMN timezone TEXT DEFAULT 'Europe/London'");
-    } catch (Exception $e) {
-        // Column already exists
-    }
-    
-    // Add email notifications preference
-    try {
-        $pdo->exec("ALTER TABLE users ADD COLUMN email_notifications INTEGER DEFAULT 0");
-    } catch (Exception $e) {
-        // Column already exists
-    }
-    
-    // Add avatar column
-    try {
-        $pdo->exec("ALTER TABLE users ADD COLUMN avatar TEXT DEFAULT NULL");
-    } catch (Exception $e) {
-        // Column already exists
-    }
-    
-    // Comments table
-    $pdo->exec("CREATE TABLE IF NOT EXISTS comments (
-        id INTEGER PRIMARY KEY,
-        post_id INTEGER,
-        user_id INTEGER,
-        content TEXT,
-        created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
-        FOREIGN KEY(post_id) REFERENCES posts(id),
-        FOREIGN KEY(user_id) REFERENCES users(id)
-    )");
-    
-    // Reactions table
-    $pdo->exec("CREATE TABLE IF NOT EXISTS reactions (
-        id INTEGER PRIMARY KEY,
-        post_id INTEGER,
-        user_id INTEGER,
-        reaction_type TEXT,
-        created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
-        FOREIGN KEY(post_id) REFERENCES posts(id),
-        FOREIGN KEY(user_id) REFERENCES users(id),
-        UNIQUE(post_id, user_id)
-    )");
-    
     return $pdo;
-}
-
-function get_db() {
-    global $db_file;
-    return new PDO("sqlite:$db_file");
 }
 
 function get_link_preview($url) {

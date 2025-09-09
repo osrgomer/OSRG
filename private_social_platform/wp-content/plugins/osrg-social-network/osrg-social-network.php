@@ -19,16 +19,24 @@ if (!defined('ABSPATH')) {
 define('OSRG_SOCIAL_PLUGIN_URL', plugin_dir_url(__FILE__));
 define('OSRG_SOCIAL_PLUGIN_PATH', plugin_dir_path(__FILE__));
 
-// Include core files
-require_once OSRG_SOCIAL_PLUGIN_PATH . 'includes/config.php';
-require_once OSRG_SOCIAL_PLUGIN_PATH . 'includes/functions.php';
-require_once OSRG_SOCIAL_PLUGIN_PATH . 'includes/migration.php';
+// Include core files with error handling
+if (file_exists(OSRG_SOCIAL_PLUGIN_PATH . 'includes/config.php')) {
+    require_once OSRG_SOCIAL_PLUGIN_PATH . 'includes/config.php';
+}
+if (file_exists(OSRG_SOCIAL_PLUGIN_PATH . 'includes/functions.php')) {
+    require_once OSRG_SOCIAL_PLUGIN_PATH . 'includes/functions.php';
+}
+if (file_exists(OSRG_SOCIAL_PLUGIN_PATH . 'includes/migration.php')) {
+    require_once OSRG_SOCIAL_PLUGIN_PATH . 'includes/migration.php';
+}
 
 // Activation hook
 register_activation_hook(__FILE__, 'osrg_social_activate');
 
 function osrg_social_activate() {
-    init_db();
+    if (function_exists('init_db')) {
+        init_db();
+    }
     
     // Create upload directories
     $upload_dir = wp_upload_dir();

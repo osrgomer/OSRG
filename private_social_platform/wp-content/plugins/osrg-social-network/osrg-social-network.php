@@ -1,9 +1,13 @@
 <?php
 /**
  * Plugin Name: OSRG Social Network
+ * Plugin URI: https://osrg.lol
  * Description: Complete social media platform integrated with WordPress
  * Version: 1.0.0
  * Author: OSRG.lol
+ * Author URI: https://osrg.lol
+ * Text Domain: osrg-social
+ * Network: false
  */
 
 // Prevent direct access

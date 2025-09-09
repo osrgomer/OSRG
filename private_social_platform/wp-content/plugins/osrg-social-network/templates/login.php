@@ -4,22 +4,27 @@ if (!defined('ABSPATH')) {
     exit;
 }
 
+// Check if user is already logged into WordPress
+if (is_user_logged_in()) {
+    return '<p>You are already logged in! <a href="' . wp_logout_url() . '">Logout</a></p>';
+}
+
 // Handle login
 if ($_POST['username'] ?? false) {
-    $user = osrg_wp_social_authenticate($_POST['username'], $_POST['password']);
-    if ($user) {
-        osrg_social_login_user($user['id']);
+    $creds = array(
+        'user_login'    => $_POST['username'],
+        'user_password' => $_POST['password'],
+        'remember'      => true
+    );
+    
+    $user = wp_signon($creds, false);
+    
+    if (!is_wp_error($user)) {
         wp_redirect(home_url());
         exit;
     } else {
         $error = 'Invalid username or password';
     }
-}
-
-// If already logged in, redirect
-if (osrg_social_is_logged_in()) {
-    wp_redirect(home_url());
-    exit;
 }
 ?>
 

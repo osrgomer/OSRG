@@ -5,11 +5,11 @@ if (!defined('ABSPATH')) {
 }
 
 // Check if user is logged in
-if (!osrg_social_is_logged_in()) {
-    return '<p>Please log in to view the social feed.</p>';
+if (!is_user_logged_in()) {
+    return '<p>Please log in to view the social feed. <a href="' . wp_login_url() . '">Login</a></p>';
 }
 
-$current_user = osrg_social_get_current_user();
+$current_user = wp_get_current_user();
 global $wpdb;
 
 // Handle form submissions

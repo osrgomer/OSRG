@@ -10,7 +10,7 @@
  * Network: false
  */
 
-// Prevent direct access
+// Prevent direct access to the file
 if (!defined('ABSPATH')) {
     exit;
 }

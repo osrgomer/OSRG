@@ -1,0 +1,24 @@
+# WordPress files
+private_social_platform/wp-config.php
+private_social_platform/wp-content/uploads/
+private_social_platform/.htaccess
+
+# Database files
+private_social_platform/*.db
+private_social_platform/backup/*.db
+
+# User uploads
+private_social_platform/uploads/
+private_social_platform/avatars/
+
+# WordPress core files (if not needed in repo)
+private_social_platform/wp-activate.php
+private_social_platform/wp-admin/
+private_social_platform/wp-includes/
+private_social_platform/license.txt
+private_social_platform/readme.html
+
+# Favicons and assets
+private_social_platform/*.png
+private_social_platform/*.ico
+private_social_platform/*.webmanifest

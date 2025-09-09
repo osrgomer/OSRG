@@ -89,6 +89,8 @@ define( 'WP_DEBUG', false );
 define( 'WP_DEBUG_LOG', false );
 define( 'WP_DEBUG_DISPLAY', false );
 define( 'SCRIPT_DEBUG', false );
+define( 'DISALLOW_FILE_EDIT', true );
+define( 'CLASSIC_EDITOR_REPLACE', true );
 ini_set('display_errors', 0);
 
 /* Add any custom values between this line and the "stop editing" line. */

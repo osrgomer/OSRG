@@ -5,22 +5,130 @@ date_default_timezone_set('Europe/London');
 // Database configuration
 $db_file = 'private_social.db';
 
-// WordPress integration
-require_once('wp-config.php');
-require_once('wp-includes/wp-db.php');
-require_once('wp-includes/pluggable.php');
+// WordPress database configuration
+$wp_db_host = 'localhost';
+$wp_db_name = 'u542077544_OSRGConnect';
+$wp_db_user = 'u542077544_Omer';
+$wp_db_pass = 'V0Zw7celP]AO9';
+$wp_table_prefix = 'wp_';
+
+// Get WordPress database connection
+function get_wp_db() {
+    global $wp_db_host, $wp_db_name, $wp_db_user, $wp_db_pass;
+    try {
+        return new PDO("mysql:host=$wp_db_host;dbname=$wp_db_name", $wp_db_user, $wp_db_pass);
+    } catch (PDOException $e) {
+        return null;
+    }
+}
+
+// WordPress password verification
+function wp_check_password($password, $hash) {
+    // WordPress uses MD5 for older passwords or phpass for newer ones
+    if (strlen($hash) <= 32) {
+        return hash_equals($hash, md5($password));
+    }
+    
+    // Check if it's a phpass hash
+    if (substr($hash, 0, 3) == '$P$' || substr($hash, 0, 3) == '$H$') {
+        $wp_hasher = new PasswordHash(8, true);
+        return $wp_hasher->CheckPassword($password, $hash);
+    }
+    
+    return false;
+}
 
 // WordPress authentication function
 function wp_social_authenticate($username, $password) {
-    $user = wp_authenticate($username, $password);
-    if (!is_wp_error($user)) {
-        return [
-            'id' => $user->ID,
-            'username' => $user->user_login,
-            'email' => $user->user_email
-        ];
+    global $wp_table_prefix;
+    $wp_pdo = get_wp_db();
+    if (!$wp_pdo) return false;
+    
+    try {
+        $stmt = $wp_pdo->prepare("SELECT ID, user_login, user_email, user_pass FROM {$wp_table_prefix}users WHERE user_login = ? OR user_email = ?");
+        $stmt->execute([$username, $username]);
+        $wp_user = $stmt->fetch();
+        
+        if ($wp_user && wp_check_password($password, $wp_user['user_pass'])) {
+            return [
+                'id' => $wp_user['ID'],
+                'username' => $wp_user['user_login'],
+                'email' => $wp_user['user_email']
+            ];
+        }
+    } catch (Exception $e) {
+        // WordPress DB connection failed, return false
     }
+    
     return false;
+}
+
+// Simple WordPress-compatible password hasher
+class PasswordHash {
+    var $itoa64;
+    var $iteration_count_log2;
+    var $portable_hashes;
+    var $random_state;
+
+    function __construct($iteration_count_log2, $portable_hashes) {
+        $this->itoa64 = './0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz';
+        if ($iteration_count_log2 < 4 || $iteration_count_log2 > 31)
+            $iteration_count_log2 = 8;
+        $this->iteration_count_log2 = $iteration_count_log2;
+        $this->portable_hashes = $portable_hashes;
+        $this->random_state = microtime() . uniqid(rand(), TRUE);
+    }
+
+    function CheckPassword($password, $stored_hash) {
+        $hash = $this->crypt_private($password, $stored_hash);
+        if ($hash[0] == '*')
+            $hash = crypt($password, $stored_hash);
+        return hash_equals($stored_hash, $hash);
+    }
+
+    function crypt_private($password, $setting) {
+        $output = '*0';
+        if (substr($setting, 0, 2) == $output)
+            $output = '*1';
+        $id = substr($setting, 0, 3);
+        if ($id != '$P$' && $id != '$H$')
+            return $output;
+        $count_log2 = strpos($this->itoa64, $setting[3]);
+        if ($count_log2 < 7 || $count_log2 > 30)
+            return $output;
+        $count = 1 << $count_log2;
+        $salt = substr($setting, 4, 8);
+        if (strlen($salt) != 8)
+            return $output;
+        $hash = md5($salt . $password, TRUE);
+        do {
+            $hash = md5($hash . $password, TRUE);
+        } while (--$count);
+        $output = substr($setting, 0, 12);
+        $output .= $this->encode64($hash, 16);
+        return $output;
+    }
+
+    function encode64($input, $count) {
+        $output = '';
+        $i = 0;
+        do {
+            $value = ord($input[$i++]);
+            $output .= $this->itoa64[$value & 0x3f];
+            if ($i < $count)
+                $value |= ord($input[$i]) << 8;
+            $output .= $this->itoa64[($value >> 6) & 0x3f];
+            if ($i++ >= $count)
+                break;
+            if ($i < $count)
+                $value |= ord($input[$i]) << 16;
+            $output .= $this->itoa64[($value >> 12) & 0x3f];
+            if ($i++ >= $count)
+                break;
+            $output .= $this->itoa64[($value >> 18) & 0x3f];
+        } while ($i < $count);
+        return $output;
+    }
 }
 
 // Sync WordPress user to social network

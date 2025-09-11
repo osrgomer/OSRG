@@ -21,8 +21,9 @@ if (!isset($_SESSION['user_id'])) {
         .nav { background: white; padding: 10px; margin-bottom: 20px; border-radius: 8px; display: flex; justify-content: space-between; align-items: center; }
         .nav-links { display: flex; align-items: center; }
         .nav-links a { color: #1877f2; text-decoration: none; margin-right: 15px; }
-        .user-avatar { width: 40px; height: 40px; border-radius: 50%; cursor: pointer; transition: transform 0.2s; }
-        .user-avatar:hover { transform: scale(1.1); }
+        .user-avatar { width: 40px !important; height: 40px !important; border-radius: 50% !important; cursor: pointer !important; transition: transform 0.2s !important; display: block !important; }
+        .user-avatar:hover { transform: scale(1.1) !important; }
+        .nav > div:last-child { display: flex !important; align-items: center !important; z-index: 999 !important; }
         <?= $additional_css ?? '' ?>
     </style>
     <?= $additional_head ?? '' ?>

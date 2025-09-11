@@ -54,13 +54,13 @@ $friend_requests = $stmt->fetchAll();
 if ($_GET['accept'] ?? false) {
     $stmt = $pdo->prepare("UPDATE friends SET status = 'accepted' WHERE id = ?");
     $stmt->execute([$_GET['accept']]);
-    header('Location: index.php');
+    header('Location: home');
     exit;
 }
 if ($_GET['decline'] ?? false) {
     $stmt = $pdo->prepare("DELETE FROM friends WHERE id = ?");
     $stmt->execute([$_GET['decline']]);
-    header('Location: index.php');
+    header('Location: home');
     exit;
 }
 
@@ -78,7 +78,7 @@ if ($_POST['reaction'] ?? false) {
         $stmt->execute([$post_id, $_SESSION['user_id'], $reaction]);
     }
     
-    header('Location: index.php');
+    header('Location: home');
     exit;
 }
 
@@ -86,7 +86,7 @@ if ($_POST['reaction'] ?? false) {
 if ($_POST['comment'] ?? false) {
     $stmt = $pdo->prepare("INSERT INTO comments (post_id, user_id, content) VALUES (?, ?, ?)");
     $stmt->execute([$_POST['post_id'], $_SESSION['user_id'], $_POST['comment']]);
-    header('Location: index.php');
+    header('Location: home');
     exit;
 }
 
@@ -130,7 +130,7 @@ if ($_POST['content'] ?? false) {
         $stmt->execute([$_SESSION['user_id'], $_POST['content']]);
     }
     
-    header('Location: index.php');
+    header('Location: home');
     exit;
 }
 ?>

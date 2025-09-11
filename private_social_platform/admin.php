@@ -14,7 +14,7 @@ $stmt->execute([$_SESSION['user_id']]);
 $user = $stmt->fetch();
 
 if (!$user || $user['username'] !== 'OSRG') {
-    header('Location: index.php');
+    header('Location: home');
     exit;
 }
 

@@ -13,7 +13,7 @@ if ($_POST['username'] ?? false) {
     if ($user && password_verify($_POST['password'], $user['password_hash'])) {
         if ($user['approved']) {
             $_SESSION['user_id'] = $user['id'];
-            header('Location: index.php');
+            header('Location: home');
             exit;
         } else {
             $error = 'Your account is pending approval.';

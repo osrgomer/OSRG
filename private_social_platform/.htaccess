@@ -13,6 +13,8 @@ RewriteRule ^settings/?$ settings.php [L]
 RewriteRule ^admin/?$ admin.php [L]
 RewriteRule ^users/?$ users.php [L]
 RewriteRule ^find-friends/?$ users.php [L]
+RewriteRule ^forgot-password/?$ forgot_password.php [L]
+RewriteRule ^reset-password/?$ reset_password.php [L]
 
 # Static files
 RewriteCond %{REQUEST_FILENAME} !-f

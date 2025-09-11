@@ -13,9 +13,16 @@ try {
     }
     echo "<br>";
     
-    $stmt = $pdo->query("SELECT username FROM users LIMIT 1");
+    $stmt = $pdo->query("SELECT username FROM users WHERE username = 'OSRG'");
     $user = $stmt->fetch();
-    echo "First user: " . ($user ? $user['username'] : 'none') . "<br>";
+    echo "OSRG user: " . ($user ? $user['username'] : 'not found') . "<br>";
+    
+    if ($user) {
+        $password = password_hash('admin123', PASSWORD_DEFAULT);
+        $stmt = $pdo->prepare("UPDATE users SET password = ? WHERE username = 'OSRG'");
+        $stmt->execute([$password]);
+        echo "Password reset to: admin123<br>";
+    }
     
 } catch (Exception $e) {
     echo "Error: " . $e->getMessage();

@@ -16,24 +16,12 @@ try {
     // Check users table structure
     $stmt = $pdo->query("PRAGMA table_info(users)");
     $columns = $stmt->fetchAll();
-    echo "Users table columns: ";
-    foreach($columns as $col) {
-        echo $col['name'] . " ";
-    }
-    echo "<br>";
-    
-    // Show actual user data
-    $stmt = $pdo->query("SELECT * FROM users WHERE username = 'OSRG' LIMIT 1");
-    $user = $stmt->fetch(PDO::FETCH_ASSOC);
-    if ($user) {
-        echo "OSRG user data: ";
-        foreach($user as $key => $value) {
-            echo "$key=$value ";
-        }
-        echo "<br>";
-    } else {
-        echo "OSRG user not found<br>";
-    }
+    // Reset OSRG password
+    $password = password_hash('admin123', PASSWORD_DEFAULT);
+    $stmt = $pdo->prepare("UPDATE users SET password_hash = ? WHERE username = 'OSRG'");
+    $stmt->execute([$password]);
+    echo "OSRG password reset to: admin123<br>";
+    echo "You can now login with OSRG/admin123<br>";
     
 } catch (Exception $e) {
     echo "Error: " . $e->getMessage();

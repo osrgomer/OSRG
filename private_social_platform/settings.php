@@ -158,7 +158,7 @@ $timezones = [
         
         <div class="settings-grid">
             <!-- Profile Settings -->
-            <div class="post">
+            <div class="post" id="profile">
                 <h3>👤 Edit Profile</h3>
             <form method="POST" enctype="multipart/form-data">
                 <div class="form-group">

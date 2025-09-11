@@ -18,28 +18,50 @@ if (!isset($_SESSION['user_id'])) {
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
         body { font-family: Arial, sans-serif; background: #f5f5f5; }
-        .nav { background: white; padding: 10px; margin-bottom: 20px; border-radius: 8px; }
-        .nav a { color: #1877f2; text-decoration: none; margin-right: 15px; }
+        .nav { background: white; padding: 10px; margin-bottom: 20px; border-radius: 8px; display: flex; justify-content: space-between; align-items: center; }
+        .nav-links { display: flex; align-items: center; }
+        .nav-links a { color: #1877f2; text-decoration: none; margin-right: 15px; }
+        .user-avatar { width: 40px; height: 40px; border-radius: 50%; cursor: pointer; transition: transform 0.2s; }
+        .user-avatar:hover { transform: scale(1.1); }
         <?= $additional_css ?? '' ?>
     </style>
     <?= $additional_head ?? '' ?>
 </head>
 <body>
     <div class="nav">
-        <a href="home">Home</a>
-        <a href="find-friends">Find Friends</a>
-        <a href="friends">My Friends</a>
-        <a href="messages">Messages</a>
-        <a href="settings">Settings</a>
-        <?php
-        $pdo_nav = get_db();
-        $stmt_nav = $pdo_nav->prepare("SELECT username FROM users WHERE id = ?");
-        $stmt_nav->execute([$_SESSION['user_id']]);
-        $user_nav = $stmt_nav->fetch();
-        if ($user_nav && $user_nav['username'] === 'OSRG'):
-        ?>
-        <a href="admin" style="color: #d32f2f; font-weight: bold;">Admin Panel</a>
-        <?php endif; ?>
-        <a href="logout.php">Logout</a>
+        <div class="nav-links">
+            <a href="home">Home</a>
+            <a href="find-friends">Find Friends</a>
+            <a href="friends">My Friends</a>
+            <a href="messages">Messages</a>
+            <a href="settings">Settings</a>
+            <?php
+            $pdo_nav = get_db();
+            $stmt_nav = $pdo_nav->prepare("SELECT username, avatar FROM users WHERE id = ?");
+            $stmt_nav->execute([$_SESSION['user_id']]);
+            $user_nav = $stmt_nav->fetch();
+            if ($user_nav && $user_nav['username'] === 'OSRG'):
+            ?>
+            <a href="admin" style="color: #d32f2f; font-weight: bold;">Admin Panel</a>
+            <?php endif; ?>
+            <a href="logout.php">Logout</a>
+        </div>
+        
+        <div>
+            <?php
+            $avatar = $user_nav['avatar'] ?? null;
+            $random_avatars = ['👤', '👨', '👩', '🧑', '👶', '🐱', '🐶', '🦊'];
+            $default_avatar = $random_avatars[array_rand($random_avatars)];
+            ?>
+            <a href="settings#profile" style="text-decoration: none;">
+                <?php if ($avatar && strpos($avatar, 'avatars/') === 0): ?>
+                    <img src="<?= htmlspecialchars($avatar) ?>" alt="Avatar" class="user-avatar" style="object-fit: cover;">
+                <?php else: ?>
+                    <span style="font-size: 40px; cursor: pointer; transition: transform 0.2s;" onmouseover="this.style.transform='scale(1.1)'" onmouseout="this.style.transform='scale(1)'">
+                        <?= $avatar ?: $default_avatar ?>
+                    </span>
+                <?php endif; ?>
+            </a>
+        </div>
     </div>
     <div class="container">

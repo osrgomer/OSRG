@@ -25,11 +25,11 @@ if (!isset($_SESSION['user_id'])) {
 </head>
 <body>
     <div class="nav">
-        <a href="index.php">Home</a>
-        <a href="users.php">Find Friends</a>
-        <a href="friends.php">My Friends</a>
-        <a href="messages.php">Messages</a>
-        <a href="settings.php">Settings</a>
+        <a href="home">Home</a>
+        <a href="find-friends">Find Friends</a>
+        <a href="friends">My Friends</a>
+        <a href="messages">Messages</a>
+        <a href="settings">Settings</a>
         <?php
         $pdo_nav = get_db();
         $stmt_nav = $pdo_nav->prepare("SELECT username FROM users WHERE id = ?");

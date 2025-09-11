@@ -1,0 +1,20 @@
+RewriteEngine On
+RewriteBase /osrg/private_social_platform/
+
+# Pretty URLs for OSRG Connect
+RewriteRule ^home/?$ index.php [L]
+RewriteRule ^feed/?$ index.php [L]
+RewriteRule ^login/?$ login.php [L]
+RewriteRule ^register/?$ register.php [L]
+RewriteRule ^logout/?$ logout.php [L]
+RewriteRule ^friends/?$ friends.php [L]
+RewriteRule ^messages/?$ messages.php [L]
+RewriteRule ^settings/?$ settings.php [L]
+RewriteRule ^admin/?$ admin.php [L]
+RewriteRule ^users/?$ users.php [L]
+RewriteRule ^find-friends/?$ users.php [L]
+
+# Static files
+RewriteCond %{REQUEST_FILENAME} !-f
+RewriteCond %{REQUEST_FILENAME} !-d
+RewriteCond %{REQUEST_URI} !\.(css|js|png|jpg|jpeg|gif|ico|svg|mp4|mp3|pdf|zip)$

@@ -40,8 +40,20 @@ if (!isset($_SESSION['user_id'])) {
     <script>
         function toggleMenu() {
             const navLinks = document.getElementById('navLinks');
-            navLinks.classList.toggle('active');
+            if (navLinks) {
+                navLinks.classList.toggle('active');
+            }
         }
+        
+        // Ensure function works after page load
+        document.addEventListener('DOMContentLoaded', function() {
+            window.toggleMenu = function() {
+                const navLinks = document.getElementById('navLinks');
+                if (navLinks) {
+                    navLinks.classList.toggle('active');
+                }
+            };
+        });
     </script>
 </head>
 <body>

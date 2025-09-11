@@ -24,6 +24,7 @@ if (!isset($_SESSION['user_id'])) {
         .user-avatar { width: 40px !important; height: 40px !important; border-radius: 50% !important; cursor: pointer !important; transition: transform 0.2s !important; display: block !important; }
         .user-avatar:hover { transform: scale(1.1) !important; }
         .nav > div:last-child { display: flex !important; align-items: center !important; z-index: 999 !important; }
+        .avatar-container { display: flex !important; align-items: center !important; }
         .hamburger { display: none; flex-direction: column; cursor: pointer; }
         .hamburger span { width: 25px; height: 3px; background: #1877f2; margin: 3px 0; transition: 0.3s; }
         
@@ -67,7 +68,7 @@ if (!isset($_SESSION['user_id'])) {
             <a href="logout.php">Logout</a>
         </div>
         
-        <div>
+        <div class="avatar-container">
             <?php
             $avatar = $user_nav['avatar'] ?? null;
             $random_avatars = ['👤', '👨', '👩', '🧑', '👶', '🐱', '🐶', '🦊'];

@@ -1,8 +1,18 @@
 <?php
-require_once 'config.php';
-init_db();
+ini_set('display_errors', 1);
+error_reporting(E_ALL);
 
-$pdo = get_db();
+try {
+    require_once 'config.php';
+    init_db();
+    
+    $pdo = get_db();
+    if (!$pdo) {
+        die('Database connection failed');
+    }
+    
+    echo "Database connected successfully<br>";
+    echo "Database file: " . realpath('private_social.db') . "<br><br>";
 
 // Check all users
 $stmt = $pdo->query("SELECT * FROM users ORDER BY id");
@@ -32,4 +42,9 @@ if (!$osrg2) {
 } else {
     echo "<br><strong>OSRG2 user already exists</strong><br>";
 }
+
+} catch (Exception $e) {
+    echo "Error: " . $e->getMessage();
+}
+?>
 ?>

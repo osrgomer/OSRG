@@ -22,19 +22,17 @@ try {
     }
     echo "<br>";
     
-    $stmt = $pdo->query("SELECT * FROM users WHERE username = 'OSRG'");
-    $user = $stmt->fetch();
+    // Show actual user data
+    $stmt = $pdo->query("SELECT * FROM users WHERE username = 'OSRG' LIMIT 1");
+    $user = $stmt->fetch(PDO::FETCH_ASSOC);
     if ($user) {
-        echo "OSRG user found<br>";
-        // Try to update with correct column name
-        if (isset($user['password'])) {
-            $password = password_hash('admin123', PASSWORD_DEFAULT);
-            $stmt = $pdo->prepare("UPDATE users SET password = ? WHERE username = 'OSRG'");
-            $stmt->execute([$password]);
-            echo "Password reset to: admin123<br>";
-        } else {
-            echo "No password column found<br>";
+        echo "OSRG user data: ";
+        foreach($user as $key => $value) {
+            echo "$key=$value ";
         }
+        echo "<br>";
+    } else {
+        echo "OSRG user not found<br>";
     }
     
 } catch (Exception $e) {

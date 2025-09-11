@@ -253,14 +253,10 @@ if (is_dir('uploads')) {
     </script>
 </head>
 <body>
-    <div class="nav">
-        <a href="index.php">Home</a>
-        <a href="users.php">Find Friends</a>
-        <a href="friends.php">My Friends</a>
-        <a href="messages.php">Messages</a>
-        <a href="admin.php" class="admin-nav">Admin Panel</a>
-        <a href="logout.php">Logout</a>
-    </div>
+<?php
+require_once 'config.php';
+require_once 'header.php';
+?>
     
     <div class="container">
         <div class="header">

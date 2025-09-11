@@ -275,21 +275,23 @@ $timezones = [
             <h3>📊 Account Statistics</h3>
             <?php
             // Get user stats
+            // Get user stats with correct table structure
             $stmt = $pdo->prepare("SELECT COUNT(*) as post_count FROM posts WHERE user_id = ?");
             $stmt->execute([$_SESSION['user_id']]);
-            $post_count = $stmt->fetch()['post_count'];
+            $post_count = $stmt->fetch()['post_count'] ?? 0;
             
             $stmt = $pdo->prepare("SELECT COUNT(DISTINCT CASE WHEN user_id = ? THEN friend_id WHEN friend_id = ? THEN user_id END) as friend_count FROM friends WHERE (user_id = ? OR friend_id = ?) AND status = 'accepted'");
             $stmt->execute([$_SESSION['user_id'], $_SESSION['user_id'], $_SESSION['user_id'], $_SESSION['user_id']]);
-            $friend_count = $stmt->fetch()['friend_count'];
+            $friend_count = $stmt->fetch()['friend_count'] ?? 0;
             
             $stmt = $pdo->prepare("SELECT COUNT(*) as reaction_count FROM reactions r JOIN posts p ON r.post_id = p.id WHERE p.user_id = ?");
             $stmt->execute([$_SESSION['user_id']]);
-            $reactions_received = $stmt->fetch()['reaction_count'];
+            $reactions_received = $stmt->fetch()['reaction_count'] ?? 0;
             
             $stmt = $pdo->prepare("SELECT created_at FROM users WHERE id = ?");
             $stmt->execute([$_SESSION['user_id']]);
-            $join_date = $stmt->fetch()['created_at'];
+            $user_data = $stmt->fetch();
+            $join_date = $user_data['created_at'] ?? date('Y-m-d H:i:s');
             ?>
             <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 15px; margin-top: 15px;">
                 <div style="text-align: center; padding: 15px; background: rgba(24,119,242,0.1); border-radius: 10px;">

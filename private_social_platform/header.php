@@ -41,3 +41,4 @@ if (!isset($_SESSION['user_id'])) {
         <?php endif; ?>
         <a href="logout.php">Logout</a>
     </div>
+    <div class="container">

@@ -99,9 +99,20 @@ $timezones = [
         .container { max-width: 800px; margin: 0 auto; padding: 20px; }
         .header { background: linear-gradient(135deg, #1877f2, #42a5f5); color: white; padding: 25px; text-align: center; border-radius: 15px; margin-bottom: 30px; box-shadow: 0 8px 32px rgba(0,0,0,0.1); }
         .header h1 { font-size: 2.2em; margin-bottom: 8px; }
-        .nav { background: rgba(255,255,255,0.95); backdrop-filter: blur(10px); padding: 15px; margin-bottom: 25px; border-radius: 15px; box-shadow: 0 4px 20px rgba(0,0,0,0.1); }
-        .nav a { color: #1877f2; text-decoration: none; margin-right: 20px; font-weight: 500; transition: color 0.3s; }
-        .nav a:hover { color: #0d47a1; }
+        .nav { background: rgba(255,255,255,0.95); backdrop-filter: blur(10px); padding: 15px; margin-bottom: 25px; border-radius: 15px; box-shadow: 0 4px 20px rgba(0,0,0,0.1); display: flex; justify-content: space-between; align-items: center; }
+        .nav-links { display: flex; align-items: center; }
+        .nav-links a { color: #1877f2; text-decoration: none; margin-right: 20px; font-weight: 500; transition: color 0.3s; }
+        .nav-links a:hover { color: #0d47a1; }
+        .hamburger { display: none; flex-direction: column; cursor: pointer; }
+        .hamburger span { width: 25px; height: 3px; background: #1877f2; margin: 3px 0; transition: 0.3s; }
+        
+        @media (max-width: 768px) {
+            .hamburger { display: flex !important; }
+            .nav-links { display: none; position: absolute; top: 60px; left: 0; right: 0; background: white; flex-direction: column; padding: 20px; border-radius: 8px; box-shadow: 0 4px 8px rgba(0,0,0,0.1); z-index: 1000; }
+            .nav-links.active { display: flex !important; }
+            .nav-links a { margin: 10px 0; padding: 10px; border-bottom: 1px solid #f0f0f0; }
+            .nav { position: relative; }
+        }
         .settings-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 25px; }
         .post { background: rgba(255,255,255,0.95); backdrop-filter: blur(10px); padding: 25px; margin: 15px 0; border-radius: 15px; box-shadow: 0 8px 32px rgba(0,0,0,0.1); border: 1px solid rgba(255,255,255,0.2); }
         .post h3 { color: #1877f2; margin-bottom: 20px; font-size: 1.4em; display: flex; align-items: center; gap: 10px; }
@@ -130,21 +141,29 @@ $timezones = [
 </head>
 <body>
     <div class="nav">
-        <a href="index.php">Home</a>
-        <a href="users.php">Find Friends</a>
-        <a href="friends.php">My Friends</a>
-        <a href="messages.php">Messages</a>
-        <a href="settings.php" style="font-weight: bold;">Settings</a>
-        <?php
-        $pdo_nav = get_db();
-        $stmt_nav = $pdo_nav->prepare("SELECT username FROM users WHERE id = ?");
-        $stmt_nav->execute([$_SESSION['user_id']]);
-        $user_nav = $stmt_nav->fetch();
-        if ($user_nav && $user_nav['username'] === 'OSRG'):
-        ?>
-        <a href="admin.php" style="color: #d32f2f; font-weight: bold;">Admin Panel</a>
-        <?php endif; ?>
-        <a href="logout.php">Logout</a>
+        <div class="hamburger" onclick="document.getElementById('navLinks').classList.toggle('active')">
+            <span></span>
+            <span></span>
+            <span></span>
+        </div>
+        
+        <div class="nav-links" id="navLinks">
+            <a href="home">Home</a>
+            <a href="find-friends">Find Friends</a>
+            <a href="friends">My Friends</a>
+            <a href="messages">Messages</a>
+            <a href="settings" style="font-weight: bold;">Settings</a>
+            <?php
+            $pdo_nav = get_db();
+            $stmt_nav = $pdo_nav->prepare("SELECT username FROM users WHERE id = ?");
+            $stmt_nav->execute([$_SESSION['user_id']]);
+            $user_nav = $stmt_nav->fetch();
+            if ($user_nav && $user_nav['username'] === 'OSRG'):
+            ?>
+            <a href="admin" style="color: #d32f2f; font-weight: bold;">Admin Panel</a>
+            <?php endif; ?>
+            <a href="logout.php">Logout</a>
+        </div>
     </div>
     
     <div class="container">

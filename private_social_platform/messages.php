@@ -89,34 +89,28 @@ $friends = $stmt->fetchAll();
     <title>Messages - OSRG Connect</title>
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
-        body { font-family: Arial, sans-serif; background: #f5f5f5; }
-        .container { max-width: 800px; margin: 0 auto; padding: 20px; display: flex; gap: 20px; }
-        .header { background: #1877f2; color: white; padding: 15px; text-align: center; margin-bottom: 20px; }
-        .nav { background: white; padding: 10px; margin-bottom: 20px; border-radius: 8px; display: flex; justify-content: space-between; align-items: center; }
-        .nav-links { display: flex; align-items: center; }
-        .nav-links a { color: #1877f2; text-decoration: none; margin-right: 15px; }
-        .hamburger { display: none; flex-direction: column; cursor: pointer; }
-        .hamburger span { width: 25px; height: 3px; background: #1877f2; margin: 3px 0; transition: 0.3s; }
-        
-        @media (max-width: 768px) {
-            .hamburger { display: flex !important; }
-            .nav-links { display: none; position: absolute; top: 60px; left: 0; right: 0; background: white; flex-direction: column; padding: 20px; border-radius: 8px; box-shadow: 0 4px 8px rgba(0,0,0,0.1); z-index: 1000; }
-            .nav-links.active { display: flex !important; }
-            .nav-links a { margin: 10px 0; padding: 10px; border-bottom: 1px solid #f0f0f0; }
-            .nav { position: relative; }
-        }
-        .friends-list { width: 250px; background: white; padding: 15px; border-radius: 8px; height: fit-content; }
-        .chat-area { flex: 1; background: white; border-radius: 8px; display: flex; flex-direction: column; }
-        .messages { flex: 1; padding: 15px; max-height: 400px; overflow-y: auto; }
-        .message { margin: 10px 0; padding: 10px; border-radius: 8px; }
-        .message.sent { background: #1877f2; color: white; margin-left: 50px; }
-        .message.received { background: #e3f2fd; margin-right: 50px; }
-        .message-form { padding: 15px; border-top: 1px solid #ddd; }
-        .friend-item { padding: 10px; border-bottom: 1px solid #eee; cursor: pointer; }
-        .friend-item:hover { background: #f5f5f5; }
-        .friend-item.active { background: #e3f2fd; }
-        input, textarea { width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 5px; }
-        button { background: #1877f2; color: white; padding: 10px 20px; border: none; border-radius: 5px; cursor: pointer; }
+        body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); min-height: 100vh; }
+        .container { max-width: 1000px; margin: 0 auto; padding: 20px; display: flex; gap: 25px; }
+        .header { background: linear-gradient(135deg, #1877f2, #42a5f5); color: white; padding: 25px; text-align: center; margin-bottom: 25px; border-radius: 15px; box-shadow: 0 8px 32px rgba(0,0,0,0.1); }
+        .header h1 { font-size: 2.2em; margin-bottom: 8px; }
+        .friends-list { width: 280px; background: rgba(255,255,255,0.95); backdrop-filter: blur(10px); padding: 20px; border-radius: 15px; height: fit-content; box-shadow: 0 8px 32px rgba(0,0,0,0.1); }
+        .friends-list h3 { color: #1877f2; margin-bottom: 15px; font-size: 1.3em; }
+        .chat-area { flex: 1; background: rgba(255,255,255,0.95); backdrop-filter: blur(10px); border-radius: 15px; display: flex; flex-direction: column; box-shadow: 0 8px 32px rgba(0,0,0,0.1); }
+        .messages { flex: 1; padding: 20px; max-height: 500px; overflow-y: auto; }
+        .message { margin: 15px 0; padding: 12px 16px; border-radius: 18px; max-width: 70%; word-wrap: break-word; }
+        .message.sent { background: linear-gradient(135deg, #1877f2, #42a5f5); color: white; margin-left: auto; margin-right: 0; }
+        .message.received { background: #f1f3f4; color: #333; margin-right: auto; margin-left: 0; }
+        .message small { opacity: 0.8; font-size: 11px; display: block; margin-top: 5px; }
+        .message-form { padding: 20px; border-top: 1px solid rgba(0,0,0,0.1); background: rgba(248,249,250,0.8); border-radius: 0 0 15px 15px; }
+        .friend-item { padding: 12px 15px; border-bottom: 1px solid rgba(0,0,0,0.05); cursor: pointer; border-radius: 8px; margin: 5px 0; transition: all 0.3s; }
+        .friend-item:hover { background: rgba(24,119,242,0.1); transform: translateX(5px); }
+        .friend-item.active { background: linear-gradient(135deg, rgba(24,119,242,0.1), rgba(66,165,245,0.1)); border-left: 3px solid #1877f2; }
+        input, textarea { width: 100%; padding: 12px 15px; border: 2px solid #e1e5e9; border-radius: 12px; font-size: 14px; transition: all 0.3s; background: rgba(255,255,255,0.9); }
+        input:focus, textarea:focus { outline: none; border-color: #1877f2; box-shadow: 0 0 0 3px rgba(24,119,242,0.1); }
+        button { background: linear-gradient(135deg, #1877f2, #42a5f5); color: white; padding: 12px 20px; border: none; border-radius: 12px; cursor: pointer; font-weight: 600; transition: all 0.3s; }
+        button:hover { transform: translateY(-2px); box-shadow: 0 8px 25px rgba(24,119,242,0.3); }
+        .chat-header { padding: 20px; border-bottom: 1px solid rgba(0,0,0,0.1); background: rgba(248,249,250,0.8); border-radius: 15px 15px 0 0; }
+        .chat-header h3 { color: #1877f2; margin: 0; }
         
         @media (max-width: 768px) {
             body {
@@ -274,8 +268,8 @@ $friends = $stmt->fetchAll();
 
         <div class="chat-area">
             <?php if ($friend_id): ?>
-                <div style="padding: 15px; border-bottom: 1px solid #ddd; background: #f8f9fa;">
-                    <h3>Chat with <?= htmlspecialchars($friend_name) ?></h3>
+                <div class="chat-header">
+                    <h3>💬 Chat with <?= htmlspecialchars($friend_name) ?></h3>
                 </div>
                 
                 <div class="messages">

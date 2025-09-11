@@ -92,8 +92,19 @@ $friends = $stmt->fetchAll();
         body { font-family: Arial, sans-serif; background: #f5f5f5; }
         .container { max-width: 800px; margin: 0 auto; padding: 20px; display: flex; gap: 20px; }
         .header { background: #1877f2; color: white; padding: 15px; text-align: center; margin-bottom: 20px; }
-        .nav { background: white; padding: 10px; margin-bottom: 20px; border-radius: 8px; }
-        .nav a { color: #1877f2; text-decoration: none; margin-right: 15px; }
+        .nav { background: white; padding: 10px; margin-bottom: 20px; border-radius: 8px; display: flex; justify-content: space-between; align-items: center; }
+        .nav-links { display: flex; align-items: center; }
+        .nav-links a { color: #1877f2; text-decoration: none; margin-right: 15px; }
+        .hamburger { display: none; flex-direction: column; cursor: pointer; }
+        .hamburger span { width: 25px; height: 3px; background: #1877f2; margin: 3px 0; transition: 0.3s; }
+        
+        @media (max-width: 768px) {
+            .hamburger { display: flex !important; }
+            .nav-links { display: none; position: absolute; top: 60px; left: 0; right: 0; background: white; flex-direction: column; padding: 20px; border-radius: 8px; box-shadow: 0 4px 8px rgba(0,0,0,0.1); z-index: 1000; }
+            .nav-links.active { display: flex !important; }
+            .nav-links a { margin: 10px 0; padding: 10px; border-bottom: 1px solid #f0f0f0; }
+            .nav { position: relative; }
+        }
         .friends-list { width: 250px; background: white; padding: 15px; border-radius: 8px; height: fit-content; }
         .chat-area { flex: 1; background: white; border-radius: 8px; display: flex; flex-direction: column; }
         .messages { flex: 1; padding: 15px; max-height: 400px; overflow-y: auto; }
@@ -245,21 +256,29 @@ $friends = $stmt->fetchAll();
 </head>
 <body>
     <div class="nav">
-        <a href="index.php">Home</a>
-        <a href="users.php">Find Friends</a>
-        <a href="friends.php">My Friends</a>
-        <a href="messages.php">Messages</a>
-        <a href="settings.php">Settings</a>
-        <?php
-        $pdo_nav = get_db();
-        $stmt_nav = $pdo_nav->prepare("SELECT username FROM users WHERE id = ?");
-        $stmt_nav->execute([$_SESSION['user_id']]);
-        $user_nav = $stmt_nav->fetch();
-        if ($user_nav && $user_nav['username'] === 'OSRG'):
-        ?>
-        <a href="admin.php" style="color: #d32f2f; font-weight: bold;">Admin Panel</a>
-        <?php endif; ?>
-        <a href="logout.php">Logout</a>
+        <div class="hamburger" onclick="(function(){var n=document.getElementById('navLinks');if(n)n.classList.toggle('active');})();">
+            <span></span>
+            <span></span>
+            <span></span>
+        </div>
+        
+        <div class="nav-links" id="navLinks">
+            <a href="home">Home</a>
+            <a href="find-friends">Find Friends</a>
+            <a href="friends">My Friends</a>
+            <a href="messages">Messages</a>
+            <a href="settings">Settings</a>
+            <?php
+            $pdo_nav = get_db();
+            $stmt_nav = $pdo_nav->prepare("SELECT username FROM users WHERE id = ?");
+            $stmt_nav->execute([$_SESSION['user_id']]);
+            $user_nav = $stmt_nav->fetch();
+            if ($user_nav && $user_nav['username'] === 'OSRG'):
+            ?>
+            <a href="admin" style="color: #d32f2f; font-weight: bold;">Admin Panel</a>
+            <?php endif; ?>
+            <a href="logout.php">Logout</a>
+        </div>
     </div>
     
     <div class="header">

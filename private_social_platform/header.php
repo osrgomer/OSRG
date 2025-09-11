@@ -41,7 +41,7 @@ if (!isset($_SESSION['user_id'])) {
 </head>
 <body>
     <div class="nav">
-        <div class="hamburger" onclick="document.getElementById('navLinks').classList.toggle('active')">
+        <div class="hamburger" onclick="(function(){var n=document.getElementById('navLinks');if(n)n.classList.toggle('active');})();">
             <span></span>
             <span></span>
             <span></span>

@@ -255,31 +255,7 @@ $friends = $stmt->fetchAll();
     </script>
 </head>
 <body>
-    <div class="nav">
-        <div class="hamburger" onclick="(function(){var n=document.getElementById('navLinks');if(n)n.classList.toggle('active');})();">
-            <span></span>
-            <span></span>
-            <span></span>
-        </div>
-        
-        <div class="nav-links" id="navLinks">
-            <a href="home">Home</a>
-            <a href="find-friends">Find Friends</a>
-            <a href="friends">My Friends</a>
-            <a href="messages">Messages</a>
-            <a href="settings">Settings</a>
-            <?php
-            $pdo_nav = get_db();
-            $stmt_nav = $pdo_nav->prepare("SELECT username FROM users WHERE id = ?");
-            $stmt_nav->execute([$_SESSION['user_id']]);
-            $user_nav = $stmt_nav->fetch();
-            if ($user_nav && $user_nav['username'] === 'OSRG'):
-            ?>
-            <a href="admin" style="color: #d32f2f; font-weight: bold;">Admin Panel</a>
-            <?php endif; ?>
-            <a href="logout.php">Logout</a>
-        </div>
-    </div>
+<?php require_once 'header.php'; ?>
     
     <div class="header">
         <h1>Private Messages</h1>

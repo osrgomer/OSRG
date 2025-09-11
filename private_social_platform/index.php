@@ -419,46 +419,7 @@ if ($_POST['content'] ?? false) {
     </script>
 </head>
 <body>
-    <div class="nav">
-        <div class="nav-links">
-            <a href="home">Home</a>
-            <a href="find-friends">Find Friends</a>
-            <a href="friends">My Friends</a>
-            <a href="messages">Messages</a>
-            <a href="settings">Settings</a>
-            <?php
-            $pdo_nav = get_db();
-            $stmt_nav = $pdo_nav->prepare("SELECT username, avatar FROM users WHERE id = ?");
-            $stmt_nav->execute([$_SESSION['user_id']]);
-            $user_nav = $stmt_nav->fetch();
-            if ($user_nav && $user_nav['username'] === 'OSRG'):
-            ?>
-            <a href="admin" style="color: #d32f2f; font-weight: bold;">Admin Panel</a>
-            <?php endif; ?>
-            <a href="logout.php">Logout</a>
-        </div>
-        
-        <div class="avatar-container">
-            <?php
-            $avatar = $user_nav['avatar'] ?? null;
-            $random_avatars = ['👤', '👨', '👩', '🧑', '👶', '🐱', '🐶', '🦊'];
-            $default_avatar = $random_avatars[($_SESSION['user_id'] ?? 0) % count($random_avatars)];
-            ?>
-            <a href="settings#profile" style="text-decoration: none;">
-                <?php if ($avatar && strpos($avatar, 'avatars/') === 0): ?>
-                    <img src="<?= htmlspecialchars($avatar) ?>" alt="Avatar" class="user-avatar" style="object-fit: cover;">
-                <?php elseif ($avatar): ?>
-                    <span style="font-size: 40px; cursor: pointer; transition: transform 0.2s;" onmouseover="this.style.transform='scale(1.1)'" onmouseout="this.style.transform='scale(1)'">
-                        <?= htmlspecialchars($avatar) ?>
-                    </span>
-                <?php else: ?>
-                    <span style="font-size: 40px; cursor: pointer; transition: transform 0.2s;" onmouseover="this.style.transform='scale(1.1)'" onmouseout="this.style.transform='scale(1)'">
-                        <?= $default_avatar ?>
-                    </span>
-                <?php endif; ?>
-            </a>
-        </div>
-    </div>
+<?php require_once 'header.php'; ?>
     
     <div class="container">
         <div class="header">

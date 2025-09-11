@@ -24,13 +24,35 @@ if (!isset($_SESSION['user_id'])) {
         .user-avatar { width: 40px !important; height: 40px !important; border-radius: 50% !important; cursor: pointer !important; transition: transform 0.2s !important; display: block !important; }
         .user-avatar:hover { transform: scale(1.1) !important; }
         .nav > div:last-child { display: flex !important; align-items: center !important; z-index: 999 !important; }
+        .hamburger { display: none; flex-direction: column; cursor: pointer; }
+        .hamburger span { width: 25px; height: 3px; background: #1877f2; margin: 3px 0; transition: 0.3s; }
+        
+        @media (max-width: 768px) {
+            .hamburger { display: flex !important; }
+            .nav-links { display: none; position: absolute; top: 60px; left: 0; right: 0; background: white; flex-direction: column; padding: 20px; border-radius: 8px; box-shadow: 0 4px 8px rgba(0,0,0,0.1); z-index: 1000; }
+            .nav-links.active { display: flex !important; }
+            .nav-links a { margin: 10px 0; padding: 10px; border-bottom: 1px solid #f0f0f0; }
+            .nav { position: relative; }
+        }
         <?= $additional_css ?? '' ?>
     </style>
     <?= $additional_head ?? '' ?>
+    <script>
+        function toggleMenu() {
+            const navLinks = document.getElementById('navLinks');
+            navLinks.classList.toggle('active');
+        }
+    </script>
 </head>
 <body>
     <div class="nav">
-        <div class="nav-links">
+        <div class="hamburger" onclick="toggleMenu()">
+            <span></span>
+            <span></span>
+            <span></span>
+        </div>
+        
+        <div class="nav-links" id="navLinks">
             <a href="home">Home</a>
             <a href="find-friends">Find Friends</a>
             <a href="friends">My Friends</a>

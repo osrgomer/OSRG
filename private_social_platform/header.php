@@ -37,28 +37,11 @@ if (!isset($_SESSION['user_id'])) {
         <?= $additional_css ?? '' ?>
     </style>
     <?= $additional_head ?? '' ?>
-    <script>
-        function toggleMenu() {
-            const navLinks = document.getElementById('navLinks');
-            if (navLinks) {
-                navLinks.classList.toggle('active');
-            }
-        }
-        
-        // Ensure function works after page load
-        document.addEventListener('DOMContentLoaded', function() {
-            window.toggleMenu = function() {
-                const navLinks = document.getElementById('navLinks');
-                if (navLinks) {
-                    navLinks.classList.toggle('active');
-                }
-            };
-        });
-    </script>
+
 </head>
 <body>
     <div class="nav">
-        <div class="hamburger" onclick="toggleMenu()">
+        <div class="hamburger" onclick="document.getElementById('navLinks').classList.toggle('active')">
             <span></span>
             <span></span>
             <span></span>

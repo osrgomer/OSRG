@@ -2,91 +2,64 @@
 session_start();
 date_default_timezone_set('Europe/London');
 
-// Database configuration
-$db_file = 'private_social.db';
+function get_db() {
+    try {
+        $pdo = new PDO('sqlite:private_social.db');
+        $pdo->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
+        return $pdo;
+    } catch (PDOException $e) {
+        return null;
+    }
+}
 
-// Initialize SQLite database
 function init_db() {
-    global $db_file;
-    $pdo = new PDO("sqlite:$db_file");
+    $pdo = get_db();
+    if (!$pdo) return null;
     
-    // Users table
     $pdo->exec("CREATE TABLE IF NOT EXISTS users (
-        id INTEGER PRIMARY KEY, 
+        id INTEGER PRIMARY KEY AUTOINCREMENT, 
         username TEXT UNIQUE, 
         email TEXT UNIQUE, 
-        password_hash TEXT, 
+        password TEXT, 
+        approved INTEGER DEFAULT 0,
+        timezone TEXT DEFAULT 'Europe/London',
+        email_notifications INTEGER DEFAULT 0,
+        avatar TEXT DEFAULT NULL,
         created_at DATETIME DEFAULT CURRENT_TIMESTAMP
     )");
     
-    // Posts table
     $pdo->exec("CREATE TABLE IF NOT EXISTS posts (
-        id INTEGER PRIMARY KEY, 
+        id INTEGER PRIMARY KEY AUTOINCREMENT, 
         user_id INTEGER, 
         content TEXT, 
+        file_path TEXT,
+        file_type TEXT,
         created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
         FOREIGN KEY(user_id) REFERENCES users(id)
     )");
     
-    // Friends table
     $pdo->exec("CREATE TABLE IF NOT EXISTS friends (
-        id INTEGER PRIMARY KEY, 
+        id INTEGER PRIMARY KEY AUTOINCREMENT, 
         user_id INTEGER, 
         friend_id INTEGER,
         status TEXT, 
-        created_at DATETIME DEFAULT CURRENT_TIMESTAMP
+        created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+        FOREIGN KEY(user_id) REFERENCES users(id),
+        FOREIGN KEY(friend_id) REFERENCES users(id)
     )");
     
-    // Messages table
     $pdo->exec("CREATE TABLE IF NOT EXISTS messages (
-        id INTEGER PRIMARY KEY, 
+        id INTEGER PRIMARY KEY AUTOINCREMENT, 
         sender_id INTEGER, 
         receiver_id INTEGER,
         content TEXT, 
-        created_at DATETIME DEFAULT CURRENT_TIMESTAMP
+        created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+        FOREIGN KEY(sender_id) REFERENCES users(id),
+        FOREIGN KEY(receiver_id) REFERENCES users(id)
     )");
     
-    // Add file columns to posts table
-    try {
-        $pdo->exec("ALTER TABLE posts ADD COLUMN file_path TEXT");
-        $pdo->exec("ALTER TABLE posts ADD COLUMN file_type TEXT");
-    } catch (Exception $e) {
-        // Columns already exist
-    }
-    
-    // Add approval status to users table
-    try {
-        $pdo->exec("ALTER TABLE users ADD COLUMN approved INTEGER DEFAULT 0");
-        // Make OSRG auto-approved
-        $pdo->exec("UPDATE users SET approved = 1 WHERE username = 'OSRG'");
-    } catch (Exception $e) {
-        // Column already exists
-    }
-    
-    // Add timezone to users table
-    try {
-        $pdo->exec("ALTER TABLE users ADD COLUMN timezone TEXT DEFAULT 'Europe/London'");
-    } catch (Exception $e) {
-        // Column already exists
-    }
-    
-    // Add email notifications preference
-    try {
-        $pdo->exec("ALTER TABLE users ADD COLUMN email_notifications INTEGER DEFAULT 0");
-    } catch (Exception $e) {
-        // Column already exists
-    }
-    
-    // Add avatar column
-    try {
-        $pdo->exec("ALTER TABLE users ADD COLUMN avatar TEXT DEFAULT NULL");
-    } catch (Exception $e) {
-        // Column already exists
-    }
-    
-    // Comments table
     $pdo->exec("CREATE TABLE IF NOT EXISTS comments (
-        id INTEGER PRIMARY KEY,
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
         post_id INTEGER,
         user_id INTEGER,
         content TEXT,
@@ -95,9 +68,8 @@ function init_db() {
         FOREIGN KEY(user_id) REFERENCES users(id)
     )");
     
-    // Reactions table
     $pdo->exec("CREATE TABLE IF NOT EXISTS reactions (
-        id INTEGER PRIMARY KEY,
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
         post_id INTEGER,
         user_id INTEGER,
         reaction_type TEXT,
@@ -108,11 +80,6 @@ function init_db() {
     )");
     
     return $pdo;
-}
-
-function get_db() {
-    global $db_file;
-    return new PDO("sqlite:$db_file");
 }
 
 function get_link_preview($url) {
@@ -145,7 +112,6 @@ function get_link_preview($url) {
     $image_url = '';
     if ($image->length > 0) {
         $image_url = $image->item(0)->value;
-        // Convert relative URLs to absolute
         if ($image_url && !filter_var($image_url, FILTER_VALIDATE_URL)) {
             $parsed_url = parse_url($url);
             $base_url = $parsed_url['scheme'] . '://' . $parsed_url['host'];
@@ -154,10 +120,8 @@ function get_link_preview($url) {
             }
             
             if (strpos($image_url, '/') === 0) {
-                // Absolute path
                 $image_url = $base_url . $image_url;
             } else {
-                // Relative path
                 $path = dirname($parsed_url['path'] ?? '/');
                 $image_url = $base_url . rtrim($path, '/') . '/' . $image_url;
             }
@@ -173,7 +137,6 @@ function get_link_preview($url) {
 }
 
 function process_content_with_links($content) {
-    // Extract text content from HTML to find URLs
     $text_content = strip_tags($content);
     $url_pattern = '/https?:\/\/[^\s<>"]+/i';
     preg_match_all($url_pattern, $text_content, $matches);
@@ -182,9 +145,7 @@ function process_content_with_links($content) {
     $link_previews = [];
     
     foreach ($matches[0] as $url) {
-        // Clean URL from any HTML entities
         $clean_url = html_entity_decode($url);
-        // Only process if URL is not already a link
         if (strpos($processed_content, 'href="' . $clean_url . '"') === false) {
             $processed_content = str_replace($clean_url, '<a href="' . $clean_url . '" target="_blank" style="color: #1877f2; text-decoration: none;">' . $clean_url . '</a>', $processed_content);
             $preview = get_link_preview($clean_url);

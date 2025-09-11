@@ -5,21 +5,15 @@ init_db();
 $error = '';
 
 if ($_POST['username'] ?? false) {
-    $pdo = get_db();
-    $stmt = $pdo->prepare("SELECT id, password_hash, approved FROM users WHERE username = ?");
-    $stmt->execute([$_POST['username']]);
-    $user = $stmt->fetch();
+    // WordPress authentication only
+    $wp_user = wp_social_authenticate($_POST['username'], $_POST['password']);
     
-    if ($user && password_verify($_POST['password'], $user['password_hash'])) {
-        if ($user['approved']) {
-            $_SESSION['user_id'] = $user['id'];
-            header('Location: index.php');
-            exit;
-        } else {
-            $error = 'Account pending admin approval';
-        }
+    if ($wp_user) {
+        $_SESSION['user_id'] = $wp_user['id'];
+        header('Location: index.php');
+        exit;
     } else {
-        $error = 'Invalid credentials';
+        $error = 'Invalid WordPress credentials';
     }
 }
 ?>
@@ -69,8 +63,8 @@ if ($_POST['username'] ?? false) {
 <body>
     <div class="container">
         <div class="header">
-            <h1>Private Social</h1>
-            <p>Login to your account</p>
+            <h1>OSRG Connect</h1>
+            <p>Login with your WordPress account</p>
         </div>
 
         <?php if ($error): ?>
@@ -93,8 +87,8 @@ if ($_POST['username'] ?? false) {
         </form>
 
         <p style="text-align: center; margin-top: 20px;">
-            Don't have an account? <a href="register.php">Register here</a><br>
-            <a href="forgot_password.php" style="color: #666; font-size: 14px;">Forgot your password?</a>
+            Use your WordPress login credentials<br>
+            <a href="wp-login.php" style="color: #666; font-size: 14px;">WordPress Login</a>
         </p>
     </div>
 </body>

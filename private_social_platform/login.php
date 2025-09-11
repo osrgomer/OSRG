@@ -5,15 +5,21 @@ init_db();
 $error = '';
 
 if ($_POST['username'] ?? false) {
-    // WordPress authentication only
-    $wp_user = wp_social_authenticate($_POST['username'], $_POST['password']);
+    $pdo = get_db();
+    $stmt = $pdo->prepare("SELECT * FROM users WHERE username = ? OR email = ?");
+    $stmt->execute([$_POST['username'], $_POST['username']]);
+    $user = $stmt->fetch();
     
-    if ($wp_user) {
-        $_SESSION['user_id'] = $wp_user['id'];
-        header('Location: index.php');
-        exit;
+    if ($user && password_verify($_POST['password'], $user['password'])) {
+        if ($user['approved']) {
+            $_SESSION['user_id'] = $user['id'];
+            header('Location: index.php');
+            exit;
+        } else {
+            $error = 'Your account is pending approval.';
+        }
     } else {
-        $error = 'Invalid WordPress credentials';
+        $error = 'Invalid username or password.';
     }
 }
 ?>
@@ -64,7 +70,7 @@ if ($_POST['username'] ?? false) {
     <div class="container">
         <div class="header">
             <h1>OSRG Connect</h1>
-            <p>Login with your WordPress account</p>
+            <p>Private Social Network</p>
         </div>
 
         <?php if ($error): ?>
@@ -73,7 +79,7 @@ if ($_POST['username'] ?? false) {
 
         <form method="POST">
             <div class="form-group">
-                <input type="text" name="username" placeholder="Username" required>
+                <input type="text" name="username" placeholder="Username or Email" required>
             </div>
             <div class="form-group">
                 <div class="password-container">
@@ -87,8 +93,8 @@ if ($_POST['username'] ?? false) {
         </form>
 
         <p style="text-align: center; margin-top: 20px;">
-            Use your WordPress login credentials<br>
-            <a href="wp-login.php" style="color: #666; font-size: 14px;">WordPress Login</a>
+            Don't have an account? <a href="register.php">Register here</a><br>
+            <a href="forgot_password.php" style="color: #666; font-size: 14px;">Forgot Password?</a>
         </p>
     </div>
 </body>

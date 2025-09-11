@@ -29,18 +29,19 @@ foreach ($users as $user) {
     echo "<hr>";
 }
 
-// Create OSRG2 test user if not exists
+// Check for OSRG2 user
 $stmt = $pdo->prepare("SELECT * FROM users WHERE username = 'OSRG2'");
 $stmt->execute();
 $osrg2 = $stmt->fetch();
 
 if (!$osrg2) {
+    echo "<br><strong style='color: red;'>OSRG2 user not found - recreating...</strong><br>";
     $password = password_hash('test123', PASSWORD_DEFAULT);
     $stmt = $pdo->prepare("INSERT INTO users (username, email, password_hash, approved) VALUES (?, ?, ?, ?)");
     $stmt->execute(['OSRG2', 'test@osrg.lol', $password, 1]);
-    echo "<br><strong>OSRG2 test user created with password: test123</strong><br>";
+    echo "<br><strong style='color: green;'>OSRG2 test user recreated with password: test123</strong><br>";
 } else {
-    echo "<br><strong>OSRG2 user already exists</strong><br>";
+    echo "<br><strong style='color: green;'>OSRG2 user exists - ID: " . $osrg2['id'] . "</strong><br>";
 }
 
 } catch (Exception $e) {

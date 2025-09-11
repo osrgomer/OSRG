@@ -439,6 +439,37 @@ if ($_POST['content'] ?? false) {
             <button id="notif-btn" class="notification-btn" onclick="toggleNotifications()">Enable Notifications</button>
         </div>
 
+        <?php
+        // Check for pending user approvals (admin only)
+        $pending_approvals = [];
+        if ($user_nav && $user_nav['username'] === 'OSRG') {
+            $stmt_pending = $pdo->prepare("SELECT COUNT(*) as count FROM users WHERE approved = 0");
+            $stmt_pending->execute();
+            $pending_count = $stmt_pending->fetch()['count'];
+            
+            if ($pending_count > 0) {
+                $stmt_pending = $pdo->prepare("SELECT username, email, created_at FROM users WHERE approved = 0 ORDER BY created_at DESC LIMIT 3");
+                $stmt_pending->execute();
+                $pending_approvals = $stmt_pending->fetchAll();
+            }
+        }
+        ?>
+        
+        <?php if ($pending_approvals): ?>
+        <div class="post" style="background: #fff3e0; border-left: 4px solid #ff9800;">
+            <h3>🔔 Pending User Approvals (<?= $pending_count ?>)</h3>
+            <?php foreach ($pending_approvals as $pending): ?>
+            <div style="padding: 8px; border-bottom: 1px solid #ddd; font-size: 14px;">
+                <strong><?= htmlspecialchars($pending['username']) ?></strong> (<?= htmlspecialchars($pending['email']) ?>)
+                <small style="color: #666; float: right;"><?= date('M j, H:i', strtotime($pending['created_at'])) ?></small>
+            </div>
+            <?php endforeach; ?>
+            <div style="text-align: center; margin-top: 10px;">
+                <a href="admin" style="background: #ff9800; color: white; padding: 8px 16px; text-decoration: none; border-radius: 5px; font-weight: bold;">Review in Admin Panel</a>
+            </div>
+        </div>
+        <?php endif; ?>
+
         <?php if ($friend_requests): ?>
         <div class="post" style="background: #e3f2fd; border-left: 4px solid #1877f2;">
             <h3>Friend Requests</h3>

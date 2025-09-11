@@ -16,6 +16,26 @@ if ($_POST['username'] ?? false) {
         if ($approved) {
             $message = 'Registration successful! <a href="login.php">Login here</a>';
         } else {
+            // Send notification email to admin
+            $subject = "New User Registration - OSRG Connect";
+            $body = "A new user has registered and needs approval:\n\n";
+            $body .= "Username: " . $_POST['username'] . "\n";
+            $body .= "Email: " . $_POST['email'] . "\n";
+            $body .= "Registration Time: " . date('Y-m-d H:i:s') . "\n\n";
+            $body .= "Please login to the admin panel to approve or reject this user:\n";
+            $body .= "https://osrg.lol/osrg/private_social_platform/admin\n\n";
+            $body .= "OSRG Connect Admin System";
+            
+            $headers = "From: OSRG Connect <omer@osrg.lol>\r\n";
+            $headers .= "Reply-To: omer@osrg.lol\r\n";
+            $headers .= "X-Mailer: PHP/" . phpversion();
+            
+            ini_set('SMTP', 'smtp.hostinger.com');
+            ini_set('smtp_port', '465');
+            ini_set('sendmail_from', 'omer@osrg.lol');
+            
+            mail('omersr12@gmail.com', $subject, $body, $headers);
+            
             $message = 'Registration submitted! Please wait for admin approval before logging in.';
         }
     } catch (PDOException $e) {

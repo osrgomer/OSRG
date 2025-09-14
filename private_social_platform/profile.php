@@ -23,18 +23,35 @@ if (!$profile_user) {
 $is_online = (strtotime($profile_user['last_seen']) > (time() - 300));
 
 // Get user's posts
-$stmt = $pdo->prepare("SELECT p.*, COUNT(r.id) as reaction_count FROM posts p LEFT JOIN reactions r ON p.id = r.post_id WHERE p.user_id = ? GROUP BY p.id ORDER BY p.created_at DESC");
-$stmt->execute([$user_id]);
-$user_posts = $stmt->fetchAll();
+try {
+    $stmt = $pdo->prepare("SELECT p.*, COUNT(r.id) as reaction_count FROM posts p LEFT JOIN reactions r ON p.id = r.post_id WHERE p.user_id = ? GROUP BY p.id ORDER BY p.created_at DESC");
+    $stmt->execute([$user_id]);
+    $user_posts = $stmt->fetchAll();
+} catch (Exception $e) {
+    // Fallback for database issues
+    $stmt = $pdo->prepare("SELECT * FROM posts WHERE user_id = ? ORDER BY created_at DESC");
+    $stmt->execute([$user_id]);
+    $user_posts = $stmt->fetchAll();
+    // Add reaction_count as 0 for each post
+    foreach ($user_posts as &$post) {
+        $post['reaction_count'] = 0;
+    }
+}
 
 // Get user stats
-$stmt = $pdo->prepare("SELECT COUNT(*) as post_count FROM posts WHERE user_id = ?");
-$stmt->execute([$user_id]);
-$post_count = $stmt->fetch()['post_count'];
+try {
+    $stmt = $pdo->prepare("SELECT COUNT(*) as post_count FROM posts WHERE user_id = ?");
+    $stmt->execute([$user_id]);
+    $post_count = $stmt->fetch()['post_count'] ?? 0;
 
-$stmt = $pdo->prepare("SELECT COUNT(DISTINCT CASE WHEN user_id = ? THEN friend_id WHEN friend_id = ? THEN user_id END) as friend_count FROM friends WHERE (user_id = ? OR friend_id = ?) AND status = 'accepted'");
-$stmt->execute([$user_id, $user_id, $user_id, $user_id]);
-$friend_count = $stmt->fetch()['friend_count'];
+    $stmt = $pdo->prepare("SELECT COUNT(DISTINCT CASE WHEN user_id = ? THEN friend_id WHEN friend_id = ? THEN user_id END) as friend_count FROM friends WHERE (user_id = ? OR friend_id = ?) AND status = 'accepted'");
+    $stmt->execute([$user_id, $user_id, $user_id, $user_id]);
+    $friend_count = $stmt->fetch()['friend_count'] ?? 0;
+} catch (Exception $e) {
+    // Fallback values
+    $post_count = 0;
+    $friend_count = 0;
+}
 
 $is_own_profile = ($user_id == $_SESSION['user_id']);
 ?>

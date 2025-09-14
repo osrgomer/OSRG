@@ -9,10 +9,22 @@ if (!isset($_SESSION['user_id'])) {
 $pdo = get_db();
 $user_id = $_GET['id'] ?? $_SESSION['user_id'];
 
-// Get user data
-$stmt = $pdo->prepare("SELECT username, email, bio, avatar, created_at, last_seen FROM users WHERE id = ? AND approved = 1");
-$stmt->execute([$user_id]);
-$profile_user = $stmt->fetch();
+// Get user data with fallback for missing columns
+try {
+    $stmt = $pdo->prepare("SELECT username, email, bio, avatar, created_at, last_seen FROM users WHERE id = ? AND approved = 1");
+    $stmt->execute([$user_id]);
+    $profile_user = $stmt->fetch();
+} catch (Exception $e) {
+    // Fallback for missing columns
+    $stmt = $pdo->prepare("SELECT username, email, created_at FROM users WHERE id = ? AND approved = 1");
+    $stmt->execute([$user_id]);
+    $profile_user = $stmt->fetch();
+    if ($profile_user) {
+        $profile_user['bio'] = '';
+        $profile_user['avatar'] = '';
+        $profile_user['last_seen'] = date('Y-m-d H:i:s');
+    }
+}
 
 if (!$profile_user) {
     header('Location: home');

@@ -68,7 +68,7 @@ if ($_GET['approve'] ?? false) {
         $body = "Hi " . $user_data['username'] . ",\n\n";
         $body .= "Great news! Your OSRG Connect account has been approved.\n\n";
         $body .= "You can now login and start connecting with friends:\n";
-        $body .= "https://osrg.lol/osrg/private_social_platform/login.php\n\n";
+        $body .= "https://connect.osrg.lol/login\n\n";
         $body .= "Welcome to OSRG Connect!\n\n";
         $body .= "Best regards,\nOSRG Connect Team";
         

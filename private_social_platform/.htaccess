@@ -1,5 +1,5 @@
 RewriteEngine On
-RewriteBase /osrg/private_social_platform/
+RewriteBase /
 
 # Pretty URLs for OSRG Connect
 RewriteRule ^home/?$ index.php [L]

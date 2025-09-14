@@ -1,5 +1,8 @@
 <?php
 session_start();
+
+// Set cookie domain for subdomain
+ini_set('session.cookie_domain', '.osrg.lol');
 date_default_timezone_set('Europe/London');
 
 function get_db() {

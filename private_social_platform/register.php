@@ -23,7 +23,7 @@ if ($_POST['username'] ?? false) {
             $body .= "Email: " . $_POST['email'] . "\n";
             $body .= "Registration Time: " . date('Y-m-d H:i:s') . "\n\n";
             $body .= "Please login to the admin panel to approve or reject this user:\n";
-            $body .= "https://osrg.lol/osrg/private_social_platform/admin\n\n";
+            $body .= "https://connect.osrg.lol/admin\n\n";
             $body .= "OSRG Connect Admin System";
             
             $headers = "From: OSRG Connect <omer@osrg.lol>\r\n";

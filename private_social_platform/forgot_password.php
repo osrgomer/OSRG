@@ -32,7 +32,7 @@ if ($_POST['email'] ?? false) {
         $stmt->execute([$user['id'], $reset_token, $expires]);
         
         // Send email
-        $reset_link = "https://osrg.lol/osrg/private_social_platform/reset_password.php?token=" . $reset_token;
+        $reset_link = "https://connect.osrg.lol/reset_password.php?token=" . $reset_token;
         $subject = "Password Reset - OSRG Connect";
         $body = "Hi " . $user['username'] . ",\n\n";
         $body .= "You requested a password reset for your OSRG Connect account.\n\n";

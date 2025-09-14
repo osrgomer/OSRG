@@ -23,7 +23,14 @@ $message = '';
 // Handle user deletion
 if ($_GET['delete'] ?? false) {
     $delete_id = $_GET['delete'];
-    if ($delete_id != $_SESSION['user_id']) { // Can't delete self
+    
+    // Get username of user to delete
+    $stmt_check = $pdo->prepare("SELECT username FROM users WHERE id = ?");
+    $stmt_check->execute([$delete_id]);
+    $user_to_delete = $stmt_check->fetch();
+    
+    // Can't delete self or other admin users
+    if ($delete_id != $_SESSION['user_id'] && $user_to_delete && !($user_to_delete['username'] === 'OSRG' || $user_to_delete['username'] === 'backup')) {
         $stmt = $pdo->prepare("DELETE FROM users WHERE id = ?");
         $stmt->execute([$delete_id]);
         
@@ -334,10 +341,12 @@ require_once 'header.php';
                         <?php endif; ?><br>
                         <small><?= htmlspecialchars($user['email']) ?> • Joined <?= date('M j, Y', strtotime($user['created_at'])) ?></small>
                     </div>
-                    <?php if ($user['id'] != $_SESSION['user_id']): ?>
+                    <?php if ($user['id'] != $_SESSION['user_id'] && !($user['username'] === 'OSRG' || $user['username'] === 'backup')): ?>
                         <a href="?delete=<?= $user['id'] ?>" class="delete-btn" onclick="return confirm('Delete this user?')">Delete</a>
-                    <?php else: ?>
+                    <?php elseif ($user['username'] === 'OSRG' || $user['username'] === 'backup'): ?>
                         <span style="color: #4caf50;">Admin</span>
+                    <?php else: ?>
+                        <span style="color: #4caf50;">You</span>
                     <?php endif; ?>
                 </div>
                 <?php endforeach; ?>

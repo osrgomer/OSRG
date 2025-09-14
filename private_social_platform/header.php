@@ -38,7 +38,15 @@ if (!isset($_SESSION['user_id'])) {
         <?= $additional_css ?? '' ?>
     </style>
     <?= $additional_head ?? '' ?>
-
+    <script>
+        // Update user activity every 2 minutes
+        setInterval(function() {
+            fetch('update_activity.php');
+        }, 120000);
+        
+        // Update on page load
+        fetch('update_activity.php');
+    </script>
 </head>
 <body>
     <div class="nav">
@@ -53,6 +61,7 @@ if (!isset($_SESSION['user_id'])) {
             <a href="find-friends">Find Friends</a>
             <a href="friends">My Friends</a>
             <a href="messages">Messages</a>
+            <a href="profile">My Profile</a>
             <a href="settings">Settings</a>
             <?php
             if (!isset($user_nav)) {

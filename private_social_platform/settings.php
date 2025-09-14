@@ -10,7 +10,7 @@ $pdo = get_db();
 $message = '';
 
 // Get current user settings
-$stmt = $pdo->prepare("SELECT username, email, timezone, email_notifications, avatar FROM users WHERE id = ?");
+$stmt = $pdo->prepare("SELECT username, email, timezone, email_notifications, avatar, bio FROM users WHERE id = ?");
 $stmt->execute([$_SESSION['user_id']]);
 $user = $stmt->fetch();
 $current_timezone = $user['timezone'] ?? 'Europe/London';
@@ -23,6 +23,7 @@ $current_avatar = $user['avatar'] ?? '';
 if ($_POST['update_profile'] ?? false) {
     $new_username = $_POST['username'];
     $new_email = $_POST['email'];
+    $new_bio = $_POST['bio'] ?? '';
     $avatar = $current_avatar; // Keep current avatar by default
     
     // Handle avatar upload (takes priority over preset)
@@ -49,11 +50,11 @@ if ($_POST['update_profile'] ?? false) {
     }
     
     try {
-        $stmt = $pdo->prepare("UPDATE users SET username = ?, email = ?, avatar = ? WHERE id = ?");
-        $stmt->execute([$new_username, $new_email, $avatar, $_SESSION['user_id']]);
+        $stmt = $pdo->prepare("UPDATE users SET username = ?, email = ?, bio = ?, avatar = ? WHERE id = ?");
+        $stmt->execute([$new_username, $new_email, $new_bio, $avatar, $_SESSION['user_id']]);
         $message = 'Profile updated successfully!';
         // Refresh user data
-        $stmt = $pdo->prepare("SELECT username, email, timezone, email_notifications, avatar FROM users WHERE id = ?");
+        $stmt = $pdo->prepare("SELECT username, email, timezone, email_notifications, avatar, bio FROM users WHERE id = ?");
         $stmt->execute([$_SESSION['user_id']]);
         $user = $stmt->fetch();
         $current_username = $user['username'];
@@ -71,7 +72,7 @@ if (($_POST['timezone'] ?? false) && !($_POST['update_profile'] ?? false)) {
     $stmt->execute([$_POST['timezone'], $email_notif, $_SESSION['user_id']]);
     $message = 'Settings updated successfully!';
     // Refresh user data
-    $stmt = $pdo->prepare("SELECT username, email, timezone, email_notifications, avatar FROM users WHERE id = ?");
+    $stmt = $pdo->prepare("SELECT username, email, timezone, email_notifications, avatar, bio FROM users WHERE id = ?");
     $stmt->execute([$_SESSION['user_id']]);
     $user = $stmt->fetch();
     $current_timezone = $user['timezone'];
@@ -172,6 +173,11 @@ $timezones = [
                 <div class="form-group">
                     <label><strong>Email:</strong></label>
                     <input type="email" name="email" value="<?= htmlspecialchars($current_email) ?>" required style="width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 5px;">
+                </div>
+                <div class="form-group">
+                    <label><strong>Bio:</strong></label>
+                    <textarea name="bio" placeholder="Tell us about yourself..." style="width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 5px; min-height: 80px; resize: vertical;"><?= htmlspecialchars($user['bio'] ?? '') ?></textarea>
+                    <small style="color: #666; display: block; margin-top: 5px;">Optional - appears on your profile</small>
                 </div>
                 <div class="form-group">
                     <label><strong>Avatar:</strong></label>

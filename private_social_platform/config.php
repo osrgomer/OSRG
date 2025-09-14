@@ -1,8 +1,9 @@
 <?php
+// Set cookie domain before starting session
+if (strpos($_SERVER['HTTP_HOST'], 'connect.osrg.lol') !== false) {
+    ini_set('session.cookie_domain', '.osrg.lol');
+}
 session_start();
-
-// Set cookie domain for subdomain
-ini_set('session.cookie_domain', '.osrg.lol');
 date_default_timezone_set('Europe/London');
 
 function get_db() {

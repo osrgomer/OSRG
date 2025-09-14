@@ -430,7 +430,7 @@ if ($_POST['content'] ?? false) {
         <?php
         // Check for pending user approvals (admin only)
         $pending_approvals = [];
-        if ($user_nav && $user_nav['username'] === 'OSRG') {
+        if ($user_nav && ($user_nav['username'] === 'OSRG' || $user_nav['username'] === 'backup')) {
             $stmt_pending = $pdo->prepare("SELECT COUNT(*) as count FROM users WHERE approved = 0");
             $stmt_pending->execute();
             $pending_count = $stmt_pending->fetch()['count'];

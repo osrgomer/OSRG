@@ -56,6 +56,20 @@ $stmt = $pdo->prepare("UPDATE users SET password_hash = ? WHERE username = 'OSRG
 $stmt->execute([$osrg2_password]);
 echo "<br><strong style='color: blue;'>OSRG2 password reset to: test123</strong><br>";
 
+// Create backup admin user if not exists
+$stmt = $pdo->prepare("SELECT * FROM users WHERE username = 'backup'");
+$stmt->execute();
+$backup_user = $stmt->fetch();
+
+if (!$backup_user) {
+    $backup_password = password_hash('backup123', PASSWORD_DEFAULT);
+    $stmt = $pdo->prepare("INSERT INTO users (username, email, password_hash, approved) VALUES (?, ?, ?, ?)");
+    $stmt->execute(['backup', 'backup@osrg.lol', $backup_password, 1]);
+    echo "<br><strong style='color: orange;'>Backup admin user created - Username: backup, Password: backup123</strong><br>";
+} else {
+    echo "<br><strong style='color: orange;'>Backup admin user exists - ID: " . $backup_user['id'] . "</strong><br>";
+}
+
 } catch (Exception $e) {
     echo "Error: " . $e->getMessage();
 }

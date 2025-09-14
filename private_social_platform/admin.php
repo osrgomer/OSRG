@@ -13,7 +13,7 @@ $stmt = $pdo->prepare("SELECT username FROM users WHERE id = ?");
 $stmt->execute([$_SESSION['user_id']]);
 $user = $stmt->fetch();
 
-if (!$user || $user['username'] !== 'OSRG') {
+if (!$user || ($user['username'] !== 'OSRG' && $user['username'] !== 'backup')) {
     header('Location: home');
     exit;
 }

@@ -61,7 +61,7 @@ if (!isset($_SESSION['user_id'])) {
                 $stmt_nav->execute([$_SESSION['user_id']]);
                 $user_nav = $stmt_nav->fetch();
             }
-            if ($user_nav && $user_nav['username'] === 'OSRG'):
+            if ($user_nav && ($user_nav['username'] === 'OSRG' || $user_nav['username'] === 'backup')):
             ?>
             <a href="admin" style="color: #d32f2f; font-weight: bold;">Admin Panel</a>
             <?php endif; ?>

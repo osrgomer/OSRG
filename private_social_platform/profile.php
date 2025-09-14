@@ -67,12 +67,9 @@ try {
 
 $is_own_profile = ($user_id == $_SESSION['user_id']);
 ?>
-<!DOCTYPE html>
-<html>
-<head>
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title><?= htmlspecialchars($profile_user['username']) ?> - Profile</title>
-    <style>
+<?php
+$page_title = htmlspecialchars($profile_user['username']) . ' - Profile';
+$additional_css = '
         * { margin: 0; padding: 0; box-sizing: border-box; }
         body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); min-height: 100vh; }
         .container { max-width: 800px; margin: 0 auto; padding: 20px; }
@@ -93,10 +90,9 @@ $is_own_profile = ($user_id == $_SESSION['user_id']);
         .post-footer { display: flex; justify-content: space-between; align-items: center; margin-top: 15px; padding-top: 15px; border-top: 1px solid rgba(0,0,0,0.1); }
         .edit-btn { background: #1877f2; color: white; padding: 8px 15px; border: none; border-radius: 8px; cursor: pointer; font-size: 14px; }
         .edit-btn:hover { background: #0d47a1; }
-    </style>
-</head>
-<body>
-<?php require_once 'header.php'; ?>
+';
+require_once 'header.php';
+?>
 
 <div class="container">
     <div class="profile-header">

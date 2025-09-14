@@ -23,9 +23,9 @@ $current_avatar = $user['avatar'] ?? '';
 if ($_POST['update_profile'] ?? false) {
     $new_username = $_POST['username'];
     $new_email = $_POST['email'];
-    $avatar = $current_avatar;
+    $avatar = $current_avatar; // Keep current avatar by default
     
-    // Handle avatar upload
+    // Handle avatar upload (takes priority over preset)
     if (isset($_FILES['avatar']) && $_FILES['avatar']['error'] == 0) {
         $allowed = ['png', 'jpg', 'jpeg'];
         $file_ext = strtolower(pathinfo($_FILES['avatar']['name'], PATHINFO_EXTENSION));
@@ -43,7 +43,8 @@ if ($_POST['update_profile'] ?? false) {
                 $avatar = $avatar_path;
             }
         }
-    } elseif ($_POST['preset_avatar'] ?? false) {
+    } elseif (!empty($_POST['preset_avatar'])) {
+        // Only use preset if no file upload and preset is selected
         $avatar = $_POST['preset_avatar'];
     }
     
@@ -51,22 +52,30 @@ if ($_POST['update_profile'] ?? false) {
         $stmt = $pdo->prepare("UPDATE users SET username = ?, email = ?, avatar = ? WHERE id = ?");
         $stmt->execute([$new_username, $new_email, $avatar, $_SESSION['user_id']]);
         $message = 'Profile updated successfully!';
-        $current_username = $new_username;
-        $current_email = $new_email;
-        $current_avatar = $avatar;
+        // Refresh user data
+        $stmt = $pdo->prepare("SELECT username, email, timezone, email_notifications, avatar FROM users WHERE id = ?");
+        $stmt->execute([$_SESSION['user_id']]);
+        $user = $stmt->fetch();
+        $current_username = $user['username'];
+        $current_email = $user['email'];
+        $current_avatar = $user['avatar'];
     } catch (PDOException $e) {
         $message = 'Error: Username or email already exists.';
     }
 }
 
-// Handle settings update
-if ($_POST['timezone'] ?? false) {
+// Handle settings update (only if not profile update)
+if (($_POST['timezone'] ?? false) && !($_POST['update_profile'] ?? false)) {
     $email_notif = isset($_POST['email_notifications']) ? 1 : 0;
     $stmt = $pdo->prepare("UPDATE users SET timezone = ?, email_notifications = ? WHERE id = ?");
     $stmt->execute([$_POST['timezone'], $email_notif, $_SESSION['user_id']]);
     $message = 'Settings updated successfully!';
-    $current_timezone = $_POST['timezone'];
-    $email_notifications = $email_notif;
+    // Refresh user data
+    $stmt = $pdo->prepare("SELECT username, email, timezone, email_notifications, avatar FROM users WHERE id = ?");
+    $stmt->execute([$_SESSION['user_id']]);
+    $user = $stmt->fetch();
+    $current_timezone = $user['timezone'];
+    $email_notifications = $user['email_notifications'];
 }
 
 // Common timezones

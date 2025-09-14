@@ -130,6 +130,71 @@ require_once 'header.php';
 ?>
 <?= $og_tags ?>
 <script>
+    function editPost(postId) {
+        const contentDiv = document.getElementById('content-' + postId);
+        const currentContent = contentDiv.textContent.trim();
+        
+        const textarea = document.createElement('textarea');
+        textarea.value = currentContent;
+        textarea.style.width = '100%';
+        textarea.style.minHeight = '100px';
+        textarea.style.padding = '10px';
+        textarea.style.border = '2px solid #1877f2';
+        textarea.style.borderRadius = '8px';
+        textarea.style.fontSize = '16px';
+        
+        const saveBtn = document.createElement('button');
+        saveBtn.textContent = 'Save';
+        saveBtn.style.background = '#4caf50';
+        saveBtn.style.color = 'white';
+        saveBtn.style.padding = '8px 15px';
+        saveBtn.style.border = 'none';
+        saveBtn.style.borderRadius = '5px';
+        saveBtn.style.marginRight = '10px';
+        saveBtn.style.cursor = 'pointer';
+        
+        const cancelBtn = document.createElement('button');
+        cancelBtn.textContent = 'Cancel';
+        cancelBtn.style.background = '#f44336';
+        cancelBtn.style.color = 'white';
+        cancelBtn.style.padding = '8px 15px';
+        cancelBtn.style.border = 'none';
+        cancelBtn.style.borderRadius = '5px';
+        cancelBtn.style.cursor = 'pointer';
+        
+        const buttonDiv = document.createElement('div');
+        buttonDiv.style.marginTop = '10px';
+        buttonDiv.appendChild(saveBtn);
+        buttonDiv.appendChild(cancelBtn);
+        
+        contentDiv.innerHTML = '';
+        contentDiv.appendChild(textarea);
+        contentDiv.appendChild(buttonDiv);
+        
+        saveBtn.onclick = function() {
+            const newContent = textarea.value.trim();
+            if (newContent) {
+                fetch('edit_post.php', {
+                    method: 'POST',
+                    headers: {'Content-Type': 'application/x-www-form-urlencoded'},
+                    body: 'post_id=' + postId + '&content=' + encodeURIComponent(newContent)
+                })
+                .then(response => response.text())
+                .then(result => {
+                    if (result === 'success') {
+                        location.reload();
+                    } else {
+                        alert('Error updating post');
+                    }
+                });
+            }
+        };
+        
+        cancelBtn.onclick = function() {
+            contentDiv.innerHTML = currentContent;
+        };
+    }
+    
     window.onload = function() {
         // Restore scroll position after comment submission
         const scrollPos = sessionStorage.getItem('scrollPos');
@@ -186,22 +251,33 @@ require_once 'header.php';
                 <?php if ($friend_posts): ?>
                     <?php foreach ($friend_posts as $post): ?>
                     <div class="post">
-                        <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 10px;">
-                            <?php if ($post['avatar']): ?>
-                                <?php if (strpos($post['avatar'], 'avatars/') === 0): ?>
-                                    <img src="<?= htmlspecialchars($post['avatar']) ?>" alt="Avatar" style="width: 40px; height: 40px; border-radius: 50%; object-fit: cover;">
+                        <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 10px;">
+                            <div style="display: flex; align-items: center; gap: 10px;">
+                                <?php if ($post['avatar']): ?>
+                                    <?php if (strpos($post['avatar'], 'avatars/') === 0): ?>
+                                        <img src="<?= htmlspecialchars($post['avatar']) ?>" alt="Avatar" style="width: 40px; height: 40px; border-radius: 50%; object-fit: cover;">
+                                    <?php else: ?>
+                                        <span style="font-size: 30px;"><?= htmlspecialchars($post['avatar']) ?></span>
+                                    <?php endif; ?>
                                 <?php else: ?>
-                                    <span style="font-size: 30px;"><?= htmlspecialchars($post['avatar']) ?></span>
+                                    <span style="font-size: 30px;">👤</span>
                                 <?php endif; ?>
-                            <?php else: ?>
-                                <span style="font-size: 30px;">👤</span>
+                                <strong><?= htmlspecialchars($post['username']) ?></strong>
+                            </div>
+                            <?php
+                            // Check if current user owns this post
+                            $stmt_owner = $pdo->prepare("SELECT user_id FROM posts WHERE id = ?");
+                            $stmt_owner->execute([$post['id']]);
+                            $post_owner = $stmt_owner->fetch();
+                            if ($post_owner && $post_owner['user_id'] == $_SESSION['user_id']):
+                            ?>
+                            <button onclick="editPost(<?= $post['id'] ?>)" style="background: #1877f2; color: white; padding: 6px 12px; border: none; border-radius: 5px; cursor: pointer; font-size: 12px;">Edit</button>
                             <?php endif; ?>
-                            <strong><?= htmlspecialchars($post['username']) ?></strong>
                         </div>
                         <?php
                         $processed = process_content_with_links($post['content']);
                         ?>
-                        <div><?= $processed['content'] ?></div>
+                        <div id="content-<?= $post['id'] ?>"><?= $processed['content'] ?></div>
                         
                         <?php if (!empty($processed['previews'])): ?>
                             <?php foreach ($processed['previews'] as $preview): ?>

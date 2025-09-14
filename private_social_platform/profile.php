@@ -16,13 +16,13 @@ try {
     $profile_user = $stmt->fetch();
 } catch (Exception $e) {
     // Fallback for missing columns
-    $stmt = $pdo->prepare("SELECT username, email, created_at FROM users WHERE id = ? AND approved = 1");
+    $stmt = $pdo->prepare("SELECT username, email, created_at, avatar FROM users WHERE id = ? AND approved = 1");
     $stmt->execute([$user_id]);
     $profile_user = $stmt->fetch();
     if ($profile_user) {
         $profile_user['bio'] = '';
-        $profile_user['avatar'] = '';
         $profile_user['last_seen'] = date('Y-m-d H:i:s');
+        // Keep the actual avatar from database
     }
 }
 
@@ -100,14 +100,17 @@ $is_own_profile = ($user_id == $_SESSION['user_id']);
 
 <div class="container">
     <div class="profile-header">
-        <?php if ($profile_user['avatar']): ?>
-            <?php if (strpos($profile_user['avatar'], 'avatars/') === 0): ?>
-                <img src="<?= htmlspecialchars($profile_user['avatar']) ?>" alt="Avatar" class="avatar-large">
-            <?php else: ?>
-                <div style="font-size: 120px; margin-bottom: 20px;"><?= htmlspecialchars($profile_user['avatar']) ?></div>
-            <?php endif; ?>
+        <?php 
+        $user_avatar = $profile_user['avatar'] ?? null;
+        $random_avatars = ['👤', '👨', '👩', '🧑', '👶', '🐱', '🐶', '🦊'];
+        $default_avatar = $random_avatars[($user_id ?? 0) % count($random_avatars)];
+        ?>
+        <?php if ($user_avatar && strpos($user_avatar, 'avatars/') === 0): ?>
+            <img src="<?= htmlspecialchars($user_avatar) ?>" alt="Avatar" class="avatar-large">
+        <?php elseif ($user_avatar): ?>
+            <div style="font-size: 120px; margin-bottom: 20px;"><?= htmlspecialchars($user_avatar) ?></div>
         <?php else: ?>
-            <div style="font-size: 120px; margin-bottom: 20px;">👤</div>
+            <div style="font-size: 120px; margin-bottom: 20px;"><?= $default_avatar ?></div>
         <?php endif; ?>
         
         <h1 class="username"><?= htmlspecialchars($profile_user['username']) ?></h1>

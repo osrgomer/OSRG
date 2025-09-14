@@ -44,17 +44,19 @@ if (!$osrg2) {
     echo "<br><strong style='color: green;'>OSRG2 user exists - ID: " . $osrg2['id'] . "</strong><br>";
 }
 
-// Reset OSRG password to admin123
-$osrg_password = password_hash('admin123', PASSWORD_DEFAULT);
-$stmt = $pdo->prepare("UPDATE users SET password_hash = ? WHERE username = 'OSRG'");
-$stmt->execute([$osrg_password]);
-echo "<br><strong style='color: blue;'>OSRG password reset to: admin123</strong><br>";
+// Reset all admin and test user passwords
+$users_to_reset = [
+    ['username' => 'OSRG', 'password' => 'admin123'],
+    ['username' => 'OSRG2', 'password' => 'test123'],
+    ['username' => 'backup', 'password' => 'backup123']
+];
 
-// Reset OSRG2 password to test123
-$osrg2_password = password_hash('test123', PASSWORD_DEFAULT);
-$stmt = $pdo->prepare("UPDATE users SET password_hash = ? WHERE username = 'OSRG2'");
-$stmt->execute([$osrg2_password]);
-echo "<br><strong style='color: blue;'>OSRG2 password reset to: test123</strong><br>";
+foreach ($users_to_reset as $user_reset) {
+    $password_hash = password_hash($user_reset['password'], PASSWORD_DEFAULT);
+    $stmt = $pdo->prepare("UPDATE users SET password_hash = ? WHERE username = ?");
+    $stmt->execute([$password_hash, $user_reset['username']]);
+    echo "<br><strong style='color: blue;'>" . $user_reset['username'] . " password reset to: " . $user_reset['password'] . "</strong><br>";
+}
 
 // Create backup admin user if not exists
 $stmt = $pdo->prepare("SELECT * FROM users WHERE username = 'backup'");

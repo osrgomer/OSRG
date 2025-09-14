@@ -441,6 +441,13 @@ require_once 'header.php';
                     </div>
                     <a href="?website_backup=1" style="background: #6f42c1; color: white; padding: 5px 10px; text-decoration: none; border-radius: 3px; font-weight: bold;" onclick="return confirm('Create and download complete website backup?')">Download ZIP</a>
                 </div>
+                <div class="post-item">
+                    <div>
+                        <strong>Fix User IDs</strong><br>
+                        <span>Make user IDs sequential (1, 2, 3...) and update all related data</span>
+                    </div>
+                    <a href="fix_ids.php" style="background: #ff5722; color: white; padding: 5px 10px; text-decoration: none; border-radius: 3px; font-weight: bold;" onclick="return confirm('This will renumber all user IDs. Make sure no one is using the system. Continue?')">Fix IDs</a>
+                </div>
             </div>
         </div>
     </div>

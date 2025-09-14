@@ -44,6 +44,18 @@ if (!$osrg2) {
     echo "<br><strong style='color: green;'>OSRG2 user exists - ID: " . $osrg2['id'] . "</strong><br>";
 }
 
+// Reset OSRG password to admin123
+$osrg_password = password_hash('admin123', PASSWORD_DEFAULT);
+$stmt = $pdo->prepare("UPDATE users SET password_hash = ? WHERE username = 'OSRG'");
+$stmt->execute([$osrg_password]);
+echo "<br><strong style='color: blue;'>OSRG password reset to: admin123</strong><br>";
+
+// Reset OSRG2 password to test123
+$osrg2_password = password_hash('test123', PASSWORD_DEFAULT);
+$stmt = $pdo->prepare("UPDATE users SET password_hash = ? WHERE username = 'OSRG2'");
+$stmt->execute([$osrg2_password]);
+echo "<br><strong style='color: blue;'>OSRG2 password reset to: test123</strong><br>";
+
 } catch (Exception $e) {
     echo "Error: " . $e->getMessage();
 }

@@ -100,15 +100,18 @@ require_once 'header.php';
                 <?php foreach ($users as $user): ?>
                 <div class="user-item">
                     <span><strong><?= htmlspecialchars($user['username']) ?></strong></span>
-                    <?php if ($user['friendship_status'] == 'friends'): ?>
-                        <span style="color: #4caf50; font-weight: bold;">✓ Friends</span>
-                    <?php elseif ($user['friendship_status'] == 'request_sent'): ?>
-                        <span style="color: #ff9800;">Request Sent</span>
-                    <?php elseif ($user['friendship_status'] == 'request_received'): ?>
-                        <span style="color: #2196f3;">Pending Request</span>
-                    <?php else: ?>
-                        <a href="?add=<?= $user['id'] ?>" class="add-btn">Add Friend</a>
-                    <?php endif; ?>
+                    <div style="display: flex; gap: 10px; align-items: center;">
+                        <a href="profile/<?= $user['id'] ?>" style="background: #42a5f5; color: white; padding: 5px 10px; text-decoration: none; border-radius: 3px; font-size: 14px;">View Profile</a>
+                        <?php if ($user['friendship_status'] == 'friends'): ?>
+                            <span style="color: #4caf50; font-weight: bold;">✓ Friends</span>
+                        <?php elseif ($user['friendship_status'] == 'request_sent'): ?>
+                            <span style="color: #ff9800;">Request Sent</span>
+                        <?php elseif ($user['friendship_status'] == 'request_received'): ?>
+                            <span style="color: #2196f3;">Pending Request</span>
+                        <?php else: ?>
+                            <a href="?add=<?= $user['id'] ?>" class="add-btn">Add Friend</a>
+                        <?php endif; ?>
+                    </div>
                 </div>
                 <?php endforeach; ?>
             <?php else: ?>

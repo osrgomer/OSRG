@@ -1,5 +1,6 @@
 <?php
 require_once 'config.php';
+init_db();
 
 if (!isset($_SESSION['user_id'])) {
     header('Location: login');
@@ -16,13 +17,24 @@ try {
     $profile_user = $stmt->fetch();
 } catch (Exception $e) {
     // Fallback for missing columns
-    $stmt = $pdo->prepare("SELECT username, email, created_at, avatar FROM users WHERE id = ? AND approved = 1");
-    $stmt->execute([$user_id]);
-    $profile_user = $stmt->fetch();
-    if ($profile_user) {
-        $profile_user['bio'] = '';
-        $profile_user['last_seen'] = date('Y-m-d H:i:s');
-        // Keep the actual avatar from database
+    try {
+        $stmt = $pdo->prepare("SELECT username, email, created_at, avatar FROM users WHERE id = ? AND approved = 1");
+        $stmt->execute([$user_id]);
+        $profile_user = $stmt->fetch();
+        if ($profile_user) {
+            $profile_user['bio'] = '';
+            $profile_user['last_seen'] = date('Y-m-d H:i:s');
+        }
+    } catch (Exception $e2) {
+        // Ultimate fallback
+        $stmt = $pdo->prepare("SELECT username, email, created_at FROM users WHERE id = ? AND approved = 1");
+        $stmt->execute([$user_id]);
+        $profile_user = $stmt->fetch();
+        if ($profile_user) {
+            $profile_user['bio'] = '';
+            $profile_user['last_seen'] = date('Y-m-d H:i:s');
+            $profile_user['avatar'] = null;
+        }
     }
 }
 
@@ -32,7 +44,7 @@ if (!$profile_user) {
 }
 
 // Check if user is online (active within last 5 minutes)
-$is_online = (strtotime($profile_user['last_seen']) > (time() - 300));
+$is_online = isset($profile_user['last_seen']) ? (strtotime($profile_user['last_seen']) > (time() - 300)) : false;
 
 // Get user's posts
 try {
@@ -41,12 +53,19 @@ try {
     $user_posts = $stmt->fetchAll();
 } catch (Exception $e) {
     // Fallback for database issues
-    $stmt = $pdo->prepare("SELECT * FROM posts WHERE user_id = ? ORDER BY created_at DESC");
-    $stmt->execute([$user_id]);
-    $user_posts = $stmt->fetchAll();
-    // Add reaction_count as 0 for each post
-    foreach ($user_posts as &$post) {
-        $post['reaction_count'] = 0;
+    try {
+        $stmt = $pdo->prepare("SELECT * FROM posts WHERE user_id = ? ORDER BY created_at DESC");
+        $stmt->execute([$user_id]);
+        $user_posts = $stmt->fetchAll();
+        // Add reaction_count and edited_at as defaults for each post
+        foreach ($user_posts as &$post) {
+            $post['reaction_count'] = 0;
+            if (!isset($post['edited_at'])) {
+                $post['edited_at'] = null;
+            }
+        }
+    } catch (Exception $e2) {
+        $user_posts = [];
     }
 }
 

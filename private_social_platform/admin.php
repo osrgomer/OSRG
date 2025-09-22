@@ -210,17 +210,29 @@ $comment_count = $stmt->fetch()['count'];
 $stmt = $pdo->query("SELECT u.username, 'registered' as action, u.created_at as timestamp FROM users u WHERE u.created_at > datetime('now', '-7 days') UNION ALL SELECT u.username, 'posted' as action, p.created_at as timestamp FROM posts p JOIN users u ON p.user_id = u.id WHERE p.created_at > datetime('now', '-7 days') ORDER BY timestamp DESC LIMIT 10");
 $recent_activity = $stmt->fetchAll();
 
-// Get user engagement analytics
-$stmt = $pdo->query("SELECT u.id, u.username, u.created_at, u.last_seen, COUNT(DISTINCT p.id) as post_count, COUNT(DISTINCT f.friend_id) as friend_count, COUNT(DISTINCT m.id) as message_count FROM users u LEFT JOIN posts p ON u.id = p.user_id LEFT JOIN friends f ON u.id = f.user_id LEFT JOIN messages m ON u.id = m.sender_id WHERE u.approved = 1 GROUP BY u.id ORDER BY post_count DESC");
-$user_analytics = $stmt->fetchAll();
+// Get user engagement analytics with error handling
+try {
+    $stmt = $pdo->query("SELECT u.id, u.username, u.created_at, COUNT(DISTINCT p.id) as post_count, COUNT(DISTINCT f.friend_id) as friend_count, COUNT(DISTINCT m.id) as message_count FROM users u LEFT JOIN posts p ON u.id = p.user_id LEFT JOIN friends f ON u.id = f.user_id LEFT JOIN messages m ON u.id = m.sender_id WHERE u.approved = 1 GROUP BY u.id ORDER BY post_count DESC");
+    $user_analytics = $stmt->fetchAll();
+} catch (Exception $e) {
+    $user_analytics = [];
+}
 
 // Get daily activity stats for last 30 days
-$stmt = $pdo->query("SELECT DATE(created_at) as date, COUNT(*) as posts FROM posts WHERE created_at > datetime('now', '-30 days') GROUP BY DATE(created_at) ORDER BY date DESC");
-$daily_posts = $stmt->fetchAll();
+try {
+    $stmt = $pdo->query("SELECT DATE(created_at) as date, COUNT(*) as posts FROM posts WHERE created_at > datetime('now', '-30 days') GROUP BY DATE(created_at) ORDER BY date DESC");
+    $daily_posts = $stmt->fetchAll();
+} catch (Exception $e) {
+    $daily_posts = [];
+}
 
 // Get most active users this month
-$stmt = $pdo->query("SELECT u.username, COUNT(p.id) as posts_this_month FROM users u LEFT JOIN posts p ON u.id = p.user_id AND p.created_at > datetime('now', '-30 days') WHERE u.approved = 1 GROUP BY u.id ORDER BY posts_this_month DESC LIMIT 5");
-$top_users = $stmt->fetchAll();
+try {
+    $stmt = $pdo->query("SELECT u.username, COUNT(p.id) as posts_this_month FROM users u LEFT JOIN posts p ON u.id = p.user_id AND p.created_at > datetime('now', '-30 days') WHERE u.approved = 1 GROUP BY u.id ORDER BY posts_this_month DESC LIMIT 5");
+    $top_users = $stmt->fetchAll();
+} catch (Exception $e) {
+    $top_users = [];
+}
 
 // Get system info
 $db_size = filesize('private_social.db');
@@ -471,19 +483,8 @@ require_once 'header.php';
                                 <td style="padding: 10px; text-align: center; color: #28a745;"><?= $user['friend_count'] ?></td>
                                 <td style="padding: 10px; text-align: center; color: #ff9800;"><?= $user['message_count'] ?></td>
                                 <td style="padding: 10px; text-align: center; font-size: 12px;"><?= date('M j, Y', strtotime($user['created_at'])) ?></td>
-                                <td style="padding: 10px; text-align: center; font-size: 12px;">
-                                    <?php if ($user['last_seen']): ?>
-                                        <?= date('M j, H:i', strtotime($user['last_seen'])) ?>
-                                    <?php else: ?>
-                                        Never
-                                    <?php endif; ?>
-                                </td>
-                                <td style="padding: 10px; text-align: center;">
-                                    <?php 
-                                    $is_online = $user['last_seen'] && (strtotime($user['last_seen']) > strtotime('-5 minutes'));
-                                    echo $is_online ? '<span style="color: #28a745;">🟢 Online</span>' : '<span style="color: #6c757d;">⚫ Offline</span>';
-                                    ?>
-                                </td>
+                                <td style="padding: 10px; text-align: center; font-size: 12px;">N/A</td>
+                                <td style="padding: 10px; text-align: center;"><span style="color: #6c757d;">⚫ Unknown</span></td>
                             </tr>
                             <?php endforeach; ?>
                         </tbody>

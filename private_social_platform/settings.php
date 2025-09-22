@@ -60,6 +60,14 @@ if ($_POST['update_profile'] ?? false) {
         $avatar = $_POST['preset_avatar'];
     }
     
+    // Add missing columns if they don't exist
+    try {
+        $pdo->exec("ALTER TABLE users ADD COLUMN bio TEXT");
+    } catch (Exception $e) {}
+    try {
+        $pdo->exec("ALTER TABLE users ADD COLUMN avatar TEXT");
+    } catch (Exception $e) {}
+    
     try {
         $stmt = $pdo->prepare("UPDATE users SET username = ?, email = ?, bio = ?, avatar = ? WHERE id = ?");
         $stmt->execute([$new_username, $new_email, $new_bio, $avatar, $_SESSION['user_id']]);
@@ -92,12 +100,20 @@ if ($_POST['update_profile'] ?? false) {
 // Handle settings update (only if not profile update)
 if (($_POST['timezone'] ?? false) && !($_POST['update_profile'] ?? false)) {
     $email_notif = isset($_POST['email_notifications']) ? 1 : 0;
+    // Add missing columns if they don't exist
+    try {
+        $pdo->exec("ALTER TABLE users ADD COLUMN timezone TEXT DEFAULT 'Europe/London'");
+    } catch (Exception $e) {}
+    try {
+        $pdo->exec("ALTER TABLE users ADD COLUMN email_notifications INTEGER DEFAULT 0");
+    } catch (Exception $e) {}
+    
     try {
         $stmt = $pdo->prepare("UPDATE users SET timezone = ?, email_notifications = ? WHERE id = ?");
         $stmt->execute([$_POST['timezone'], $email_notif, $_SESSION['user_id']]);
         $message = 'Settings updated successfully!';
     } catch (Exception $e) {
-        $message = 'Settings update not available (database needs update)';
+        $message = 'Settings update failed: ' . $e->getMessage();
     }
     // Refresh user data
     try {

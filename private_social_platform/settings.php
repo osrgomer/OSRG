@@ -122,6 +122,7 @@ if (($_POST['timezone'] ?? false) && !($_POST['update_profile'] ?? false)) {
         $user = $stmt->fetch();
         $current_timezone = $user['timezone'] ?? 'Europe/London';
         $email_notifications = $user['email_notifications'] ?? 0;
+        $current_avatar = $user['avatar'] ?? '';
     } catch (Exception $e) {
         // Keep current values if refresh fails
     }

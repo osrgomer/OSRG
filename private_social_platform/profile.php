@@ -10,10 +10,18 @@ if (!isset($_SESSION['user_id'])) {
 $pdo = get_db();
 $user_id = $_GET['id'] ?? $_SESSION['user_id'];
 
-// Get basic user data
-$stmt = $pdo->prepare("SELECT username, email, created_at, avatar FROM users WHERE id = ? AND approved = 1");
-$stmt->execute([$user_id]);
-$profile_user = $stmt->fetch();
+// Get basic user data with bio
+try {
+    $stmt = $pdo->prepare("SELECT username, email, created_at, avatar, bio FROM users WHERE id = ? AND approved = 1");
+    $stmt->execute([$user_id]);
+    $profile_user = $stmt->fetch();
+} catch (Exception $e) {
+    // Fallback without bio column
+    $stmt = $pdo->prepare("SELECT username, email, created_at, avatar FROM users WHERE id = ? AND approved = 1");
+    $stmt->execute([$user_id]);
+    $profile_user = $stmt->fetch();
+    if ($profile_user) $profile_user['bio'] = null;
+}
 
 if (!$profile_user) {
     header('Location: home');
@@ -64,6 +72,12 @@ require_once 'header.php';
         <?php endif; ?>
         
         <h1 class="username"><?= htmlspecialchars($profile_user['username']) ?></h1>
+        
+        <?php if (!empty($profile_user['bio'])): ?>
+            <div style="color: #666; font-size: 16px; margin: 15px 0; max-width: 400px; margin-left: auto; margin-right: auto;">
+                <?= nl2br(htmlspecialchars($profile_user['bio'])) ?>
+            </div>
+        <?php endif; ?>
         
         <div class="stats">
             <div class="stat">

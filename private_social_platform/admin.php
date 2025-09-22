@@ -210,6 +210,18 @@ $comment_count = $stmt->fetch()['count'];
 $stmt = $pdo->query("SELECT u.username, 'registered' as action, u.created_at as timestamp FROM users u WHERE u.created_at > datetime('now', '-7 days') UNION ALL SELECT u.username, 'posted' as action, p.created_at as timestamp FROM posts p JOIN users u ON p.user_id = u.id WHERE p.created_at > datetime('now', '-7 days') ORDER BY timestamp DESC LIMIT 10");
 $recent_activity = $stmt->fetchAll();
 
+// Get user engagement analytics
+$stmt = $pdo->query("SELECT u.id, u.username, u.created_at, u.last_seen, COUNT(DISTINCT p.id) as post_count, COUNT(DISTINCT f.friend_id) as friend_count, COUNT(DISTINCT m.id) as message_count FROM users u LEFT JOIN posts p ON u.id = p.user_id LEFT JOIN friends f ON u.id = f.user_id LEFT JOIN messages m ON u.id = m.sender_id WHERE u.approved = 1 GROUP BY u.id ORDER BY post_count DESC");
+$user_analytics = $stmt->fetchAll();
+
+// Get daily activity stats for last 30 days
+$stmt = $pdo->query("SELECT DATE(created_at) as date, COUNT(*) as posts FROM posts WHERE created_at > datetime('now', '-30 days') GROUP BY DATE(created_at) ORDER BY date DESC");
+$daily_posts = $stmt->fetchAll();
+
+// Get most active users this month
+$stmt = $pdo->query("SELECT u.username, COUNT(p.id) as posts_this_month FROM users u LEFT JOIN posts p ON u.id = p.user_id AND p.created_at > datetime('now', '-30 days') WHERE u.approved = 1 GROUP BY u.id ORDER BY posts_this_month DESC LIMIT 5");
+$top_users = $stmt->fetchAll();
+
 // Get system info
 $db_size = filesize('private_social.db');
 $uploads_size = 0;
@@ -303,6 +315,7 @@ require_once 'header.php';
             <div class="tab" onclick="showTab('users')">Manage Users</div>
             <div class="tab" onclick="showTab('posts')">Manage Posts</div>
             <div class="tab" onclick="showTab('activity')">Activity Monitor</div>
+            <div class="tab" onclick="showTab('analytics')">User Analytics</div>
             <div class="tab" onclick="showTab('system')">System Info</div>
             <div class="tab" onclick="showTab('tools')">Admin Tools</div>
         </div>
@@ -406,6 +419,75 @@ require_once 'header.php';
                         <strong>Server Time</strong><br>
                         <span style="color: #1877f2; font-size: 18px;"><?= date('H:i:s') ?></span>
                     </div>
+                </div>
+            </div>
+        </div>
+
+        <div id="analytics" class="tab-content">
+            <div class="post">
+                <h3>📈 User Engagement Analytics</h3>
+                
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-bottom: 20px;">
+                    <div style="background: #f8f9fa; padding: 15px; border-radius: 8px;">
+                        <h4>📊 Top Active Users (This Month)</h4>
+                        <?php foreach ($top_users as $user): ?>
+                        <div style="display: flex; justify-content: space-between; padding: 5px 0; border-bottom: 1px solid #ddd;">
+                            <span><?= htmlspecialchars($user['username']) ?></span>
+                            <span style="color: #1877f2; font-weight: bold;"><?= $user['posts_this_month'] ?> posts</span>
+                        </div>
+                        <?php endforeach; ?>
+                    </div>
+                    
+                    <div style="background: #f8f9fa; padding: 15px; border-radius: 8px;">
+                        <h4>📅 Daily Posts (Last 7 Days)</h4>
+                        <?php foreach (array_slice($daily_posts, 0, 7) as $day): ?>
+                        <div style="display: flex; justify-content: space-between; padding: 5px 0; border-bottom: 1px solid #ddd;">
+                            <span><?= date('M j', strtotime($day['date'])) ?></span>
+                            <span style="color: #28a745; font-weight: bold;"><?= $day['posts'] ?> posts</span>
+                        </div>
+                        <?php endforeach; ?>
+                    </div>
+                </div>
+                
+                <h4>👥 Detailed User Analytics</h4>
+                <div style="overflow-x: auto;">
+                    <table style="width: 100%; border-collapse: collapse; margin-top: 10px;">
+                        <thead>
+                            <tr style="background: #1877f2; color: white;">
+                                <th style="padding: 10px; text-align: left;">User</th>
+                                <th style="padding: 10px; text-align: center;">Posts</th>
+                                <th style="padding: 10px; text-align: center;">Friends</th>
+                                <th style="padding: 10px; text-align: center;">Messages</th>
+                                <th style="padding: 10px; text-align: center;">Joined</th>
+                                <th style="padding: 10px; text-align: center;">Last Seen</th>
+                                <th style="padding: 10px; text-align: center;">Status</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <?php foreach ($user_analytics as $user): ?>
+                            <tr style="border-bottom: 1px solid #eee;">
+                                <td style="padding: 10px; font-weight: bold;"><?= htmlspecialchars($user['username']) ?></td>
+                                <td style="padding: 10px; text-align: center; color: #1877f2;"><?= $user['post_count'] ?></td>
+                                <td style="padding: 10px; text-align: center; color: #28a745;"><?= $user['friend_count'] ?></td>
+                                <td style="padding: 10px; text-align: center; color: #ff9800;"><?= $user['message_count'] ?></td>
+                                <td style="padding: 10px; text-align: center; font-size: 12px;"><?= date('M j, Y', strtotime($user['created_at'])) ?></td>
+                                <td style="padding: 10px; text-align: center; font-size: 12px;">
+                                    <?php if ($user['last_seen']): ?>
+                                        <?= date('M j, H:i', strtotime($user['last_seen'])) ?>
+                                    <?php else: ?>
+                                        Never
+                                    <?php endif; ?>
+                                </td>
+                                <td style="padding: 10px; text-align: center;">
+                                    <?php 
+                                    $is_online = $user['last_seen'] && (strtotime($user['last_seen']) > strtotime('-5 minutes'));
+                                    echo $is_online ? '<span style="color: #28a745;">🟢 Online</span>' : '<span style="color: #6c757d;">⚫ Offline</span>';
+                                    ?>
+                                </td>
+                            </tr>
+                            <?php endforeach; ?>
+                        </tbody>
+                    </table>
                 </div>
             </div>
         </div>

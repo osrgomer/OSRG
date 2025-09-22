@@ -3,8 +3,17 @@
 /**
  * Plugin Name:       OSRG Connect themes
  * Description:       themes for OSRG Connect.
- * Version:           2.1
+ * Version:           3.4
  * Author:            OSRG
+ *
+ * License: MIT
+ * Text Domain: osrg-connect
+ * 
+ * This file is part of OSRG Connect.
+ * (c) OSRG, 2024. All rights reserved.
+ *
+ * For support or contributions, visit: https://osrg.lol/help
+ *
  */
 
 require_once 'config.php';

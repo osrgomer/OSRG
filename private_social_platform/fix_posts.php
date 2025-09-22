@@ -52,6 +52,16 @@ if ($_POST['fix_posts'] ?? false) {
 <head>
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Fix Posts - OSRG Connect</title>
+    
+    <!-- Google tag (gtag.js) -->
+    <script async src="https://www.googletagmanager.com/gtag/js?id=G-Y1Y8S6WHNH"></script>
+    <script>
+      window.dataLayer = window.dataLayer || [];
+      function gtag(){dataLayer.push(arguments);}
+      gtag('js', new Date());
+
+      gtag('config', 'G-Y1Y8S6WHNH');
+    </script>
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
         body { font-family: Arial, sans-serif; background: #f5f5f5; padding: 20px; }

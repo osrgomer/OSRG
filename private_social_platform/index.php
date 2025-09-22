@@ -153,6 +153,16 @@ if ($_POST['content'] ?? false) {
     <link rel="apple-touch-icon" sizes="180x180" href="apple-touch-icon.png">
     <title>Feed - OSRG Connect</title>
     
+    <!-- Google tag (gtag.js) -->
+    <script async src="https://www.googletagmanager.com/gtag/js?id=G-Y1Y8S6WHNH"></script>
+    <script>
+      window.dataLayer = window.dataLayer || [];
+      function gtag(){dataLayer.push(arguments);}
+      gtag('js', new Date());
+
+      gtag('config', 'G-Y1Y8S6WHNH');
+    </script>
+    
     <!-- Open Graph Meta Tags -->
     <meta property="og:title" content="OSRG Connect - Public Feed">
     <meta property="og:description" content="Connect with friends and share your thoughts on OSRG Connect - A private social media platform.">

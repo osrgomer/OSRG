@@ -9,10 +9,21 @@ if (!isset($_SESSION['user_id'])) {
 $pdo = get_db();
 $message = '';
 
-// Get current user settings
-$stmt = $pdo->prepare("SELECT username, email, timezone, email_notifications, avatar, bio FROM users WHERE id = ?");
-$stmt->execute([$_SESSION['user_id']]);
-$user = $stmt->fetch();
+// Get current user settings with error handling
+try {
+    $stmt = $pdo->prepare("SELECT username, email, timezone, email_notifications, avatar, bio FROM users WHERE id = ?");
+    $stmt->execute([$_SESSION['user_id']]);
+    $user = $stmt->fetch();
+} catch (Exception $e) {
+    // Fallback for missing columns
+    $stmt = $pdo->prepare("SELECT username, email FROM users WHERE id = ?");
+    $stmt->execute([$_SESSION['user_id']]);
+    $user = $stmt->fetch();
+    $user['timezone'] = null;
+    $user['email_notifications'] = null;
+    $user['avatar'] = null;
+    $user['bio'] = null;
+}
 $current_timezone = $user['timezone'] ?? 'Europe/London';
 $email_notifications = $user['email_notifications'] ?? 0;
 $current_username = $user['username'] ?? '';
@@ -53,30 +64,51 @@ if ($_POST['update_profile'] ?? false) {
         $stmt = $pdo->prepare("UPDATE users SET username = ?, email = ?, bio = ?, avatar = ? WHERE id = ?");
         $stmt->execute([$new_username, $new_email, $new_bio, $avatar, $_SESSION['user_id']]);
         $message = 'Profile updated successfully!';
-        // Refresh user data
+    } catch (Exception $e) {
+        // Fallback for missing columns
+        try {
+            $stmt = $pdo->prepare("UPDATE users SET username = ?, email = ? WHERE id = ?");
+            $stmt->execute([$new_username, $new_email, $_SESSION['user_id']]);
+            $message = 'Basic profile updated successfully!';
+        } catch (PDOException $e) {
+            $message = 'Error: Username or email already exists.';
+        }
+    }
+    // Refresh user data
+    try {
         $stmt = $pdo->prepare("SELECT username, email, timezone, email_notifications, avatar, bio FROM users WHERE id = ?");
         $stmt->execute([$_SESSION['user_id']]);
         $user = $stmt->fetch();
-        $current_username = $user['username'];
-        $current_email = $user['email'];
-        $current_avatar = $user['avatar'];
-    } catch (PDOException $e) {
-        $message = 'Error: Username or email already exists.';
+    } catch (Exception $e) {
+        $stmt = $pdo->prepare("SELECT username, email FROM users WHERE id = ?");
+        $stmt->execute([$_SESSION['user_id']]);
+        $user = $stmt->fetch();
     }
+    $current_username = $user['username'];
+    $current_email = $user['email'];
+    $current_avatar = $user['avatar'] ?? '';
 }
 
 // Handle settings update (only if not profile update)
 if (($_POST['timezone'] ?? false) && !($_POST['update_profile'] ?? false)) {
     $email_notif = isset($_POST['email_notifications']) ? 1 : 0;
-    $stmt = $pdo->prepare("UPDATE users SET timezone = ?, email_notifications = ? WHERE id = ?");
-    $stmt->execute([$_POST['timezone'], $email_notif, $_SESSION['user_id']]);
-    $message = 'Settings updated successfully!';
+    try {
+        $stmt = $pdo->prepare("UPDATE users SET timezone = ?, email_notifications = ? WHERE id = ?");
+        $stmt->execute([$_POST['timezone'], $email_notif, $_SESSION['user_id']]);
+        $message = 'Settings updated successfully!';
+    } catch (Exception $e) {
+        $message = 'Settings update not available (database needs update)';
+    }
     // Refresh user data
-    $stmt = $pdo->prepare("SELECT username, email, timezone, email_notifications, avatar, bio FROM users WHERE id = ?");
-    $stmt->execute([$_SESSION['user_id']]);
-    $user = $stmt->fetch();
-    $current_timezone = $user['timezone'];
-    $email_notifications = $user['email_notifications'];
+    try {
+        $stmt = $pdo->prepare("SELECT username, email, timezone, email_notifications, avatar, bio FROM users WHERE id = ?");
+        $stmt->execute([$_SESSION['user_id']]);
+        $user = $stmt->fetch();
+        $current_timezone = $user['timezone'] ?? 'Europe/London';
+        $email_notifications = $user['email_notifications'] ?? 0;
+    } catch (Exception $e) {
+        // Keep current values if refresh fails
+    }
 }
 
 // Common timezones
@@ -294,9 +326,13 @@ $timezones = [
             $stmt->execute([$_SESSION['user_id'], $_SESSION['user_id'], $_SESSION['user_id'], $_SESSION['user_id']]);
             $friend_count = $stmt->fetch()['friend_count'] ?? 0;
             
-            $stmt = $pdo->prepare("SELECT COUNT(*) as reaction_count FROM reactions r JOIN posts p ON r.post_id = p.id WHERE p.user_id = ?");
-            $stmt->execute([$_SESSION['user_id']]);
-            $reactions_received = $stmt->fetch()['reaction_count'] ?? 0;
+            try {
+                $stmt = $pdo->prepare("SELECT COUNT(*) as reaction_count FROM reactions r JOIN posts p ON r.post_id = p.id WHERE p.user_id = ?");
+                $stmt->execute([$_SESSION['user_id']]);
+                $reactions_received = $stmt->fetch()['reaction_count'] ?? 0;
+            } catch (Exception $e) {
+                $reactions_received = 0;
+            }
             
             $stmt = $pdo->prepare("SELECT created_at FROM users WHERE id = ?");
             $stmt->execute([$_SESSION['user_id']]);

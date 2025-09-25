@@ -68,12 +68,16 @@ if (!$backup_user) {
     $stmt = $pdo->prepare("INSERT INTO users (username, email, password_hash, approved) VALUES (?, ?, ?, ?)");
     $stmt->execute(['backup', 'backup@osrg.lol', $backup_password, 1]);
     echo "<br><strong style='color: orange;'>Backup admin user created - Username: backup, Password: backup123</strong><br>";
-} else {
-    echo "<br><strong style='color: orange;'>Backup admin user exists - ID: " . $backup_user['id'] . "</strong><br>";
+    
+    // Get the newly created user
+    $stmt = $pdo->prepare("SELECT * FROM users WHERE username = 'backup'");
+    $stmt->execute();
+    $backup_user = $stmt->fetch();
 }
+
+echo "<br><strong style='color: orange;'>Backup admin user exists - ID: " . $backup_user['id'] . "</strong><br>";
 
 } catch (Exception $e) {
     echo "Error: " . $e->getMessage();
 }
-?>
 ?>

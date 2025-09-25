@@ -115,9 +115,10 @@ function get_link_preview($url) {
     curl_setopt($ch, CURLOPT_TIMEOUT, 10);
     curl_setopt($ch, CURLOPT_USERAGENT, 'Mozilla/5.0 (compatible; OSRG-Bot)');
     $html = curl_exec($ch);
+    $http_code = curl_getinfo($ch, CURLINFO_HTTP_CODE);
     curl_close($ch);
     
-    if (!$html) return null;
+    if (!$html || $http_code >= 400) return null;
     
     $doc = new DOMDocument();
     @$doc->loadHTML($html);
@@ -129,9 +130,14 @@ function get_link_preview($url) {
     
     if ($title->length == 0) {
         $title = $xpath->query('//title');
-        $title = $title->length > 0 ? $title->item(0)->textContent : parse_url($url, PHP_URL_HOST);
+        $title = $title->length > 0 ? $title->item(0)->textContent : null;
     } else {
         $title = $title->item(0)->value;
+    }
+    
+    // Don't show preview if we can't get a proper title
+    if (!$title || trim($title) === '' || strpos(strtolower($title), '404') !== false || strpos(strtolower($title), 'not found') !== false) {
+        return null;
     }
     
     $image_url = '';

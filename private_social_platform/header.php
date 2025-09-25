@@ -56,11 +56,19 @@ if (!isset($_SESSION['user_id'])) {
         
         // Update on page load
         fetch('update_activity.php');
+        
+        // Hamburger menu toggle function
+        function toggleNav() {
+            var navLinks = document.getElementById('navLinks');
+            if (navLinks) {
+                navLinks.classList.toggle('active');
+            }
+        }
     </script>
 </head>
 <body>
     <div class="nav">
-        <div class="hamburger" onclick="(function(){var n=document.getElementById('navLinks');if(n)n.classList.toggle('active');})();">
+        <div class="hamburger" onclick="toggleNav()">
             <span></span>
             <span></span>
             <span></span>

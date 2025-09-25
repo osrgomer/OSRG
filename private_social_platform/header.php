@@ -45,6 +45,28 @@ if (!isset($_SESSION['user_id'])) {
             .nav-links a { margin: 10px 0; padding: 10px; border-bottom: 1px solid #f0f0f0; }
             .nav { position: relative; }
         }
+        /* Mobile content overflow prevention */
+        @media (max-width: 768px) {
+            .post, .post * {
+                word-wrap: break-word !important;
+                word-break: break-word !important;
+                overflow-wrap: break-word !important;
+                max-width: 100% !important;
+            }
+            .post {
+                overflow: hidden !important;
+            }
+            .post div, .post p, .post span {
+                max-width: 100% !important;
+                overflow: hidden !important;
+                text-overflow: ellipsis !important;
+            }
+            .post a {
+                word-break: break-all !important;
+                display: inline-block !important;
+                max-width: 100% !important;
+            }
+        }
         <?= $additional_css ?? '' ?>
     </style>
     <?= $additional_head ?? '' ?>

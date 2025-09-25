@@ -6,6 +6,27 @@ if (strpos($_SERVER['HTTP_HOST'], 'connect.osrg.lol') !== false) {
 session_start();
 date_default_timezone_set('Europe/London');
 
+// Check for remember me token if not logged in
+if (!isset($_SESSION['user_id']) && isset($_COOKIE['remember_token'])) {
+    $pdo = get_db();
+    if ($pdo) {
+        try {
+            $stmt = $pdo->prepare("SELECT rt.user_id FROM remember_tokens rt WHERE rt.token = ? AND rt.expires > ?");
+            $stmt->execute([$_COOKIE['remember_token'], time()]);
+            $token_data = $stmt->fetch();
+            
+            if ($token_data) {
+                $_SESSION['user_id'] = $token_data['user_id'];
+            } else {
+                // Invalid or expired token, remove cookie
+                setcookie('remember_token', '', time() - 3600, '/', '', true, true);
+            }
+        } catch (Exception $e) {
+            // Table doesn't exist yet, ignore
+        }
+    }
+}
+
 function get_db() {
     try {
         $pdo = new PDO('sqlite:private_social.db');

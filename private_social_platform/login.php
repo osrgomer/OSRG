@@ -13,6 +13,30 @@ if ($_POST['username'] ?? false) {
     if ($user && password_verify($_POST['password'], $user['password_hash'])) {
         if ($user['approved']) {
             $_SESSION['user_id'] = $user['id'];
+            
+            // Handle Remember Me
+            if (isset($_POST['remember_me'])) {
+                $token = bin2hex(random_bytes(32));
+                $expires = time() + (30 * 24 * 60 * 60); // 30 days
+                
+                // Store token in database
+                try {
+                    $pdo->exec("CREATE TABLE IF NOT EXISTS remember_tokens (
+                        id INTEGER PRIMARY KEY,
+                        user_id INTEGER,
+                        token TEXT,
+                        expires INTEGER,
+                        created_at DATETIME DEFAULT CURRENT_TIMESTAMP
+                    )");
+                } catch (Exception $e) {}
+                
+                $stmt = $pdo->prepare("INSERT INTO remember_tokens (user_id, token, expires) VALUES (?, ?, ?)");
+                $stmt->execute([$user['id'], $token, $expires]);
+                
+                // Set cookie
+                setcookie('remember_token', $token, $expires, '/', '', true, true);
+            }
+            
             header('Location: home');
             exit;
         } else {
@@ -96,6 +120,12 @@ if ($_POST['username'] ?? false) {
                     <input type="password" id="password" name="password" placeholder="Password" required>
                     <button type="button" class="show-password" onclick="togglePassword()">👁️</button>
                 </div>
+            </div>
+            <div class="form-group">
+                <label style="display: flex; align-items: center; gap: 8px; margin-bottom: 15px;">
+                    <input type="checkbox" name="remember_me" style="width: auto;">
+                    <span style="font-size: 14px; color: #666;">Remember me for 30 days</span>
+                </label>
             </div>
             <div class="form-group">
                 <button type="submit">Login</button>

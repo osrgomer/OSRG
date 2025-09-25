@@ -6,7 +6,7 @@
  * Version:           3.4
  * Author:            OSRG
  *
- * License: MIT
+ * License: All Rights Reserved
  * Text Domain: osrg-connect
  * 
  * This file is part of OSRG Connect.

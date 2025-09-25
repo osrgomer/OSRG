@@ -13,7 +13,7 @@
  * (c) OSRG, 2024. All rights reserved.
  *
  * For support or contributions, visit: https://osrg.lol/help
- * 
+ *
  */
 
 require_once 'config.php';

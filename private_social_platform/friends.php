@@ -29,6 +29,28 @@ if ($_POST['comment'] ?? false) {
     exit;
 }
 
+// Handle delete post
+if ($_GET['delete_post'] ?? false) {
+    $post_id = $_GET['delete_post'];
+    // Verify user owns the post
+    $stmt = $pdo->prepare("SELECT user_id FROM posts WHERE id = ?");
+    $stmt->execute([$post_id]);
+    $post_owner = $stmt->fetch();
+    
+    if ($post_owner && $post_owner['user_id'] == $_SESSION['user_id']) {
+        // Delete related data first
+        $stmt = $pdo->prepare("DELETE FROM reactions WHERE post_id = ?");
+        $stmt->execute([$post_id]);
+        $stmt = $pdo->prepare("DELETE FROM comments WHERE post_id = ?");
+        $stmt->execute([$post_id]);
+        // Delete the post
+        $stmt = $pdo->prepare("DELETE FROM posts WHERE id = ?");
+        $stmt->execute([$post_id]);
+    }
+    header('Location: friends.php');
+    exit;
+}
+
 // Get all friends (accepted friendships)
 $stmt = $pdo->prepare("
     SELECT u.id, u.username, MIN(f.created_at) as created_at
@@ -271,7 +293,10 @@ require_once 'header.php';
                             $post_owner = $stmt_owner->fetch();
                             if ($post_owner && $post_owner['user_id'] == $_SESSION['user_id']):
                             ?>
-                            <button onclick="editPost(<?= $post['id'] ?>)" style="background: #1877f2; color: white; padding: 6px 12px; border: none; border-radius: 5px; cursor: pointer; font-size: 12px;">Edit</button>
+                            <div style="display: flex; gap: 5px;">
+                                <button onclick="editPost(<?= $post['id'] ?>)" style="background: #1877f2; color: white; padding: 6px 12px; border: none; border-radius: 5px; cursor: pointer; font-size: 12px;">Edit</button>
+                                <a href="?delete_post=<?= $post['id'] ?>" onclick="return confirm('Are you sure you want to delete this post?')" style="background: #f44336; color: white; padding: 6px 12px; text-decoration: none; border-radius: 5px; font-size: 12px;">Delete</a>
+                            </div>
                             <?php endif; ?>
                         </div>
                         <?php

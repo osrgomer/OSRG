@@ -38,6 +38,11 @@ $post_count = count($user_posts);
 
 $is_own_profile = ($user_id == $_SESSION['user_id']);
 
+// Get current user data for header navigation
+$stmt = $pdo->prepare("SELECT username, avatar FROM users WHERE id = ?");
+$stmt->execute([$_SESSION['user_id']]);
+$user_nav = $stmt->fetch();
+
 // Set variables for header.php
 $page_title = htmlspecialchars($profile_user['username']) . ' - Profile';
 $additional_css = '

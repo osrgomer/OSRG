@@ -122,7 +122,7 @@ if ($_GET['delete_post'] ?? false) {
 }
 
 // Handle new post/reel
-if ($_POST['content'] ?? false) {
+if (isset($_POST['content'])) {
     $file_path = null;
     $file_type = null;
     $post_type = $_POST['post_type'] ?? 'post'; // 'post' or 'reel'

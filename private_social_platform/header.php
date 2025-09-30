@@ -97,12 +97,12 @@ if (!isset($_SESSION['user_id'])) {
         </div>
         
         <div class="nav-links" id="navLinks">
-            <a href="home">Home</a>
-            <a href="find-friends">Find Friends</a>
-            <a href="friends">My Friends</a>
-            <a href="messages">Messages</a>
-            <a href="profile">My Profile</a>
-            <a href="settings">Settings</a>
+            <a href="/home">Home</a>
+            <a href="/find-friends">Find Friends</a>
+            <a href="/friends">My Friends</a>
+            <a href="/messages">Messages</a>
+            <a href="/profile">My Profile</a>
+            <a href="/settings">Settings</a>
             <?php
             if (!isset($user_nav)) {
                 $pdo_nav = get_db();
@@ -112,9 +112,9 @@ if (!isset($_SESSION['user_id'])) {
             }
             if ($user_nav && ($user_nav['username'] === 'OSRG' || $user_nav['username'] === 'backup')):
             ?>
-            <a href="admin" style="color: #d32f2f; font-weight: bold;">Admin Panel</a>
+            <a href="/admin" style="color: #d32f2f; font-weight: bold;">Admin Panel</a>
             <?php endif; ?>
-            <a href="logout.php">Logout</a>
+            <a href="/logout.php">Logout</a>
         </div>
         
         <div class="avatar-container">
@@ -123,7 +123,7 @@ if (!isset($_SESSION['user_id'])) {
             $random_avatars = ['👤', '👨', '👩', '🧑', '👶', '🐱', '🐶', '🦊'];
             $default_avatar = $random_avatars[($_SESSION['user_id'] ?? 0) % count($random_avatars)];
             ?>
-            <a href="settings#profile" style="text-decoration: none;">
+            <a href="/settings#profile" style="text-decoration: none;">
                 <?php if ($avatar && strpos($avatar, 'avatars/') === 0): ?>
                     <img src="<?= htmlspecialchars($avatar) ?>" alt="Avatar" class="user-avatar" style="object-fit: cover;">
                 <?php elseif ($avatar): ?>

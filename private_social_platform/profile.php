@@ -3,7 +3,7 @@ require_once 'config.php';
 init_db();
 
 if (!isset($_SESSION['user_id'])) {
-    header('Location: login');
+    header('Location: /login');
     exit;
 }
 
@@ -24,7 +24,7 @@ try {
 }
 
 if (!$profile_user) {
-    header('Location: home');
+    header('Location: /home');
     exit;
 }
 
@@ -92,7 +92,7 @@ require_once 'header.php';
         
         <?php if ($is_own_profile): ?>
             <div style="margin-top: 20px;">
-                <a href="settings" style="background: #1877f2; color: white; padding: 10px 20px; text-decoration: none; border-radius: 8px; font-weight: 600;">Edit Profile</a>
+                <a href="/settings" style="background: #1877f2; color: white; padding: 10px 20px; text-decoration: none; border-radius: 8px; font-weight: 600;">Edit Profile</a>
             </div>
         <?php endif; ?>
     </div>

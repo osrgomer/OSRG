@@ -95,6 +95,10 @@ if ($_POST['update_profile'] ?? false) {
     $current_username = $user['username'];
     $current_email = $user['email'];
     $current_avatar = $user['avatar'] ?? '';
+    // Update bio variable for display
+    if (isset($user['bio'])) {
+        // Bio is already in $user array from the refresh query
+    }
 }
 
 // Handle settings update (only if not profile update)

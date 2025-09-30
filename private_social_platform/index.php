@@ -133,7 +133,7 @@ if ($_POST['content'] ?? false) {
         $filename = $_FILES['file']['name'];
         $file_ext = strtolower(pathinfo($filename, PATHINFO_EXTENSION));
         $file_size = $_FILES['file']['size'];
-        $max_size = 50 * 1024 * 1024; // 50MB limit for reels
+        $max_size = 52 * 1024 * 1024; // 52MB limit for reels
         
         if ($file_size > $max_size) {
             // File too large - skip upload
@@ -671,7 +671,7 @@ if ($_POST['content'] ?? false) {
                     </div>
                     <div class="form-group">
                         <input type="file" name="file" id="reelFileInput" accept=".mp4,.mov,.avi" required style="margin-bottom: 10px;">
-                        <small style="color: #666;">Upload Video: MP4, MOV, AVI (max 50MB) - Required for reels</small>
+                        <small style="color: #666;">Upload Video: MP4, MOV, AVI (max 52MB) - Required for reels</small>
                     </div>
                 </div>
                 

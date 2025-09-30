@@ -69,7 +69,7 @@ require_once 'header.php';
         $default_avatar = $random_avatars[($user_id ?? 0) % count($random_avatars)];
         ?>
         <?php if ($user_avatar && strpos($user_avatar, 'avatars/') === 0): ?>
-            <img src="<?= htmlspecialchars($user_avatar) ?>" alt="Avatar" class="avatar-large">
+            <img src="/<?= htmlspecialchars($user_avatar) ?>" alt="Avatar" class="avatar-large">
         <?php elseif ($user_avatar): ?>
             <div style="font-size: 120px; margin-bottom: 20px;"><?= htmlspecialchars($user_avatar) ?></div>
         <?php else: ?>

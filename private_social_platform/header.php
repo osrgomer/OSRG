@@ -104,7 +104,7 @@ if (!isset($_SESSION['user_id'])) {
             <a href="/profile">My Profile</a>
             <a href="/settings">Settings</a>
             <?php
-            if (!isset($user_nav)) {
+            if (!isset($user_nav) || !$user_nav) {
                 $pdo_nav = get_db();
                 $stmt_nav = $pdo_nav->prepare("SELECT username, avatar FROM users WHERE id = ?");
                 $stmt_nav->execute([$_SESSION['user_id']]);
@@ -119,7 +119,7 @@ if (!isset($_SESSION['user_id'])) {
         
         <div class="avatar-container">
             <?php
-            $avatar = $user_nav['avatar'] ?? null;
+            $avatar = ($user_nav && isset($user_nav['avatar'])) ? $user_nav['avatar'] : null;
             $random_avatars = ['👤', '👨', '👩', '🧑', '👶', '🐱', '🐶', '🦊'];
             $default_avatar = $random_avatars[($_SESSION['user_id'] ?? 0) % count($random_avatars)];
             ?>

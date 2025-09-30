@@ -76,18 +76,18 @@ try {
                ur.reaction_type as user_reaction
         FROM posts p 
         JOIN users u ON p.user_id = u.id
-        JOIN friends f ON (
+        LEFT JOIN friends f ON (
             (f.user_id = ? AND f.friend_id = p.user_id AND f.status = 'accepted') OR
             (f.friend_id = ? AND f.user_id = p.user_id AND f.status = 'accepted')
         )
         LEFT JOIN reactions r ON p.id = r.post_id
         LEFT JOIN comments c ON p.id = c.post_id
         LEFT JOIN reactions ur ON p.id = ur.post_id AND ur.user_id = ?
-        WHERE u.approved = 1
+        WHERE u.approved = 1 AND (f.id IS NOT NULL OR p.user_id = ?)
         GROUP BY p.id
         ORDER BY p.created_at DESC
     ");
-    $stmt->execute([$_SESSION['user_id'], $_SESSION['user_id'], $_SESSION['user_id']]);
+    $stmt->execute([$_SESSION['user_id'], $_SESSION['user_id'], $_SESSION['user_id'], $_SESSION['user_id']]);
     $friend_posts = $stmt->fetchAll();
 } catch (Exception $e) {
     // Fallback for old database
@@ -96,14 +96,15 @@ try {
                0 as like_count, 0 as love_count, 0 as laugh_count, 0 as comment_count, NULL as user_reaction
         FROM posts p 
         JOIN users u ON p.user_id = u.id
-        JOIN friends f ON (
+        LEFT JOIN friends f ON (
             (f.user_id = ? AND f.friend_id = p.user_id AND f.status = 'accepted') OR
             (f.friend_id = ? AND f.user_id = p.user_id AND f.status = 'accepted')
         )
+        WHERE u.approved = 1 AND (f.id IS NOT NULL OR p.user_id = ?)
         GROUP BY p.id
         ORDER BY p.created_at DESC
     ");
-    $stmt->execute([$_SESSION['user_id'], $_SESSION['user_id']]);
+    $stmt->execute([$_SESSION['user_id'], $_SESSION['user_id'], $_SESSION['user_id']]);
     $friend_posts = $stmt->fetchAll();
 }
 // Set page variables for header

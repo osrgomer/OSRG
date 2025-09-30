@@ -68,7 +68,7 @@ $friends = $stmt->fetchAll();
 // Get posts from friends only with reactions and comments
 try {
     $stmt = $pdo->prepare("
-        SELECT p.id, p.content, p.created_at, u.username, u.avatar, p.file_path, p.file_type,
+        SELECT p.id, p.content, p.created_at, u.username, u.avatar, p.file_path, p.file_type, p.post_type,
                COUNT(DISTINCT CASE WHEN r.reaction_type = 'like' THEN r.id END) as like_count,
                COUNT(DISTINCT CASE WHEN r.reaction_type = 'love' THEN r.id END) as love_count,
                COUNT(DISTINCT CASE WHEN r.reaction_type = 'laugh' THEN r.id END) as laugh_count,
@@ -92,7 +92,7 @@ try {
 } catch (Exception $e) {
     // Fallback for old database
     $stmt = $pdo->prepare("
-        SELECT p.id, p.content, p.created_at, u.username, u.avatar, NULL as file_path, NULL as file_type,
+        SELECT p.id, p.content, p.created_at, u.username, u.avatar, NULL as file_path, NULL as file_type, 'post' as post_type,
                0 as like_count, 0 as love_count, 0 as laugh_count, 0 as comment_count, NULL as user_reaction
         FROM posts p 
         JOIN users u ON p.user_id = u.id
@@ -277,14 +277,19 @@ require_once 'header.php';
                             <div style="display: flex; align-items: center; gap: 10px;">
                                 <?php if ($post['avatar']): ?>
                                     <?php if (strpos($post['avatar'], 'avatars/') === 0): ?>
-                                        <img src="<?= htmlspecialchars($post['avatar']) ?>" alt="Avatar" style="width: 40px; height: 40px; border-radius: 50%; object-fit: cover;">
+                                        <img src="/<?= htmlspecialchars($post['avatar']) ?>" alt="Avatar" style="width: 40px; height: 40px; border-radius: 50%; object-fit: cover;">
                                     <?php else: ?>
                                         <span style="font-size: 30px;"><?= htmlspecialchars($post['avatar']) ?></span>
                                     <?php endif; ?>
                                 <?php else: ?>
                                     <span style="font-size: 30px;">👤</span>
                                 <?php endif; ?>
-                                <strong><?= htmlspecialchars($post['username']) ?></strong>
+                                <div>
+                                    <strong><?= htmlspecialchars($post['username']) ?></strong>
+                                    <?php if (($post['post_type'] ?? 'post') === 'reel'): ?>
+                                        <span style="background: linear-gradient(45deg, #ff6b6b, #4ecdc4); color: white; padding: 2px 8px; border-radius: 12px; font-size: 11px; font-weight: bold; margin-left: 8px;">🎬 REEL</span>
+                                    <?php endif; ?>
+                                </div>
                             </div>
                             <?php
                             // Check if current user owns this post

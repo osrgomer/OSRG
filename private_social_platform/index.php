@@ -28,7 +28,7 @@ if (!isset($_SESSION['user_id'])) {
 $pdo = get_db();
 try {
     $stmt = $pdo->prepare("
-        SELECT p.id, p.content, p.created_at, u.username, u.avatar, p.file_path, p.file_type,
+        SELECT p.id, p.content, p.created_at, u.username, u.avatar, p.file_path, p.file_type, p.post_type,
                COUNT(DISTINCT CASE WHEN r.reaction_type = 'like' THEN r.id END) as like_count,
                COUNT(DISTINCT CASE WHEN r.reaction_type = 'love' THEN r.id END) as love_count,
                COUNT(DISTINCT CASE WHEN r.reaction_type = 'laugh' THEN r.id END) as laugh_count,
@@ -47,7 +47,7 @@ try {
     $posts = $stmt->fetchAll();
 } catch (Exception $e) {
     // Fallback for old database
-    $stmt = $pdo->query("SELECT p.id, p.content, p.created_at, u.username, u.avatar, NULL as file_path, NULL as file_type,
+    $stmt = $pdo->query("SELECT p.id, p.content, p.created_at, u.username, u.avatar, NULL as file_path, NULL as file_type, 'post' as post_type,
                          0 as like_count, 0 as love_count, 0 as laugh_count, 0 as comment_count, NULL as user_reaction
                          FROM posts p JOIN users u ON p.user_id = u.id 
                          ORDER BY p.created_at DESC");
@@ -121,18 +121,19 @@ if ($_GET['delete_post'] ?? false) {
     exit;
 }
 
-// Handle new post
+// Handle new post/reel
 if ($_POST['content'] ?? false) {
     $file_path = null;
     $file_type = null;
+    $post_type = $_POST['post_type'] ?? 'post'; // 'post' or 'reel'
     
     // Handle file upload
     if (isset($_FILES['file']) && $_FILES['file']['error'] == 0) {
-        $allowed = ['mp4', 'mp3', 'png', 'jpg', 'jpeg'];
+        $allowed = ($post_type === 'reel') ? ['mp4', 'mov', 'avi'] : ['mp4', 'mp3', 'png', 'jpg', 'jpeg'];
         $filename = $_FILES['file']['name'];
         $file_ext = strtolower(pathinfo($filename, PATHINFO_EXTENSION));
         $file_size = $_FILES['file']['size'];
-        $max_size = 10 * 1024 * 1024; // 10MB limit
+        $max_size = 50 * 1024 * 1024; // 50MB limit for reels
         
         if ($file_size > $max_size) {
             // File too large - skip upload
@@ -152,13 +153,25 @@ if ($_POST['content'] ?? false) {
         }
     }
     
+    // For reels, require video file
+    if ($post_type === 'reel' && (!$file_path || !in_array($file_type, ['mp4', 'mov', 'avi']))) {
+        // Skip reel creation if no video
+        header('Location: home');
+        exit;
+    }
+    
+    // Add post_type column if it doesn't exist
     try {
+        $pdo->exec("ALTER TABLE posts ADD COLUMN post_type TEXT DEFAULT 'post'");
+    } catch (Exception $e) {}
+    
+    try {
+        $stmt = $pdo->prepare("INSERT INTO posts (user_id, content, file_path, file_type, post_type) VALUES (?, ?, ?, ?, ?)");
+        $stmt->execute([$_SESSION['user_id'], $_POST['content'], $file_path, $file_type, $post_type]);
+    } catch (Exception $e) {
+        // Fallback for old database without new columns
         $stmt = $pdo->prepare("INSERT INTO posts (user_id, content, file_path, file_type) VALUES (?, ?, ?, ?)");
         $stmt->execute([$_SESSION['user_id'], $_POST['content'], $file_path, $file_type]);
-    } catch (Exception $e) {
-        // Fallback for old database without file columns
-        $stmt = $pdo->prepare("INSERT INTO posts (user_id, content) VALUES (?, ?)");
-        $stmt->execute([$_SESSION['user_id'], $_POST['content']]);
     }
     
     header('Location: home');
@@ -291,14 +304,30 @@ if ($_POST['content'] ?? false) {
             
             // Update hidden textarea when form is submitted
             document.getElementById('postForm').addEventListener('submit', function(e) {
-                // Always set the content first
-                document.getElementById('content').value = quill.root.innerHTML;
+                const postType = document.getElementById('postType').value;
                 
-                const content = quill.getText().trim();
-                if (content.length === 0) {
-                    e.preventDefault();
-                    alert('Please write something before posting!');
-                    return false;
+                if (postType === 'post') {
+                    // Handle regular post
+                    document.getElementById('content').value = quill.root.innerHTML;
+                    const content = quill.getText().trim();
+                    if (content.length === 0) {
+                        e.preventDefault();
+                        alert('Please write something before posting!');
+                        return false;
+                    }
+                } else {
+                    // Handle reel
+                    const reelContent = document.getElementById('reelTextarea').value.trim();
+                    const reelFile = document.getElementById('reelFileInput').files[0];
+                    
+                    if (!reelFile) {
+                        e.preventDefault();
+                        alert('Please upload a video for your reel!');
+                        return false;
+                    }
+                    
+                    // Set content from reel textarea
+                    document.getElementById('content').value = reelContent;
                 }
                 return true;
             });
@@ -476,6 +505,41 @@ if ($_POST['content'] ?? false) {
             };
         }
         
+        function switchTab(tabType) {
+            const postTab = document.getElementById('postTab');
+            const reelTab = document.getElementById('reelTab');
+            const postContent = document.getElementById('postContent');
+            const reelContent = document.getElementById('reelContent');
+            const postType = document.getElementById('postType');
+            const submitBtn = document.getElementById('submitBtn');
+            
+            if (tabType === 'post') {
+                postTab.style.color = '#1877f2';
+                postTab.style.borderBottom = '3px solid #1877f2';
+                reelTab.style.color = '#666';
+                reelTab.style.borderBottom = '3px solid transparent';
+                postContent.style.display = 'block';
+                reelContent.style.display = 'none';
+                postType.value = 'post';
+                submitBtn.textContent = 'Post';
+                
+                // Update form validation
+                document.getElementById('reelFileInput').removeAttribute('required');
+            } else {
+                reelTab.style.color = '#1877f2';
+                reelTab.style.borderBottom = '3px solid #1877f2';
+                postTab.style.color = '#666';
+                postTab.style.borderBottom = '3px solid transparent';
+                postContent.style.display = 'none';
+                reelContent.style.display = 'block';
+                postType.value = 'reel';
+                submitBtn.textContent = 'Create Reel';
+                
+                // Update form validation
+                document.getElementById('reelFileInput').setAttribute('required', 'required');
+            }
+        }
+        
         window.onload = function() {
             // Restore scroll position after comment submission
             const scrollPos = sessionStorage.getItem('scrollPos');
@@ -580,17 +644,38 @@ if ($_POST['content'] ?? false) {
         <?php endif; ?>
 
         <div class="post">
-            <h3>Share something...</h3>
+            <div style="display: flex; border-bottom: 2px solid #f0f0f0; margin-bottom: 20px;">
+                <button type="button" id="postTab" class="tab-btn active" onclick="switchTab('post')" style="flex: 1; padding: 15px; border: none; background: none; font-size: 16px; font-weight: bold; color: #1877f2; border-bottom: 3px solid #1877f2; cursor: pointer;">📝 Post</button>
+                <button type="button" id="reelTab" class="tab-btn" onclick="switchTab('reel')" style="flex: 1; padding: 15px; border: none; background: none; font-size: 16px; font-weight: bold; color: #666; border-bottom: 3px solid transparent; cursor: pointer;">🎬 Reel</button>
+            </div>
+            
             <form method="POST" enctype="multipart/form-data" id="postForm">
-                <div class="form-group">
-                    <div id="editor" style="border: 1px solid #ddd; border-radius: 5px; min-height: 100px; padding: 10px; background: white;"></div>
-                    <textarea name="content" id="content" style="display: none;"></textarea>
+                <input type="hidden" name="post_type" id="postType" value="post">
+                
+                <div id="postContent">
+                    <h3>Share something...</h3>
+                    <div class="form-group">
+                        <div id="editor" style="border: 1px solid #ddd; border-radius: 5px; min-height: 100px; padding: 10px; background: white;"></div>
+                        <textarea name="content" id="content" style="display: none;"></textarea>
+                    </div>
+                    <div class="form-group">
+                        <input type="file" name="file" id="fileInput" accept=".mp4,.mp3,.png,.jpg,.jpeg" style="margin-bottom: 10px;">
+                        <small style="color: #666;">Upload: MP4, MP3, PNG, JPG (max 10MB)</small>
+                    </div>
                 </div>
-                <div class="form-group">
-                    <input type="file" name="file" id="fileInput" accept=".mp4,.mp3,.png,.jpg,.jpeg" style="margin-bottom: 10px;">
-                    <small style="color: #666;">Upload: MP4, MP3, PNG, JPG (max 10MB)</small>
+                
+                <div id="reelContent" style="display: none;">
+                    <h3>Create a Reel 🎬</h3>
+                    <div class="form-group">
+                        <textarea name="content" id="reelTextarea" placeholder="Add a caption to your reel..." style="width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 5px; min-height: 80px; resize: vertical;"></textarea>
+                    </div>
+                    <div class="form-group">
+                        <input type="file" name="file" id="reelFileInput" accept=".mp4,.mov,.avi" required style="margin-bottom: 10px;">
+                        <small style="color: #666;">Upload Video: MP4, MOV, AVI (max 50MB) - Required for reels</small>
+                    </div>
                 </div>
-                <button type="submit">Post</button>
+                
+                <button type="submit" id="submitBtn">Post</button>
             </form>
         </div>
 
@@ -601,14 +686,19 @@ if ($_POST['content'] ?? false) {
                     <div style="display: flex; align-items: center; gap: 10px;">
                         <?php if ($post['avatar']): ?>
                             <?php if (strpos($post['avatar'], 'avatars/') === 0): ?>
-                                <img src="<?= htmlspecialchars($post['avatar']) ?>" alt="Avatar" style="width: 40px; height: 40px; border-radius: 50%; object-fit: cover;">
+                                <img src="/<?= htmlspecialchars($post['avatar']) ?>" alt="Avatar" style="width: 40px; height: 40px; border-radius: 50%; object-fit: cover;">
                             <?php else: ?>
                                 <span style="font-size: 30px;"><?= htmlspecialchars($post['avatar']) ?></span>
                             <?php endif; ?>
                         <?php else: ?>
                             <span style="font-size: 30px;">👤</span>
                         <?php endif; ?>
-                        <strong><?= htmlspecialchars($post['username']) ?></strong>
+                        <div>
+                            <strong><?= htmlspecialchars($post['username']) ?></strong>
+                            <?php if (($post['post_type'] ?? 'post') === 'reel'): ?>
+                                <span style="background: linear-gradient(45deg, #ff6b6b, #4ecdc4); color: white; padding: 2px 8px; border-radius: 12px; font-size: 11px; font-weight: bold; margin-left: 8px;">🎬 REEL</span>
+                            <?php endif; ?>
+                        </div>
                     </div>
                     <?php
                     // Check if current user owns this post

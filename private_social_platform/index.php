@@ -39,7 +39,7 @@ try {
         LEFT JOIN reactions r ON p.id = r.post_id
         LEFT JOIN comments c ON p.id = c.post_id
         LEFT JOIN reactions ur ON p.id = ur.post_id AND ur.user_id = ?
-        WHERE u.approved = 1
+        WHERE u.approved = 1 AND (p.post_type IS NULL OR p.post_type = 'post')
         GROUP BY p.id
         ORDER BY p.created_at DESC
     ");
@@ -121,24 +121,20 @@ if ($_GET['delete_post'] ?? false) {
     exit;
 }
 
-// Handle new post/reel
+// Handle new post
 if (isset($_POST['content'])) {
     $file_path = null;
     $file_type = null;
-    $post_type = $_POST['post_type'] ?? 'post'; // 'post' or 'reel'
     
     // Handle file upload
     if (isset($_FILES['file']) && $_FILES['file']['error'] == 0) {
-        $allowed = ($post_type === 'reel') ? ['mp4', 'mov', 'avi'] : ['mp4', 'mp3', 'png', 'jpg', 'jpeg'];
+        $allowed = ['mp4', 'mp3', 'png', 'jpg', 'jpeg'];
         $filename = $_FILES['file']['name'];
         $file_ext = strtolower(pathinfo($filename, PATHINFO_EXTENSION));
         $file_size = $_FILES['file']['size'];
-        $max_size = 52 * 1024 * 1024; // 52MB limit for reels
+        $max_size = 10 * 1024 * 1024; // 10MB limit
         
-        if ($file_size > $max_size) {
-            // File too large - skip upload
-        } elseif (in_array($file_ext, $allowed)) {
-            // Ensure uploads directory exists
+        if ($file_size <= $max_size && in_array($file_ext, $allowed)) {
             if (!is_dir('uploads')) {
                 mkdir('uploads', 0755, true);
             }
@@ -153,23 +149,11 @@ if (isset($_POST['content'])) {
         }
     }
     
-    // For reels, require video file
-    if ($post_type === 'reel' && (!$file_path || !in_array($file_type, ['mp4', 'mov', 'avi']))) {
-        // Skip reel creation if no video
-        header('Location: home');
-        exit;
-    }
-    
-    // Add post_type column if it doesn't exist
     try {
-        $pdo->exec("ALTER TABLE posts ADD COLUMN post_type TEXT DEFAULT 'post'");
-    } catch (Exception $e) {}
-    
-    try {
-        $stmt = $pdo->prepare("INSERT INTO posts (user_id, content, file_path, file_type, post_type) VALUES (?, ?, ?, ?, ?)");
-        $stmt->execute([$_SESSION['user_id'], $_POST['content'], $file_path, $file_type, $post_type]);
+        $stmt = $pdo->prepare("INSERT INTO posts (user_id, content, file_path, file_type, post_type) VALUES (?, ?, ?, ?, 'post')");
+        $stmt->execute([$_SESSION['user_id'], $_POST['content'], $file_path, $file_type]);
     } catch (Exception $e) {
-        // Fallback for old database without new columns
+        // Fallback for old database
         $stmt = $pdo->prepare("INSERT INTO posts (user_id, content, file_path, file_type) VALUES (?, ?, ?, ?)");
         $stmt->execute([$_SESSION['user_id'], $_POST['content'], $file_path, $file_type]);
     }
@@ -304,30 +288,12 @@ if (isset($_POST['content'])) {
             
             // Update hidden textarea when form is submitted
             document.getElementById('postForm').addEventListener('submit', function(e) {
-                const postType = document.getElementById('postType').value;
-                
-                if (postType === 'post') {
-                    // Handle regular post
-                    document.getElementById('content').value = quill.root.innerHTML;
-                    const content = quill.getText().trim();
-                    if (content.length === 0) {
-                        e.preventDefault();
-                        alert('Please write something before posting!');
-                        return false;
-                    }
-                } else {
-                    // Handle reel
-                    const reelContent = document.getElementById('reelTextarea').value.trim();
-                    const reelFile = document.getElementById('reelFileInput').files[0];
-                    
-                    if (!reelFile) {
-                        e.preventDefault();
-                        alert('Please upload a video for your reel!');
-                        return false;
-                    }
-                    
-                    // Set content from reel textarea
-                    document.getElementById('content').value = reelContent;
+                document.getElementById('content').value = quill.root.innerHTML;
+                const content = quill.getText().trim();
+                if (content.length === 0) {
+                    e.preventDefault();
+                    alert('Please write something before posting!');
+                    return false;
                 }
                 return true;
             });
@@ -505,41 +471,6 @@ if (isset($_POST['content'])) {
             };
         }
         
-        function switchTab(tabType) {
-            const postTab = document.getElementById('postTab');
-            const reelTab = document.getElementById('reelTab');
-            const postContent = document.getElementById('postContent');
-            const reelContent = document.getElementById('reelContent');
-            const postType = document.getElementById('postType');
-            const submitBtn = document.getElementById('submitBtn');
-            
-            if (tabType === 'post') {
-                postTab.style.color = '#1877f2';
-                postTab.style.borderBottom = '3px solid #1877f2';
-                reelTab.style.color = '#666';
-                reelTab.style.borderBottom = '3px solid transparent';
-                postContent.style.display = 'block';
-                reelContent.style.display = 'none';
-                postType.value = 'post';
-                submitBtn.textContent = 'Post';
-                
-                // Update form validation
-                document.getElementById('reelFileInput').removeAttribute('required');
-            } else {
-                reelTab.style.color = '#1877f2';
-                reelTab.style.borderBottom = '3px solid #1877f2';
-                postTab.style.color = '#666';
-                postTab.style.borderBottom = '3px solid transparent';
-                postContent.style.display = 'none';
-                reelContent.style.display = 'block';
-                postType.value = 'reel';
-                submitBtn.textContent = 'Create Reel';
-                
-                // Update form validation
-                document.getElementById('reelFileInput').setAttribute('required', 'required');
-            }
-        }
-        
         window.onload = function() {
             // Restore scroll position after comment submission
             const scrollPos = sessionStorage.getItem('scrollPos');
@@ -644,38 +575,17 @@ if (isset($_POST['content'])) {
         <?php endif; ?>
 
         <div class="post">
-            <div style="display: flex; border-bottom: 2px solid #f0f0f0; margin-bottom: 20px;">
-                <button type="button" id="postTab" class="tab-btn active" onclick="switchTab('post')" style="flex: 1; padding: 15px; border: none; background: none; font-size: 16px; font-weight: bold; color: #1877f2; border-bottom: 3px solid #1877f2; cursor: pointer;">📝 Post</button>
-                <button type="button" id="reelTab" class="tab-btn" onclick="switchTab('reel')" style="flex: 1; padding: 15px; border: none; background: none; font-size: 16px; font-weight: bold; color: #666; border-bottom: 3px solid transparent; cursor: pointer;">🎬 Reel</button>
-            </div>
-            
+            <h3>Share something...</h3>
             <form method="POST" enctype="multipart/form-data" id="postForm">
-                <input type="hidden" name="post_type" id="postType" value="post">
-                
-                <div id="postContent">
-                    <h3>Share something...</h3>
-                    <div class="form-group">
-                        <div id="editor" style="border: 1px solid #ddd; border-radius: 5px; min-height: 100px; padding: 10px; background: white;"></div>
-                        <textarea name="content" id="content" style="display: none;"></textarea>
-                    </div>
-                    <div class="form-group">
-                        <input type="file" name="file" id="fileInput" accept=".mp4,.mp3,.png,.jpg,.jpeg" style="margin-bottom: 10px;">
-                        <small style="color: #666;">Upload: MP4, MP3, PNG, JPG (max 10MB)</small>
-                    </div>
+                <div class="form-group">
+                    <div id="editor" style="border: 1px solid #ddd; border-radius: 5px; min-height: 100px; padding: 10px; background: white;"></div>
+                    <textarea name="content" id="content" style="display: none;"></textarea>
                 </div>
-                
-                <div id="reelContent" style="display: none;">
-                    <h3>Create a Reel 🎬</h3>
-                    <div class="form-group">
-                        <textarea name="content" id="reelTextarea" placeholder="Add a caption to your reel..." style="width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 5px; min-height: 80px; resize: vertical;"></textarea>
-                    </div>
-                    <div class="form-group">
-                        <input type="file" name="file" id="reelFileInput" accept=".mp4,.mov,.avi" required style="margin-bottom: 10px;">
-                        <small style="color: #666;">Upload Video: MP4, MOV, AVI (max 52MB) - Required for reels</small>
-                    </div>
+                <div class="form-group">
+                    <input type="file" name="file" id="fileInput" accept=".mp4,.mp3,.png,.jpg,.jpeg" style="margin-bottom: 10px;">
+                    <small style="color: #666;">Upload: MP4, MP3, PNG, JPG (max 10MB)</small>
                 </div>
-                
-                <button type="submit" id="submitBtn">Post</button>
+                <button type="submit">Post</button>
             </form>
         </div>
 

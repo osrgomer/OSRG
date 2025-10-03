@@ -83,7 +83,7 @@ try {
         LEFT JOIN reactions r ON p.id = r.post_id
         LEFT JOIN comments c ON p.id = c.post_id
         LEFT JOIN reactions ur ON p.id = ur.post_id AND ur.user_id = ?
-        WHERE u.approved = 1 AND (f.id IS NOT NULL OR p.user_id = ?)
+        WHERE u.approved = 1 AND (f.id IS NOT NULL OR p.user_id = ?) AND (p.post_type IS NULL OR p.post_type = 'post')
         GROUP BY p.id
         ORDER BY p.created_at DESC
     ");
@@ -100,7 +100,7 @@ try {
             (f.user_id = ? AND f.friend_id = p.user_id AND f.status = 'accepted') OR
             (f.friend_id = ? AND f.user_id = p.user_id AND f.status = 'accepted')
         )
-        WHERE u.approved = 1 AND (f.id IS NOT NULL OR p.user_id = ?)
+        WHERE u.approved = 1 AND (f.id IS NOT NULL OR p.user_id = ?) AND (p.post_type IS NULL OR p.post_type = 'post')
         GROUP BY p.id
         ORDER BY p.created_at DESC
     ");

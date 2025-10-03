@@ -126,7 +126,8 @@ $additional_css = '
     .reel-container { max-width: 400px; margin: 0 auto; }
     .reel-item { position: relative; background: black; margin: 20px 0; border-radius: 15px; overflow: hidden; box-shadow: 0 4px 15px rgba(0,0,0,0.3); }
     .reel-video { width: 100%; height: 600px; object-fit: cover; }
-    .reel-overlay { position: absolute; bottom: 0; left: 0; right: 0; background: linear-gradient(transparent, rgba(0,0,0,0.7)); padding: 20px; color: white; }
+    .reel-overlay { position: absolute; bottom: 0; left: 0; right: 0; background: linear-gradient(transparent, rgba(0,0,0,0.7)); padding: 20px; color: white; pointer-events: none; }
+    .reel-overlay * { pointer-events: auto; }
     .reel-info { display: flex; align-items: center; gap: 10px; margin-bottom: 10px; }
     .reel-avatar { width: 32px; height: 32px; border-radius: 50%; border: 2px solid white; }
     .reel-avatar-emoji { font-size: 24px; }

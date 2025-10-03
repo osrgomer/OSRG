@@ -115,15 +115,16 @@ require_once 'header.php';
 <div class="reel-container">
     <div class="create-reel">
         <h2>🎬 Create a Reel</h2>
-        <form method="POST" enctype="multipart/form-data">
+        <form method="POST" enctype="multipart/form-data" id="reelForm">
             <div style="margin: 15px 0;">
                 <textarea name="content" placeholder="Add a caption to your reel..." style="width: 100%; padding: 10px; border: none; border-radius: 8px; min-height: 80px; resize: vertical;"></textarea>
             </div>
             <div style="margin: 15px 0;">
-                <input type="file" name="file" accept=".mp4,.mov,.avi" required style="width: 100%; padding: 10px; background: white; border-radius: 8px;">
+                <input type="file" name="file" accept=".mp4,.mov,.avi" required style="width: 100%; padding: 10px; background: white; border-radius: 8px;" id="videoFile">
                 <small style="color: rgba(255,255,255,0.8); display: block; margin-top: 5px;">Upload Video: MP4, MOV, AVI (max 52MB)</small>
             </div>
-            <button type="submit" style="background: rgba(255,255,255,0.2); border: 2px solid white; color: white; padding: 12px 25px; border-radius: 25px; font-weight: bold;">Create Reel</button>
+            <button type="submit" id="submitBtn" style="background: rgba(255,255,255,0.2); border: 2px solid white; color: white; padding: 12px 25px; border-radius: 25px; font-weight: bold;">Create Reel</button>
+            <div id="uploadStatus" style="margin-top: 15px; padding: 10px; border-radius: 8px; display: none;"></div>
         </form>
     </div>
 
@@ -218,6 +219,49 @@ require_once 'header.php';
         </div>
     <?php endif; ?>
 </div>
+
+<script>
+document.getElementById('reelForm').addEventListener('submit', function(e) {
+    const fileInput = document.getElementById('videoFile');
+    const submitBtn = document.getElementById('submitBtn');
+    const status = document.getElementById('uploadStatus');
+    
+    if (fileInput.files.length > 0) {
+        const file = fileInput.files[0];
+        const maxSize = 52 * 1024 * 1024; // 52MB
+        
+        if (file.size > maxSize) {
+            e.preventDefault();
+            status.style.display = 'block';
+            status.style.background = 'rgba(255,0,0,0.2)';
+            status.style.color = 'white';
+            status.innerHTML = '❌ File too large! Maximum size is 52MB.';
+            return;
+        }
+        
+        // Show uploading status
+        submitBtn.disabled = true;
+        submitBtn.innerHTML = '⏳ Creating Reel...';
+        status.style.display = 'block';
+        status.style.background = 'rgba(255,255,255,0.2)';
+        status.style.color = 'white';
+        status.innerHTML = '📤 Uploading your reel... Please wait!';
+    }
+});
+
+// File selection feedback
+document.getElementById('videoFile').addEventListener('change', function(e) {
+    const status = document.getElementById('uploadStatus');
+    if (e.target.files.length > 0) {
+        const file = e.target.files[0];
+        const sizeMB = (file.size / (1024 * 1024)).toFixed(1);
+        status.style.display = 'block';
+        status.style.background = 'rgba(255,255,255,0.2)';
+        status.style.color = 'white';
+        status.innerHTML = `✅ Video selected: ${file.name} (${sizeMB}MB)`;
+    }
+});
+</script>
 
 </body>
 </html>

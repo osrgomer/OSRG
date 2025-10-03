@@ -100,7 +100,7 @@ if ($_POST['comment'] ?? false) {
 // Get all reels
 try {
     // First, let's see all posts with video files
-    $debug_stmt = $pdo->prepare("SELECT id, user_id, content, file_path, file_type, post_type, created_at FROM posts WHERE file_type IN ('mp4', 'mov', 'avi') ORDER BY created_at DESC");
+    $debug_stmt = $pdo->prepare("SELECT id, user_id, content, file_path, file_type, created_at FROM posts WHERE file_type IN ('mp4', 'mov', 'avi') ORDER BY created_at DESC");
     $debug_stmt->execute();
     $debug_posts = $debug_stmt->fetchAll();
     
@@ -116,7 +116,7 @@ try {
         LEFT JOIN reactions r ON p.id = r.post_id
         LEFT JOIN comments c ON p.id = c.post_id
         LEFT JOIN reactions ur ON p.id = ur.post_id AND ur.user_id = ?
-        WHERE u.approved = 1 AND (p.post_type = 'reel' OR (p.file_type IN ('mp4', 'mov', 'avi') AND p.post_type IS NULL))
+        WHERE u.approved = 1 AND p.file_type IN ('mp4', 'mov', 'avi')
         GROUP BY p.id
         ORDER BY p.created_at DESC
     ");
@@ -189,7 +189,7 @@ require_once 'header.php';
         <strong>Debug: Found <?= count($debug_posts ?? []) ?> video posts, <?= count($reels ?? []) ?> reels shown</strong><br>
         <?php if (!empty($debug_posts)): ?>
             <?php foreach ($debug_posts as $dp): ?>
-                ID: <?= $dp['id'] ?>, User: <?= $dp['user_id'] ?>, File: <?= $dp['file_path'] ?>, Type: <?= $dp['post_type'] ?: 'NULL' ?><br>
+                ID: <?= $dp['id'] ?>, User: <?= $dp['user_id'] ?>, File: <?= $dp['file_path'] ?><br>
             <?php endforeach; ?>
         <?php else: ?>
             No video posts found in database.<br>

@@ -172,81 +172,11 @@ require_once 'header.php';
                 <source src="/<?= htmlspecialchars($reel['file_path']) ?>" type="video/<?= $reel['file_type'] ?>">
             </video>
             
-            <div class="reel-content">
-                <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 10px;">
-                    <?php if ($reel['avatar'] && strpos($reel['avatar'], 'avatars/') === 0): ?>
-                        <img src="/<?= htmlspecialchars($reel['avatar']) ?>" alt="Avatar" style="width: 40px; height: 40px; border-radius: 50%; object-fit: cover;">
-                    <?php elseif ($reel['avatar']): ?>
-                        <span style="font-size: 30px;"><?= htmlspecialchars($reel['avatar']) ?></span>
-                    <?php else: ?>
-                        <span style="font-size: 30px;">👤</span>
-                    <?php endif; ?>
-                    <div>
-                        <strong><?= htmlspecialchars($reel['username']) ?></strong>
-                        <span style="background: linear-gradient(45deg, #ff6b6b, #4ecdc4); color: white; padding: 2px 8px; border-radius: 12px; font-size: 11px; font-weight: bold; margin-left: 8px;">🎬 REEL</span>
-                    </div>
+            <?php if ($reel['content']): ?>
+                <div class="reel-content" style="padding: 15px;">
+                    <?= nl2br(htmlspecialchars($reel['content'])) ?>
                 </div>
-                
-                <?php if ($reel['content']): ?>
-                    <div style="margin: 10px 0;"><?= nl2br(htmlspecialchars($reel['content'])) ?></div>
-                <?php endif; ?>
-                
-                <!-- Reactions -->
-                <div style="display: flex; gap: 15px; margin: 15px 0; padding: 10px 0; border-top: 1px solid #eee;">
-                    <form method="POST" style="display: inline;">
-                        <input type="hidden" name="post_id" value="<?= $reel['id'] ?>">
-                        <button type="submit" name="reaction" value="<?= $reel['user_reaction'] === 'like' ? 'remove' : 'like' ?>" 
-                                style="background: none; border: none; font-size: 18px; cursor: pointer; <?= $reel['user_reaction'] === 'like' ? 'color: #1877f2;' : '' ?>">
-                            👍 <?= $reel['like_count'] > 0 ? $reel['like_count'] : '' ?>
-                        </button>
-                    </form>
-                    <form method="POST" style="display: inline;">
-                        <input type="hidden" name="post_id" value="<?= $reel['id'] ?>">
-                        <button type="submit" name="reaction" value="<?= $reel['user_reaction'] === 'love' ? 'remove' : 'love' ?>" 
-                                style="background: none; border: none; font-size: 18px; cursor: pointer; <?= $reel['user_reaction'] === 'love' ? 'color: #e91e63;' : '' ?>">
-                            ❤️ <?= $reel['love_count'] > 0 ? $reel['love_count'] : '' ?>
-                        </button>
-                    </form>
-                    <form method="POST" style="display: inline;">
-                        <input type="hidden" name="post_id" value="<?= $reel['id'] ?>">
-                        <button type="submit" name="reaction" value="<?= $reel['user_reaction'] === 'laugh' ? 'remove' : 'laugh' ?>" 
-                                style="background: none; border: none; font-size: 18px; cursor: pointer; <?= $reel['user_reaction'] === 'laugh' ? 'color: #ff9800;' : '' ?>">
-                            😂 <?= $reel['laugh_count'] > 0 ? $reel['laugh_count'] : '' ?>
-                        </button>
-                    </form>
-                    <span style="color: #666; font-size: 14px;">💬 <?= $reel['comment_count'] ?></span>
-                </div>
-                
-                <!-- Comments -->
-                <?php
-                $stmt_comments = $pdo->prepare("SELECT c.content, c.created_at, u.username FROM comments c JOIN users u ON c.user_id = u.id WHERE c.post_id = ? ORDER BY c.created_at ASC");
-                $stmt_comments->execute([$reel['id']]);
-                $comments = $stmt_comments->fetchAll();
-                ?>
-                
-                <?php if ($comments): ?>
-                    <?php foreach ($comments as $comment): ?>
-                    <div style="background: #f8f9fa; padding: 8px; margin: 5px 0; border-radius: 8px; font-size: 14px;">
-                        <strong><?= htmlspecialchars($comment['username']) ?>:</strong> 
-                        <?= htmlspecialchars($comment['content']) ?>
-                        <small style="color: #666; margin-left: 10px;"><?= date('M j, H:i', strtotime($comment['created_at'])) ?></small>
-                    </div>
-                    <?php endforeach; ?>
-                <?php endif; ?>
-                
-                <!-- Add Comment -->
-                <form method="POST" style="margin-top: 10px;">
-                    <input type="hidden" name="post_id" value="<?= $reel['id'] ?>">
-                    <div style="display: flex; gap: 10px;">
-                        <input type="text" name="comment" placeholder="Write a comment..." style="flex: 1; padding: 8px; border: 1px solid #ddd; border-radius: 20px; font-size: 14px;" required>
-                        <button type="submit" style="padding: 8px 15px; font-size: 12px; background: #1877f2; color: white; border: none; border-radius: 20px;">Post</button>
-                    </div>
-                </form>
-                
-                <div style="margin-top: 10px;">
-                    <small style="color: #666;"><?= date('M j, H:i', strtotime($reel['created_at'])) ?></small>
-                </div>
-            </div>
+            <?php endif; ?>
         </div>
         <?php endforeach; ?>
     <?php else: ?>

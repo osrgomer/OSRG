@@ -133,7 +133,7 @@ $additional_css = '
     .reel-avatar-emoji { font-size: 24px; }
     .reel-username { font-size: 14px; font-weight: bold; }
     .reel-caption { font-size: 14px; margin-bottom: 15px; line-height: 1.3; }
-    .reel-actions { display: flex; gap: 20px; align-items: center; }
+    .reel-actions { position: absolute; right: 15px; top: 50%; transform: translateY(-50%); display: flex; flex-direction: column; gap: 15px; align-items: center; }
     .reel-action { display: inline; }
     .reel-btn { background: none; border: none; color: white; font-size: 24px; cursor: pointer; display: flex; flex-direction: column; align-items: center; gap: 2px; }
     .reel-btn span { font-size: 12px; font-weight: bold; }

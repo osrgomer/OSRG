@@ -142,7 +142,8 @@ $additional_css = '
     .reel-btn { background: none; border: none; color: white; font-size: 24px; cursor: pointer; display: flex; flex-direction: column; align-items: center; gap: 2px; }
     .reel-btn span { font-size: 12px; font-weight: bold; }
     .reel-btn.active { color: #ff3040; }
-    .reel-comments-count { color: white; font-size: 12px; }
+    .reel-comments-count { color: white; font-size: 24px; display: flex; flex-direction: column; align-items: center; gap: 2px; }
+    .reel-comments-count span { font-size: 12px; font-weight: bold; }
     .create-reel { background: linear-gradient(135deg, #ff6b6b, #4ecdc4); color: white; padding: 20px; border-radius: 15px; margin-bottom: 20px; }
     @media (max-width: 768px) {
         .reel-container { max-width: 100%; }
@@ -231,7 +232,7 @@ require_once 'header.php';
                             😂<span><?= $reel['laugh_count'] ?: '' ?></span>
                         </button>
                     </form>
-                    <div class="reel-btn">💬<span><?= $reel['comment_count'] ?: '' ?></span></div>
+                    <div class="reel-comments-count">💬<span><?= $reel['comment_count'] ?: '' ?></span></div>
                 </div>
             </div>
         </div>

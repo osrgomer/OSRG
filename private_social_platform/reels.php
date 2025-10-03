@@ -50,9 +50,20 @@ if (isset($_POST['content'])) {
     
     // Require video file for reels
     if ($file_path && in_array($file_type, ['mp4', 'mov', 'avi'])) {
-        $stmt = $pdo->prepare("INSERT INTO posts (user_id, content, file_path, file_type, post_type) VALUES (?, ?, ?, ?, 'reel')");
-        $stmt->execute([$_SESSION['user_id'], $_POST['content'], $file_path, $file_type]);
-        $_SESSION['reel_success'] = 'Reel created successfully!';
+        try {
+            $stmt = $pdo->prepare("INSERT INTO posts (user_id, content, file_path, file_type, post_type) VALUES (?, ?, ?, ?, 'reel')");
+            $stmt->execute([$_SESSION['user_id'], $_POST['content'], $file_path, $file_type]);
+            $_SESSION['reel_success'] = 'Reel created successfully!';
+        } catch (Exception $e) {
+            // Try without post_type if column doesn't exist
+            try {
+                $stmt = $pdo->prepare("INSERT INTO posts (user_id, content, file_path, file_type) VALUES (?, ?, ?, ?)");
+                $stmt->execute([$_SESSION['user_id'], $_POST['content'], $file_path, $file_type]);
+                $_SESSION['reel_success'] = 'Reel created successfully!';
+            } catch (Exception $e2) {
+                $_SESSION['reel_error'] = 'Database error: ' . $e2->getMessage();
+            }
+        }
     } else {
         $_SESSION['reel_error'] = $upload_error ?: 'Please upload a valid video file.';
     }

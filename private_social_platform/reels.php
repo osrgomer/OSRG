@@ -53,19 +53,19 @@ if (isset($_POST['content'])) {
         try {
             $stmt = $pdo->prepare("INSERT INTO posts (user_id, content, file_path, file_type, post_type) VALUES (?, ?, ?, ?, 'reel')");
             $stmt->execute([$_SESSION['user_id'], $_POST['content'], $file_path, $file_type]);
-            $_SESSION['reel_success'] = 'Reel created successfully!';
+            $_SESSION['reel_success'] = 'Reel created successfully! (with post_type)';
         } catch (Exception $e) {
             // Try without post_type if column doesn't exist
             try {
                 $stmt = $pdo->prepare("INSERT INTO posts (user_id, content, file_path, file_type) VALUES (?, ?, ?, ?)");
                 $stmt->execute([$_SESSION['user_id'], $_POST['content'], $file_path, $file_type]);
-                $_SESSION['reel_success'] = 'Reel created successfully!';
+                $_SESSION['reel_success'] = 'Reel created successfully! (without post_type)';
             } catch (Exception $e2) {
                 $_SESSION['reel_error'] = 'Database error: ' . $e2->getMessage();
             }
         }
     } else {
-        $_SESSION['reel_error'] = $upload_error ?: 'Please upload a valid video file.';
+        $_SESSION['reel_error'] = 'Upload failed - File: ' . ($file_path ?: 'none') . ', Type: ' . ($file_type ?: 'none') . ', Error: ' . ($upload_error ?: 'unknown');
     }
     
     header('Location: /reels');

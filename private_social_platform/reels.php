@@ -99,6 +99,11 @@ if ($_POST['comment'] ?? false) {
 
 // Get all reels
 try {
+    // First, let's see all posts with video files
+    $debug_stmt = $pdo->prepare("SELECT id, user_id, content, file_path, file_type, post_type, created_at FROM posts WHERE file_type IN ('mp4', 'mov', 'avi') ORDER BY created_at DESC");
+    $debug_stmt->execute();
+    $debug_posts = $debug_stmt->fetchAll();
+    
     $stmt = $pdo->prepare("
         SELECT p.id, p.content, p.created_at, u.username, u.avatar, p.file_path, p.file_type,
                COUNT(DISTINCT CASE WHEN r.reaction_type = 'like' THEN r.id END) as like_count,
@@ -119,6 +124,7 @@ try {
     $reels = $stmt->fetchAll();
 } catch (Exception $e) {
     $reels = [];
+    $debug_posts = [];
 }
 
 $page_title = 'Reels - OSRG Connect';
@@ -178,6 +184,16 @@ require_once 'header.php';
         </form>
     </div>
 
+    <!-- Debug Info -->
+    <?php if (!empty($debug_posts)): ?>
+        <div style="background: #fff3cd; border: 1px solid #ffeaa7; padding: 10px; margin: 10px 0; border-radius: 8px; font-size: 12px;">
+            <strong>Debug: Found <?= count($debug_posts) ?> video posts:</strong><br>
+            <?php foreach ($debug_posts as $dp): ?>
+                ID: <?= $dp['id'] ?>, User: <?= $dp['user_id'] ?>, File: <?= $dp['file_path'] ?>, Type: <?= $dp['post_type'] ?: 'NULL' ?><br>
+            <?php endforeach; ?>
+        </div>
+    <?php endif; ?>
+    
     <?php if ($reels): ?>
         <?php foreach ($reels as $reel): ?>
         <div class="reel-item">

@@ -124,13 +124,26 @@ try {
 $page_title = 'Reels - OSRG Connect';
 $additional_css = '
     .reel-container { max-width: 400px; margin: 0 auto; }
-    .reel-item { background: white; margin: 20px 0; border-radius: 15px; overflow: hidden; box-shadow: 0 4px 15px rgba(0,0,0,0.1); }
+    .reel-item { position: relative; background: black; margin: 20px 0; border-radius: 15px; overflow: hidden; box-shadow: 0 4px 15px rgba(0,0,0,0.3); }
     .reel-video { width: 100%; height: 600px; object-fit: cover; }
-    .reel-content { padding: 15px; }
+    .reel-overlay { position: absolute; bottom: 0; left: 0; right: 0; background: linear-gradient(transparent, rgba(0,0,0,0.7)); padding: 20px; color: white; }
+    .reel-info { display: flex; align-items: center; gap: 10px; margin-bottom: 10px; }
+    .reel-avatar { width: 32px; height: 32px; border-radius: 50%; border: 2px solid white; }
+    .reel-avatar-emoji { font-size: 24px; }
+    .reel-username { font-size: 14px; font-weight: bold; }
+    .reel-caption { font-size: 14px; margin-bottom: 15px; line-height: 1.3; }
+    .reel-actions { display: flex; gap: 20px; align-items: center; }
+    .reel-action { display: inline; }
+    .reel-btn { background: none; border: none; color: white; font-size: 24px; cursor: pointer; display: flex; flex-direction: column; align-items: center; gap: 2px; }
+    .reel-btn span { font-size: 12px; font-weight: bold; }
+    .reel-btn.active { color: #ff3040; }
+    .reel-comments-count { color: white; font-size: 12px; }
     .create-reel { background: linear-gradient(135deg, #ff6b6b, #4ecdc4); color: white; padding: 20px; border-radius: 15px; margin-bottom: 20px; }
     @media (max-width: 768px) {
         .reel-container { max-width: 100%; }
         .reel-video { height: 500px; }
+        .reel-overlay { padding: 15px; }
+        .reel-actions { gap: 15px; }
     }
 ';
 
@@ -172,11 +185,44 @@ require_once 'header.php';
                 <source src="/<?= htmlspecialchars($reel['file_path']) ?>" type="video/<?= $reel['file_type'] ?>">
             </video>
             
-            <?php if ($reel['content']): ?>
-                <div class="reel-content" style="padding: 15px;">
-                    <?= nl2br(htmlspecialchars($reel['content'])) ?>
+            <div class="reel-overlay">
+                <div class="reel-info">
+                    <?php if ($reel['avatar'] && strpos($reel['avatar'], 'avatars/') === 0): ?>
+                        <img src="/<?= htmlspecialchars($reel['avatar']) ?>" alt="Avatar" class="reel-avatar">
+                    <?php elseif ($reel['avatar']): ?>
+                        <span class="reel-avatar-emoji"><?= htmlspecialchars($reel['avatar']) ?></span>
+                    <?php else: ?>
+                        <span class="reel-avatar-emoji">👤</span>
+                    <?php endif; ?>
+                    <strong class="reel-username"><?= htmlspecialchars($reel['username']) ?></strong>
                 </div>
-            <?php endif; ?>
+                
+                <?php if ($reel['content']): ?>
+                    <div class="reel-caption"><?= nl2br(htmlspecialchars($reel['content'])) ?></div>
+                <?php endif; ?>
+                
+                <div class="reel-actions">
+                    <form method="POST" class="reel-action">
+                        <input type="hidden" name="post_id" value="<?= $reel['id'] ?>">
+                        <button type="submit" name="reaction" value="<?= $reel['user_reaction'] === 'like' ? 'remove' : 'like' ?>" class="reel-btn <?= $reel['user_reaction'] === 'like' ? 'active' : '' ?>">
+                            👍<span><?= $reel['like_count'] ?: '' ?></span>
+                        </button>
+                    </form>
+                    <form method="POST" class="reel-action">
+                        <input type="hidden" name="post_id" value="<?= $reel['id'] ?>">
+                        <button type="submit" name="reaction" value="<?= $reel['user_reaction'] === 'love' ? 'remove' : 'love' ?>" class="reel-btn <?= $reel['user_reaction'] === 'love' ? 'active' : '' ?>">
+                            ❤️<span><?= $reel['love_count'] ?: '' ?></span>
+                        </button>
+                    </form>
+                    <form method="POST" class="reel-action">
+                        <input type="hidden" name="post_id" value="<?= $reel['id'] ?>">
+                        <button type="submit" name="reaction" value="<?= $reel['user_reaction'] === 'laugh' ? 'remove' : 'laugh' ?>" class="reel-btn <?= $reel['user_reaction'] === 'laugh' ? 'active' : '' ?>">
+                            😂<span><?= $reel['laugh_count'] ?: '' ?></span>
+                        </button>
+                    </form>
+                    <div class="reel-comments-count">💬 <?= $reel['comment_count'] ?></div>
+                </div>
+            </div>
         </div>
         <?php endforeach; ?>
     <?php else: ?>

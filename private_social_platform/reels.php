@@ -120,7 +120,7 @@ require_once 'header.php';
                 <textarea name="content" placeholder="Add a caption to your reel..." style="width: 100%; padding: 10px; border: none; border-radius: 8px; min-height: 80px; resize: vertical;"></textarea>
             </div>
             <div style="margin: 15px 0;">
-                <input type="file" name="file" accept=".mp4,.mov,.avi" required style="width: 100%; padding: 10px; background: white; border-radius: 8px;" id="videoFile">
+                <input type="file" name="file" accept=".mp4,.mov,.avi" required style="width: 100%; padding: 10px; background: white; border-radius: 8px; color: black;" id="videoFile">
                 <small style="color: rgba(255,255,255,0.8); display: block; margin-top: 5px;">Upload Video: MP4, MOV, AVI (max 52MB)</small>
             </div>
             <button type="submit" id="submitBtn" style="background: rgba(255,255,255,0.2); border: 2px solid white; color: white; padding: 12px 25px; border-radius: 25px; font-weight: bold;">Create Reel</button>

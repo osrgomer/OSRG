@@ -99,10 +99,14 @@ if ($_POST['comment'] ?? false) {
 
 // Get all reels
 try {
-    // Debug: Check all video posts
+    // Debug: Check all video posts and user approval status
     $debug_stmt = $pdo->prepare("SELECT id, user_id, content, file_path, file_type, created_at FROM posts WHERE file_type IN ('mp4', 'mov', 'avi') ORDER BY created_at DESC LIMIT 5");
     $debug_stmt->execute();
     $debug_posts = $debug_stmt->fetchAll();
+    
+    $user_check = $pdo->prepare("SELECT id, username, approved FROM users WHERE id = ?");
+    $user_check->execute([$_SESSION['user_id']]);
+    $user_status = $user_check->fetch();
     
     $stmt = $pdo->prepare("
         SELECT p.id, p.content, p.created_at, u.username, u.avatar, p.file_path, p.file_type,
@@ -195,6 +199,7 @@ require_once 'header.php';
         <?php else: ?>
             No video posts found.<br>
         <?php endif; ?>
+        <strong>Your user status:</strong> ID: <?= $user_status['id'] ?? 'N/A' ?>, Username: <?= $user_status['username'] ?? 'N/A' ?>, Approved: <?= $user_status['approved'] ?? 'N/A' ?><br>
         <strong>Showing <?= count($reels) ?> reels after JOIN with users table</strong>
     </div>
     

@@ -185,14 +185,16 @@ require_once 'header.php';
     </div>
 
     <!-- Debug Info -->
-    <?php if (!empty($debug_posts)): ?>
-        <div style="background: #fff3cd; border: 1px solid #ffeaa7; padding: 10px; margin: 10px 0; border-radius: 8px; font-size: 12px;">
-            <strong>Debug: Found <?= count($debug_posts) ?> video posts:</strong><br>
+    <div style="background: #fff3cd; border: 1px solid #ffeaa7; padding: 10px; margin: 10px 0; border-radius: 8px; font-size: 12px;">
+        <strong>Debug: Found <?= count($debug_posts ?? []) ?> video posts, <?= count($reels ?? []) ?> reels shown</strong><br>
+        <?php if (!empty($debug_posts)): ?>
             <?php foreach ($debug_posts as $dp): ?>
                 ID: <?= $dp['id'] ?>, User: <?= $dp['user_id'] ?>, File: <?= $dp['file_path'] ?>, Type: <?= $dp['post_type'] ?: 'NULL' ?><br>
             <?php endforeach; ?>
-        </div>
-    <?php endif; ?>
+        <?php else: ?>
+            No video posts found in database.<br>
+        <?php endif; ?>
+    </div>
     
     <?php if ($reels): ?>
         <?php foreach ($reels as $reel): ?>

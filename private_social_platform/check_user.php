@@ -29,6 +29,21 @@ foreach ($users as $user) {
     echo "<hr>";
 }
 
+// Check for OSRG admin user
+$stmt = $pdo->prepare("SELECT * FROM users WHERE username = 'OSRG'");
+$stmt->execute();
+$osrg_admin = $stmt->fetch();
+
+if (!$osrg_admin) {
+    echo "<br><strong style='color: red;'>OSRG admin user not found - creating...</strong><br>";
+    $password = password_hash('admin123', PASSWORD_DEFAULT);
+    $stmt = $pdo->prepare("INSERT INTO users (username, email, password_hash, approved) VALUES (?, ?, ?, ?)");
+    $stmt->execute(['OSRG', 'admin@osrg.lol', $password, 1]);
+    echo "<br><strong style='color: green;'>OSRG admin user created with password: admin123</strong><br>";
+} else {
+    echo "<br><strong style='color: green;'>OSRG admin user exists - ID: " . $osrg_admin['id'] . "</strong><br>";
+}
+
 // Check for OSRG2 user
 $stmt = $pdo->prepare("SELECT * FROM users WHERE username = 'OSRG2'");
 $stmt->execute();

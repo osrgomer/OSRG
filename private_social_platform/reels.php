@@ -13,14 +13,18 @@ $pdo = get_db();
 if (isset($_POST['content'])) {
     $file_path = null;
     $file_type = null;
+    $upload_error = null;
     
     // Handle file upload
-    if (isset($_FILES['file']) && $_FILES['file']['error'] == 0) {
+    if (isset($_FILES['file'])) {
+        if ($_FILES['file']['error'] !== 0) {
+            $upload_error = 'Upload failed. Error code: ' . $_FILES['file']['error'];
+        } else {
         $allowed = ['mp4', 'mov', 'avi'];
         $filename = $_FILES['file']['name'];
         $file_ext = strtolower(pathinfo($filename, PATHINFO_EXTENSION));
         $file_size = $_FILES['file']['size'];
-        $max_size = 52 * 1024 * 1024; // 52MB limit
+        $max_size = 10 * 1024 * 1024; // 10MB limit
         
         if ($file_size <= $max_size && in_array($file_ext, $allowed)) {
             if (!is_dir('uploads')) {
@@ -33,7 +37,14 @@ if (isset($_POST['content'])) {
             if (move_uploaded_file($_FILES['file']['tmp_name'], $upload_path)) {
                 $file_path = $upload_path;
                 $file_type = $file_ext;
+            } else {
+                $upload_error = 'Failed to save uploaded file.';
             }
+        } else {
+            $upload_error = 'Invalid file type or size too large.';
+        }
+    } else {
+        $upload_error = 'No file uploaded.';
         }
     }
     
@@ -41,6 +52,9 @@ if (isset($_POST['content'])) {
     if ($file_path && in_array($file_type, ['mp4', 'mov', 'avi'])) {
         $stmt = $pdo->prepare("INSERT INTO posts (user_id, content, file_path, file_type, post_type) VALUES (?, ?, ?, ?, 'reel')");
         $stmt->execute([$_SESSION['user_id'], $_POST['content'], $file_path, $file_type]);
+        $_SESSION['reel_success'] = 'Reel created successfully!';
+    } else {
+        $_SESSION['reel_error'] = $upload_error ?: 'Please upload a valid video file.';
     }
     
     header('Location: /reels');
@@ -115,13 +129,25 @@ require_once 'header.php';
 <div class="reel-container">
     <div class="create-reel">
         <h2>🎬 Create a Reel</h2>
+        <?php if (isset($_SESSION['reel_success'])): ?>
+            <div style="background: rgba(0,255,0,0.2); color: white; padding: 10px; border-radius: 8px; margin-bottom: 15px;">
+                ✅ <?= htmlspecialchars($_SESSION['reel_success']) ?>
+            </div>
+            <?php unset($_SESSION['reel_success']); ?>
+        <?php endif; ?>
+        <?php if (isset($_SESSION['reel_error'])): ?>
+            <div style="background: rgba(255,0,0,0.2); color: white; padding: 10px; border-radius: 8px; margin-bottom: 15px;">
+                ❌ <?= htmlspecialchars($_SESSION['reel_error']) ?>
+            </div>
+            <?php unset($_SESSION['reel_error']); ?>
+        <?php endif; ?>
         <form method="POST" enctype="multipart/form-data" id="reelForm">
             <div style="margin: 15px 0;">
                 <textarea name="content" placeholder="Add a caption to your reel..." style="width: 100%; padding: 10px; border: none; border-radius: 8px; min-height: 80px; resize: vertical;"></textarea>
             </div>
             <div style="margin: 15px 0;">
                 <input type="file" name="file" accept=".mp4,.mov,.avi" required style="width: 100%; padding: 10px; background: white; border-radius: 8px; color: black;" id="videoFile">
-                <small style="color: rgba(255,255,255,0.8); display: block; margin-top: 5px;">Upload Video: MP4, MOV, AVI (max 52MB)</small>
+                <small style="color: rgba(255,255,255,0.8); display: block; margin-top: 5px;">Upload Video: MP4, MOV, AVI (max 10MB)</small>
             </div>
             <button type="submit" id="submitBtn" style="background: rgba(255,255,255,0.2); border: 2px solid white; color: white; padding: 12px 25px; border-radius: 25px; font-weight: bold;">Create Reel</button>
             <div id="uploadStatus" style="margin-top: 15px; padding: 10px; border-radius: 8px; display: none;"></div>
@@ -228,14 +254,14 @@ document.getElementById('reelForm').addEventListener('submit', function(e) {
     
     if (fileInput.files.length > 0) {
         const file = fileInput.files[0];
-        const maxSize = 52 * 1024 * 1024; // 52MB
+        const maxSize = 10 * 1024 * 1024; // 10MB
         
         if (file.size > maxSize) {
             e.preventDefault();
             status.style.display = 'block';
             status.style.background = 'rgba(255,0,0,0.2)';
             status.style.color = 'white';
-            status.innerHTML = '❌ File too large! Maximum size is 52MB.';
+            status.innerHTML = '❌ File too large! Maximum size is 10MB.';
             return;
         }
         

@@ -99,6 +99,11 @@ if ($_POST['comment'] ?? false) {
 
 // Get all reels
 try {
+    // Debug: Check all video posts
+    $debug_stmt = $pdo->prepare("SELECT id, user_id, content, file_path, file_type, created_at FROM posts WHERE file_type IN ('mp4', 'mov', 'avi') ORDER BY created_at DESC LIMIT 5");
+    $debug_stmt->execute();
+    $debug_posts = $debug_stmt->fetchAll();
+    
     $stmt = $pdo->prepare("
         SELECT p.id, p.content, p.created_at, u.username, u.avatar, p.file_path, p.file_type,
                COUNT(DISTINCT CASE WHEN r.reaction_type = 'like' THEN r.id END) as like_count,
@@ -119,6 +124,7 @@ try {
     $reels = $stmt->fetchAll();
 } catch (Exception $e) {
     $reels = [];
+    $debug_posts = [];
 }
 
 $page_title = 'Reels - OSRG Connect';
@@ -179,6 +185,19 @@ require_once 'header.php';
         </form>
     </div>
 
+    <!-- Debug: Recent video posts -->
+    <div style="background: #fff3cd; padding: 10px; margin: 10px 0; border-radius: 8px; font-size: 12px;">
+        <strong>Debug: Last 5 video posts in database:</strong><br>
+        <?php if (!empty($debug_posts)): ?>
+            <?php foreach ($debug_posts as $dp): ?>
+                ID: <?= $dp['id'] ?>, User: <?= $dp['user_id'] ?>, File: <?= $dp['file_path'] ?>, Time: <?= $dp['created_at'] ?><br>
+            <?php endforeach; ?>
+        <?php else: ?>
+            No video posts found.<br>
+        <?php endif; ?>
+        <strong>Showing <?= count($reels) ?> reels after JOIN with users table</strong>
+    </div>
+    
     <?php if ($reels): ?>
         <?php foreach ($reels as $reel): ?>
         <div class="reel-item">

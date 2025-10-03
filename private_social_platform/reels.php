@@ -20,32 +20,32 @@ if (isset($_POST['content'])) {
         if ($_FILES['file']['error'] !== 0) {
             $upload_error = 'Upload failed. Error code: ' . $_FILES['file']['error'];
         } else {
-        $allowed = ['mp4', 'mov', 'avi'];
-        $filename = $_FILES['file']['name'];
-        $file_ext = strtolower(pathinfo($filename, PATHINFO_EXTENSION));
-        $file_size = $_FILES['file']['size'];
-        $max_size = 10 * 1024 * 1024; // 10MB limit
-        
-        if ($file_size <= $max_size && in_array($file_ext, $allowed)) {
-            if (!is_dir('uploads')) {
-                mkdir('uploads', 0755, true);
-            }
+            $allowed = ['mp4', 'mov', 'avi'];
+            $filename = $_FILES['file']['name'];
+            $file_ext = strtolower(pathinfo($filename, PATHINFO_EXTENSION));
+            $file_size = $_FILES['file']['size'];
+            $max_size = 10 * 1024 * 1024; // 10MB limit
             
-            $new_filename = uniqid() . '.' . $file_ext;
-            $upload_path = 'uploads/' . $new_filename;
-            
-            if (move_uploaded_file($_FILES['file']['tmp_name'], $upload_path)) {
-                $file_path = $upload_path;
-                $file_type = $file_ext;
+            if ($file_size <= $max_size && in_array($file_ext, $allowed)) {
+                if (!is_dir('uploads')) {
+                    mkdir('uploads', 0755, true);
+                }
+                
+                $new_filename = uniqid() . '.' . $file_ext;
+                $upload_path = 'uploads/' . $new_filename;
+                
+                if (move_uploaded_file($_FILES['file']['tmp_name'], $upload_path)) {
+                    $file_path = $upload_path;
+                    $file_type = $file_ext;
+                } else {
+                    $upload_error = 'Failed to save uploaded file.';
+                }
             } else {
-                $upload_error = 'Failed to save uploaded file.';
+                $upload_error = 'Invalid file type or size too large.';
             }
-        } else {
-            $upload_error = 'Invalid file type or size too large.';
         }
     } else {
         $upload_error = 'No file uploaded.';
-        }
     }
     
     // Require video file for reels

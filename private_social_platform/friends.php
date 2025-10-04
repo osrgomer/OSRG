@@ -198,7 +198,8 @@ require_once 'header.php';
                     <p style="text-align: center; color: #666; padding: 20px;">
                         No posts from friends yet.<br>
                         <?php if (!$friends): ?>
-                            <a href="/find-friends" style="color: #1877f2;">Add some friends to see their posts!</a>
+                            <a href="/find-friends" style="color: #1877f2;">Add some friends to see their posts!</a><br><br>
+                            <small>Debug: Friends count: <?= count($friends) ?>, Posts count: <?= count($friend_posts) ?></small>
                         <?php endif; ?>
                     </p>
                 </div>

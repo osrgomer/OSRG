@@ -27,12 +27,19 @@ if (isset($_POST['content'])) {
             $max_size = 10 * 1024 * 1024; // 10MB limit
             
             if ($file_size <= $max_size && in_array($file_ext, $allowed)) {
+                // Create uploads directory with proper permissions
                 if (!is_dir('uploads')) {
-                    mkdir('uploads', 0755, true);
+                    mkdir('uploads', 0777, true);
+                    chmod('uploads', 0777);
                 }
                 
-                $new_filename = uniqid() . '.' . $file_ext;
+                $new_filename = 'reel_' . time() . '_' . uniqid() . '.' . $file_ext;
                 $upload_path = 'uploads/' . $new_filename;
+                
+                // Set proper permissions for the uploads directory
+                if (is_dir('uploads')) {
+                    chmod('uploads', 0777);
+                }
                 
                 if (move_uploaded_file($_FILES['file']['tmp_name'], $upload_path)) {
                     $file_path = $upload_path;
@@ -130,7 +137,7 @@ $additional_css = '
     body { overflow: hidden; }
     .reel-container { position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background: black; overflow-y: scroll; scroll-snap-type: y mandatory; }
     .reel-item { position: relative; width: 100%; height: 100vh; display: flex; align-items: center; justify-content: center; scroll-snap-align: start; }
-    .reel-video { width: 100%; height: 100%; object-fit: contain; }
+    .reel-video { max-width: 100%; max-height: 100%; width: auto; height: auto; object-fit: contain; }
     .reel-overlay { position: absolute; bottom: 0; left: 0; right: 0; background: linear-gradient(transparent, rgba(0,0,0,0.7)); padding: 20px; color: white; pointer-events: none; z-index: 10; }
     .reel-overlay * { pointer-events: auto; }
     .reel-info { display: flex; align-items: center; gap: 10px; margin-bottom: 10px; }

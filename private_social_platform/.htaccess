@@ -26,6 +26,12 @@ php_value max_execution_time 120
 php_value max_input_time 120
 php_value memory_limit 256M
 
+# Allow video files
+<FilesMatch "\.(mp4|mov|avi)$">
+    Header set Cache-Control "public, max-age=3600"
+    Header set Accept-Ranges "bytes"
+</FilesMatch>
+
 # Static files
 RewriteCond %{REQUEST_FILENAME} !-f
 RewriteCond %{REQUEST_FILENAME} !-d

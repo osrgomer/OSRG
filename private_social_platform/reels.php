@@ -211,17 +211,7 @@ require_once 'header.php';
         </form>
     </div>
 
-    <div style="background: #fff3cd; padding: 10px; margin: 10px 0; border-radius: 8px; font-size: 12px; position: fixed; top: 200px; left: 20px; right: 20px; z-index: 150;">
-        Found <?= $debug_count ?> video posts in DB, showing <?= count($reels) ?> reels<br>
-        <strong>All video posts:</strong><br>
-        <?php if (!empty($debug_posts)): ?>
-            <?php foreach ($debug_posts as $dp): ?>
-                ID: <?= $dp['id'] ?>, User: <?= $dp['user_id'] ?>, File: <?= $dp['file_path'] ?>, Time: <?= $dp['created_at'] ?><br>
-            <?php endforeach; ?>
-        <?php else: ?>
-            No video posts found in database.<br>
-        <?php endif; ?>
-    </div>
+
     
     <?php if ($reels): ?>
         <?php foreach ($reels as $reel): ?>

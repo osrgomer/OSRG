@@ -62,16 +62,21 @@ if (isset($_POST['content'])) {
     if ($file_path && in_array($file_type, ['mp4', 'mov', 'avi'])) {
         try {
             $stmt = $pdo->prepare("INSERT INTO posts (user_id, content, file_path, file_type, post_type) VALUES (?, ?, ?, ?, 'reel')");
-            $stmt->execute([$_SESSION['user_id'], $_POST['content'], $file_path, $file_type]);
+            $result = $stmt->execute([$_SESSION['user_id'], $_POST['content'], $file_path, $file_type]);
+            $post_id = $pdo->lastInsertId();
             $_SESSION['reel_success'] = 'Reel created successfully!';
+            $_SESSION['upload_debug'] .= ' | DB Insert: SUCCESS (Post ID: ' . $post_id . ')';
         } catch (Exception $e) {
             // Try without post_type if column doesn't exist
             try {
                 $stmt = $pdo->prepare("INSERT INTO posts (user_id, content, file_path, file_type) VALUES (?, ?, ?, ?)");
-                $stmt->execute([$_SESSION['user_id'], $_POST['content'], $file_path, $file_type]);
+                $result = $stmt->execute([$_SESSION['user_id'], $_POST['content'], $file_path, $file_type]);
+                $post_id = $pdo->lastInsertId();
                 $_SESSION['reel_success'] = 'Reel created successfully!';
+                $_SESSION['upload_debug'] .= ' | DB Insert: SUCCESS without post_type (Post ID: ' . $post_id . ')';
             } catch (Exception $e2) {
                 $_SESSION['reel_error'] = 'Database error: ' . $e2->getMessage();
+                $_SESSION['upload_debug'] .= ' | DB Insert: FAILED - ' . $e2->getMessage();
             }
         }
     } else {

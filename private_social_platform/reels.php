@@ -44,8 +44,11 @@ if (isset($_POST['content'])) {
                 if (move_uploaded_file($_FILES['file']['tmp_name'], $upload_path)) {
                     $file_path = $upload_path;
                     $file_type = $file_ext;
+                    // Set file permissions
+                    chmod($upload_path, 0644);
+                    $_SESSION['upload_debug'] = 'File saved to: ' . $upload_path . ' (size: ' . filesize($upload_path) . ' bytes)';
                 } else {
-                    $upload_error = 'Failed to save uploaded file.';
+                    $upload_error = 'Failed to save uploaded file. Temp: ' . $_FILES['file']['tmp_name'] . ', Target: ' . $upload_path . ', Dir writable: ' . (is_writable('uploads') ? 'yes' : 'no');
                 }
             } else {
                 $upload_error = 'Invalid file type or size too large.';
@@ -180,6 +183,12 @@ require_once 'header.php';
                 ❌ <?= htmlspecialchars($_SESSION['reel_error']) ?>
             </div>
             <?php unset($_SESSION['reel_error']); ?>
+        <?php endif; ?>
+        <?php if (isset($_SESSION['upload_debug'])): ?>
+            <div style="background: rgba(0,0,255,0.2); color: white; padding: 10px; border-radius: 8px; margin-bottom: 15px; font-size: 12px;">
+                🔍 Debug: <?= htmlspecialchars($_SESSION['upload_debug']) ?>
+            </div>
+            <?php unset($_SESSION['upload_debug']); ?>
         <?php endif; ?>
         <form method="POST" enctype="multipart/form-data" id="reelForm">
             <div style="margin: 15px 0;">

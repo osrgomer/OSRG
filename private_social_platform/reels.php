@@ -46,7 +46,7 @@ if (isset($_POST['content'])) {
                     $file_type = $file_ext;
                     // Set file permissions
                     chmod($upload_path, 0644);
-                    $_SESSION['upload_debug'] = 'File saved to: ' . $upload_path . ' (size: ' . filesize($upload_path) . ' bytes)';
+                    $_SESSION['upload_debug'] = 'File saved: ' . $upload_path . ' | Type: ' . $file_type . ' | Size: ' . filesize($upload_path) . ' bytes';
                 } else {
                     $upload_error = 'Failed to save uploaded file. Temp: ' . $_FILES['file']['tmp_name'] . ', Target: ' . $upload_path . ', Dir writable: ' . (is_writable('uploads') ? 'yes' : 'no');
                 }

@@ -312,7 +312,11 @@ require_once 'header.php';
                             <?php endif; ?>
                         </div>
                         <?php
-                        $processed = process_content_with_links($post['content']);
+                        try {
+                            $processed = process_content_with_links($post['content']);
+                        } catch (Exception $e) {
+                            $processed = ['content' => nl2br(htmlspecialchars($post['content'])), 'previews' => []];
+                        }
                         ?>
                         <div id="content-<?= $post['id'] ?>"><?= $processed['content'] ?></div>
                         

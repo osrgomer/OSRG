@@ -117,6 +117,9 @@ try {
     // Quick debug check
     $debug_count = $pdo->query("SELECT COUNT(*) FROM posts WHERE file_type IN ('mp4', 'mov', 'avi')")->fetchColumn();
     
+    // Get all video posts for debugging
+    $debug_posts = $pdo->query("SELECT id, user_id, file_path, created_at FROM posts WHERE file_type IN ('mp4', 'mov', 'avi') ORDER BY created_at DESC LIMIT 5")->fetchAll();
+    
     $stmt = $pdo->prepare("
         SELECT p.id, p.content, p.created_at, u.username, u.avatar, p.file_path, p.file_type,
                COUNT(DISTINCT CASE WHEN r.reaction_type = 'like' THEN r.id END) as like_count,
@@ -210,7 +213,11 @@ require_once 'header.php';
 
     <?php if ($debug_count > 0): ?>
         <div style="background: #fff3cd; padding: 10px; margin: 10px 0; border-radius: 8px; font-size: 12px;">
-            Found <?= $debug_count ?> video posts in DB, showing <?= count($reels) ?> reels
+            Found <?= $debug_count ?> video posts in DB, showing <?= count($reels) ?> reels<br>
+            <strong>All video posts:</strong><br>
+            <?php foreach ($debug_posts as $dp): ?>
+                ID: <?= $dp['id'] ?>, User: <?= $dp['user_id'] ?>, File: <?= $dp['file_path'] ?>, Time: <?= $dp['created_at'] ?><br>
+            <?php endforeach; ?>
         </div>
     <?php endif; ?>
     

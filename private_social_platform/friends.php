@@ -1,5 +1,11 @@
 <?php
 require_once 'config.php';
+init_db();
+
+if (!isset($_SESSION['user_id'])) {
+    header('Location: /login');
+    exit;
+}
 
 $pdo = get_db();
 

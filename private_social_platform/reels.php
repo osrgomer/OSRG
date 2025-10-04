@@ -127,30 +127,33 @@ try {
 
 $page_title = 'Reels - OSRG Connect';
 $additional_css = '
-    .reel-container { max-width: 400px; margin: 0 auto; }
-    .reel-item { position: relative; background: black; margin: 20px 0; border-radius: 15px; overflow: hidden; box-shadow: 0 4px 15px rgba(0,0,0,0.3); }
-    .reel-video { width: 100%; height: 600px; object-fit: cover; }
-    .reel-overlay { position: absolute; bottom: 0; left: 0; right: 0; background: linear-gradient(transparent, rgba(0,0,0,0.7)); padding: 20px; color: white; pointer-events: none; }
+    body { overflow: hidden; }
+    .reel-container { position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background: black; overflow-y: scroll; scroll-snap-type: y mandatory; }
+    .reel-item { position: relative; width: 100%; height: 100vh; display: flex; align-items: center; justify-content: center; scroll-snap-align: start; }
+    .reel-video { width: 100%; height: 100%; object-fit: cover; }
+    .reel-overlay { position: absolute; bottom: 0; left: 0; right: 0; background: linear-gradient(transparent, rgba(0,0,0,0.7)); padding: 20px; color: white; pointer-events: none; z-index: 10; }
     .reel-overlay * { pointer-events: auto; }
     .reel-info { display: flex; align-items: center; gap: 10px; margin-bottom: 10px; }
     .reel-avatar { width: 32px; height: 32px; border-radius: 50%; border: 2px solid white; }
     .reel-avatar-emoji { font-size: 24px; }
     .reel-username { font-size: 14px; font-weight: bold; }
     .reel-caption { font-size: 14px; margin-bottom: 15px; line-height: 1.3; }
-    .reel-actions { position: absolute; right: 15px; top: 50%; transform: translateY(-50%); display: flex; flex-direction: column; gap: 15px; align-items: center; }
+    .reel-actions { position: absolute; right: 15px; bottom: 100px; display: flex; flex-direction: column; gap: 20px; align-items: center; z-index: 10; }
     .reel-action { display: inline; }
-    .reel-btn { background: none; border: none; color: white; font-size: 24px; cursor: pointer; display: flex; flex-direction: column; align-items: center; gap: 2px; }
+    .reel-btn { background: none; border: none; color: white; font-size: 28px; cursor: pointer; display: flex; flex-direction: column; align-items: center; gap: 5px; transition: transform 0.2s; }
+    .reel-btn:hover { transform: scale(1.1); }
     .reel-btn span { font-size: 12px; font-weight: bold; }
     .reel-btn.active { color: #ff3040; }
-    .reel-comments-count { color: white; font-size: 24px; display: flex; flex-direction: column; align-items: center; gap: 2px; }
-    .reel-comments-count span { font-size: 12px; font-weight: bold; }
-    .create-reel { background: linear-gradient(135deg, #ff6b6b, #4ecdc4); color: white; padding: 20px; border-radius: 15px; margin-bottom: 20px; }
-    @media (max-width: 768px) {
-        .reel-container { max-width: 100%; }
-        .reel-video { height: 500px; }
-        .reel-overlay { padding: 15px; }
-        .reel-actions { gap: 15px; }
-    }
+    .comment-modal { position: fixed; bottom: 0; left: 0; right: 0; background: white; border-radius: 20px 20px 0 0; max-height: 70vh; transform: translateY(100%); transition: transform 0.3s; z-index: 1000; }
+    .comment-modal.active { transform: translateY(0); }
+    .comment-header { padding: 15px; border-bottom: 1px solid #eee; text-align: center; font-weight: bold; }
+    .comment-list { max-height: 50vh; overflow-y: auto; padding: 10px; }
+    .comment-item { padding: 10px; border-bottom: 1px solid #f0f0f0; }
+    .comment-form { padding: 15px; border-top: 1px solid #eee; display: flex; gap: 10px; }
+    .comment-input { flex: 1; padding: 10px; border: 1px solid #ddd; border-radius: 20px; }
+    .comment-submit { padding: 10px 20px; background: #1877f2; color: white; border: none; border-radius: 20px; }
+    .create-reel { position: fixed; top: 80px; left: 20px; right: 20px; background: linear-gradient(135deg, #ff6b6b, #4ecdc4); color: white; padding: 20px; border-radius: 15px; z-index: 100; }
+    .nav { position: fixed; top: 0; left: 0; right: 0; z-index: 200; }
 ';
 
 require_once 'header.php';
@@ -232,17 +235,33 @@ require_once 'header.php';
                             😂<span><?= $reel['laugh_count'] ?: '' ?></span>
                         </button>
                     </form>
-                    <div class="reel-comments-count">💬<span><?= $reel['comment_count'] ?: '' ?></span></div>
+                    <button class="reel-btn" onclick="openComments(<?= $reel['id'] ?>)">💬<span><?= $reel['comment_count'] ?: '' ?></span></button>
                 </div>
             </div>
         </div>
         <?php endforeach; ?>
     <?php else: ?>
-        <div style="text-align: center; padding: 40px; color: #666;">
-            <h3>No reels yet! 🎬</h3>
-            <p>Be the first to create a reel and share it with everyone!</p>
+        <div class="reel-item" style="display: flex; align-items: center; justify-content: center; color: white; text-align: center;">
+            <div>
+                <h3>No reels yet! 🎬</h3>
+                <p>Be the first to create a reel and share it with everyone!</p>
+            </div>
         </div>
     <?php endif; ?>
+</div>
+
+<!-- Comment Modal -->
+<div id="commentModal" class="comment-modal">
+    <div class="comment-header">
+        Comments
+        <button onclick="closeComments()" style="position: absolute; right: 15px; top: 15px; background: none; border: none; font-size: 20px;">×</button>
+    </div>
+    <div id="commentList" class="comment-list"></div>
+    <form class="comment-form" onsubmit="submitComment(event)">
+        <input type="hidden" id="commentPostId" value="">
+        <input type="text" id="commentInput" class="comment-input" placeholder="Write a comment..." required>
+        <button type="submit" class="comment-submit">Post</button>
+    </form>
 </div>
 
 <script>
@@ -286,6 +305,58 @@ document.getElementById('videoFile').addEventListener('change', function(e) {
         status.innerHTML = `✅ Video selected: ${file.name} (${sizeMB}MB)`;
     }
 });
+
+// Comment functions
+function openComments(postId) {
+    document.getElementById('commentPostId').value = postId;
+    document.getElementById('commentModal').classList.add('active');
+    loadComments(postId);
+}
+
+function closeComments() {
+    document.getElementById('commentModal').classList.remove('active');
+}
+
+function loadComments(postId) {
+    fetch('get_comments.php?post_id=' + postId)
+        .then(response => response.json())
+        .then(comments => {
+            const list = document.getElementById('commentList');
+            list.innerHTML = comments.map(c => 
+                `<div class="comment-item"><strong>${c.username}:</strong> ${c.content}<br><small>${c.created_at}</small></div>`
+            ).join('');
+        });
+}
+
+function submitComment(event) {
+    event.preventDefault();
+    const postId = document.getElementById('commentPostId').value;
+    const content = document.getElementById('commentInput').value;
+    
+    fetch('add_comment.php', {
+        method: 'POST',
+        headers: {'Content-Type': 'application/x-www-form-urlencoded'},
+        body: `post_id=${postId}&comment=${encodeURIComponent(content)}`
+    }).then(() => {
+        document.getElementById('commentInput').value = '';
+        loadComments(postId);
+        location.reload(); // Refresh to update comment count
+    });
+}
+
+// Auto-play videos when in view
+const videos = document.querySelectorAll('.reel-video');
+const observer = new IntersectionObserver((entries) => {
+    entries.forEach(entry => {
+        if (entry.isIntersecting) {
+            entry.target.play();
+        } else {
+            entry.target.pause();
+        }
+    });
+}, { threshold: 0.5 });
+
+videos.forEach(video => observer.observe(video));
 </script>
 
 </body>

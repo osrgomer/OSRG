@@ -192,12 +192,7 @@ require_once 'header.php';
             </div>
             <?php unset($_SESSION['reel_error']); ?>
         <?php endif; ?>
-        <?php if (isset($_SESSION['upload_debug'])): ?>
-            <div style="background: rgba(0,0,255,0.2); color: white; padding: 10px; border-radius: 8px; margin-bottom: 15px; font-size: 12px;">
-                🔍 Debug: <?= htmlspecialchars($_SESSION['upload_debug']) ?>
-            </div>
-            <?php unset($_SESSION['upload_debug']); ?>
-        <?php endif; ?>
+        <?php if (isset($_SESSION['upload_debug'])) unset($_SESSION['upload_debug']); ?>
         <form method="POST" enctype="multipart/form-data" id="reelForm">
             <div style="margin: 15px 0;">
                 <textarea name="content" placeholder="Add a caption to your reel..." style="width: 100%; padding: 10px; border: none; border-radius: 8px; min-height: 80px; resize: vertical;"></textarea>

@@ -86,6 +86,15 @@ try {
     $friend_posts = [];
 }
 
+// Debug: Check if there are any posts from these users at all
+$debug_posts = [];
+if (!empty($friend_ids)) {
+    $placeholders = str_repeat('?,', count($friend_ids) - 1) . '?';
+    $stmt = $pdo->prepare("SELECT p.id, p.content, u.username, p.post_type FROM posts p JOIN users u ON p.user_id = u.id WHERE p.user_id IN ($placeholders) ORDER BY p.created_at DESC LIMIT 5");
+    $stmt->execute($friend_ids);
+    $debug_posts = $stmt->fetchAll();
+}
+
 $page_title = 'My Friends - OSRG Connect';
 require_once 'header.php';
 ?>
@@ -203,10 +212,9 @@ require_once 'header.php';
                 <div style="background: white; padding: 15px; margin: 10px 0; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.1);">
                     <p style="text-align: center; color: #666; padding: 20px;">
                         No posts from friends yet.<br>
-                        <?php if (!$friends): ?>
-                            <a href="/find-friends" style="color: #1877f2;">Add some friends to see their posts!</a><br><br>
-                            <small>Debug: Friends count: <?= count($friends) ?>, Posts count: <?= count($friend_posts) ?></small>
-                        <?php endif; ?>
+                        <a href="/find-friends" style="color: #1877f2;">Add some friends to see their posts!</a><br><br>
+                        <small>Debug: Friends: <?= count($friends) ?>, Friend IDs: <?= implode(',', $friend_ids) ?>, Posts: <?= count($friend_posts) ?><br>
+                        All posts from these users: <?php foreach($debug_posts as $dp) echo $dp['username'].': '.$dp['content'].' (type: '.($dp['post_type']?:'post').'), '; ?></small>
                     </p>
                 </div>
             <?php endif; ?>

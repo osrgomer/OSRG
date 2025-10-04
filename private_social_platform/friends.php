@@ -52,30 +52,36 @@ try {
     $friends = [];
 }
 
-// Get friend posts
+// Get friend IDs
+$friend_ids = array_column($friends, 'id');
+$friend_ids[] = $_SESSION['user_id']; // Include your own posts
+
+// Get posts from friends and yourself
 try {
-    $stmt = $pdo->prepare("
-        SELECT p.id, p.content, p.created_at, u.username, u.avatar, p.file_path, p.file_type,
-               COUNT(DISTINCT CASE WHEN r.reaction_type = 'like' THEN r.id END) as like_count,
-               COUNT(DISTINCT CASE WHEN r.reaction_type = 'love' THEN r.id END) as love_count,
-               COUNT(DISTINCT CASE WHEN r.reaction_type = 'laugh' THEN r.id END) as laugh_count,
-               COUNT(DISTINCT c.id) as comment_count,
-               ur.reaction_type as user_reaction
-        FROM posts p 
-        JOIN users u ON p.user_id = u.id
-        LEFT JOIN friends f ON (
-            (f.user_id = ? AND f.friend_id = p.user_id AND f.status = 'accepted') OR
-            (f.friend_id = ? AND f.user_id = p.user_id AND f.status = 'accepted')
-        )
-        LEFT JOIN reactions r ON p.id = r.post_id
-        LEFT JOIN comments c ON p.id = c.post_id
-        LEFT JOIN reactions ur ON p.id = ur.post_id AND ur.user_id = ?
-        WHERE u.approved = 1 AND (f.id IS NOT NULL OR p.user_id = ?) AND (p.post_type IS NULL OR p.post_type = 'post')
-        GROUP BY p.id
-        ORDER BY p.created_at DESC
-    ");
-    $stmt->execute([$_SESSION['user_id'], $_SESSION['user_id'], $_SESSION['user_id'], $_SESSION['user_id']]);
-    $friend_posts = $stmt->fetchAll();
+    if (!empty($friend_ids)) {
+        $placeholders = str_repeat('?,', count($friend_ids) - 1) . '?';
+        $stmt = $pdo->prepare("
+            SELECT p.id, p.content, p.created_at, u.username, u.avatar, p.file_path, p.file_type,
+                   COUNT(DISTINCT CASE WHEN r.reaction_type = 'like' THEN r.id END) as like_count,
+                   COUNT(DISTINCT CASE WHEN r.reaction_type = 'love' THEN r.id END) as love_count,
+                   COUNT(DISTINCT CASE WHEN r.reaction_type = 'laugh' THEN r.id END) as laugh_count,
+                   COUNT(DISTINCT c.id) as comment_count,
+                   ur.reaction_type as user_reaction
+            FROM posts p 
+            JOIN users u ON p.user_id = u.id
+            LEFT JOIN reactions r ON p.id = r.post_id
+            LEFT JOIN comments c ON p.id = c.post_id
+            LEFT JOIN reactions ur ON p.id = ur.post_id AND ur.user_id = ?
+            WHERE u.approved = 1 AND p.user_id IN ($placeholders) AND (p.post_type IS NULL OR p.post_type = 'post')
+            GROUP BY p.id
+            ORDER BY p.created_at DESC
+        ");
+        $params = array_merge([$_SESSION['user_id']], $friend_ids);
+        $stmt->execute($params);
+        $friend_posts = $stmt->fetchAll();
+    } else {
+        $friend_posts = [];
+    }
 } catch (Exception $e) {
     $friend_posts = [];
 }

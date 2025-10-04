@@ -364,19 +364,35 @@ function submitComment(event) {
     });
 }
 
-// Auto-play videos when in view
+// Auto-play videos when in view (with user interaction handling)
 const videos = document.querySelectorAll('.reel-video');
+let userInteracted = false;
+
+// Track user interaction
+document.addEventListener('click', () => { userInteracted = true; }, { once: true });
+document.addEventListener('touchstart', () => { userInteracted = true; }, { once: true });
+
 const observer = new IntersectionObserver((entries) => {
     entries.forEach(entry => {
         if (entry.isIntersecting) {
-            entry.target.play();
+            const video = entry.target;
+            if (userInteracted) {
+                video.play().catch(() => {});
+            } else {
+                // Show play button overlay if autoplay fails
+                video.muted = true;
+                video.play().catch(() => {});
+            }
         } else {
             entry.target.pause();
         }
     });
 }, { threshold: 0.5 });
 
-videos.forEach(video => observer.observe(video));
+videos.forEach(video => {
+    video.muted = true; // Start muted for autoplay
+    observer.observe(video);
+});
 </script>
 
 </body>

@@ -130,7 +130,7 @@ $additional_css = '
     body { overflow: hidden; }
     .reel-container { position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background: black; overflow-y: scroll; scroll-snap-type: y mandatory; }
     .reel-item { position: relative; width: 100%; height: 100vh; display: flex; align-items: center; justify-content: center; scroll-snap-align: start; }
-    .reel-video { width: 100%; height: 100%; object-fit: cover; }
+    .reel-video { width: 100%; height: 100%; object-fit: contain; }
     .reel-overlay { position: absolute; bottom: 0; left: 0; right: 0; background: linear-gradient(transparent, rgba(0,0,0,0.7)); padding: 20px; color: white; pointer-events: none; z-index: 10; }
     .reel-overlay * { pointer-events: auto; }
     .reel-info { display: flex; align-items: center; gap: 10px; margin-bottom: 10px; }

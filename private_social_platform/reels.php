@@ -141,24 +141,21 @@ try {
 
 $page_title = 'Reels - OSRG Connect';
 $additional_css = '
-    @import url("https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;700&display=swap");
-    body { overflow: hidden; font-family: Roboto, Arial, sans-serif; font-size: 10px; }
-    .reel-container { position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background: black; overflow-y: scroll; scroll-snap-type: y mandatory; }
-    .reel-item { position: relative; width: 100%; height: 100vh; display: flex; align-items: center; justify-content: center; scroll-snap-align: start; }
-    .reel-video { max-width: 100%; max-height: 100%; width: auto; height: auto; object-fit: contain; }
-    .reel-overlay { position: absolute; bottom: 0; left: 0; right: 0; background: linear-gradient(transparent, rgba(0,0,0,0.7)); padding: 16px; color: white; pointer-events: none; z-index: 10; }
-    .reel-overlay * { pointer-events: auto; }
-    .reel-info { display: flex; align-items: center; gap: 8px; margin-bottom: 8px; }
-    .reel-avatar { width: 28px; height: 28px; border-radius: 50%; border: 1.5px solid white; }
-    .reel-avatar-emoji { font-size: 20px; }
-    .reel-username { font-size: 12px; font-weight: 600; font-family: Roboto, Arial, sans-serif; }
-    .reel-caption { font-size: 11px; margin-bottom: 12px; line-height: 1.4; font-family: Roboto, Arial, sans-serif; font-weight: 400; }
-    .reel-actions { position: absolute; right: 12px; bottom: 80px; display: flex; flex-direction: column; gap: 16px; align-items: center; z-index: 10; }
-    .reel-action { display: inline; }
-    .reel-btn { background: none; border: none; color: white; font-size: 24px; cursor: pointer; display: flex; flex-direction: column; align-items: center; gap: 3px; transition: transform 0.2s; }
-    .reel-btn:hover { transform: scale(1.1); }
-    .reel-btn span { font-size: 10px; font-weight: 600; font-family: Roboto, Arial, sans-serif; }
-    .reel-btn.active { color: #ff3040; }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body { overflow: hidden; font-family: Roboto, Arial, sans-serif; }
+    .reel-container { height: 100vh; width: 100vw; position: fixed; top: 0; left: 0; overflow-y: scroll; scroll-snap-type: y mandatory; background-color: #000; }
+    .reel-item { height: 100vh; width: 100vw; position: relative; overflow: hidden; background-color: #000; scroll-snap-align: start; }
+    .reel-video { width: 100%; height: 100%; object-fit: cover; display: block; }
+    .reel-ui-overlay { position: absolute; top: 0; left: 0; width: 100%; height: 100%; display: flex; flex-direction: column; justify-content: flex-end; padding: 16px; color: #fff; text-shadow: 0 1px 3px rgba(0, 0, 0, 0.5); }
+    .user-info { display: flex; flex-direction: column; justify-content: flex-end; flex-grow: 1; }
+    .user-handle { font-weight: bold; font-size: 16px; margin-bottom: 4px; }
+    .caption { font-size: 14px; margin-bottom: 8px; max-height: 4.5em; overflow: hidden; text-overflow: ellipsis; }
+    .action-bar { position: absolute; bottom: 16px; right: 16px; display: flex; flex-direction: column; gap: 20px; text-align: center; }
+    .action-bar button { background: none; border: none; color: #fff; cursor: pointer; font-size: 24px; padding: 8px; }
+    .action-bar button span { font-size: 12px; display: block; margin-top: 4px; }
+    .action-bar button.active { color: #ff3040; }
+    .editing-canvas-layer { position: absolute; top: 0; left: 0; width: 100%; height: 100%; z-index: 10; pointer-events: none; }
+    .user-added-element { position: absolute; font-size: 40px; color: white; font-family: sans-serif; padding: 5px 10px; cursor: grab; pointer-events: auto; line-height: 1.2; }
     .comment-modal { position: fixed; bottom: 0; left: 0; right: 0; background: white; border-radius: 16px 16px 0 0; max-height: 70vh; transform: translateY(100%); transition: transform 0.3s; z-index: 1000; font-family: Roboto, Arial, sans-serif; }
     .comment-modal.active { transform: translateY(0); }
     .comment-header { padding: 12px; border-bottom: 1px solid #eee; text-align: center; font-weight: 600; font-size: 12px; }
@@ -221,39 +218,27 @@ require_once 'header.php';
                 <source src="/<?= htmlspecialchars($reel['file_path']) ?>" type="video/<?= $reel['file_type'] ?>">
             </video>
             
-            <div class="reel-overlay">
-                <div class="reel-info">
-                    <?php if ($reel['avatar'] && strpos($reel['avatar'], 'avatars/') === 0): ?>
-                        <img src="/<?= htmlspecialchars($reel['avatar']) ?>" alt="Avatar" class="reel-avatar">
-                    <?php elseif ($reel['avatar']): ?>
-                        <span class="reel-avatar-emoji"><?= htmlspecialchars($reel['avatar']) ?></span>
-                    <?php else: ?>
-                        <span class="reel-avatar-emoji">👤</span>
+            <div class="reel-ui-overlay">
+                <div class="user-info">
+                    <div class="user-handle"><?= htmlspecialchars($reel['username']) ?></div>
+                    <?php if ($reel['content']): ?>
+                        <div class="caption"><?= nl2br(htmlspecialchars($reel['content'])) ?></div>
                     <?php endif; ?>
-                    <strong class="reel-username"><?= htmlspecialchars($reel['username']) ?></strong>
                 </div>
                 
-                <?php if ($reel['content']): ?>
-                    <div class="reel-caption"><?= nl2br(htmlspecialchars($reel['content'])) ?></div>
-                <?php endif; ?>
-                
-                <div class="reel-actions">
-                    <button onclick="toggleReaction(<?= $reel['id'] ?>, 'like')" class="reel-btn <?= $reel['user_reaction'] === 'like' ? 'active' : '' ?>" id="like-<?= $reel['id'] ?>">
+                <div class="action-bar">
+                    <button onclick="toggleReaction(<?= $reel['id'] ?>, 'like')" class="<?= $reel['user_reaction'] === 'like' ? 'active' : '' ?>" id="like-<?= $reel['id'] ?>">
                         👍<span id="like-count-<?= $reel['id'] ?>"><?= $reel['like_count'] ?: '' ?></span>
                     </button>
-                    <form method="POST" class="reel-action">
-                        <input type="hidden" name="post_id" value="<?= $reel['id'] ?>">
-                        <button type="submit" name="reaction" value="<?= $reel['user_reaction'] === 'love' ? 'remove' : 'love' ?>" class="reel-btn <?= $reel['user_reaction'] === 'love' ? 'active' : '' ?>">
-                            ❤️<span><?= $reel['love_count'] ?: '' ?></span>
-                        </button>
-                    </form>
-                    <form method="POST" class="reel-action">
-                        <input type="hidden" name="post_id" value="<?= $reel['id'] ?>">
-                        <button type="submit" name="reaction" value="<?= $reel['user_reaction'] === 'laugh' ? 'remove' : 'laugh' ?>" class="reel-btn <?= $reel['user_reaction'] === 'laugh' ? 'active' : '' ?>">
-                            😂<span><?= $reel['laugh_count'] ?: '' ?></span>
-                        </button>
-                    </form>
-                    <button class="reel-btn" onclick="openComments(<?= $reel['id'] ?>)">💬<span><?= $reel['comment_count'] ?: '' ?></span></button>
+                    <button onclick="toggleReaction(<?= $reel['id'] ?>, 'love')" class="<?= $reel['user_reaction'] === 'love' ? 'active' : '' ?>">
+                        ❤️<span><?= $reel['love_count'] ?: '' ?></span>
+                    </button>
+                    <button onclick="toggleReaction(<?= $reel['id'] ?>, 'laugh')" class="<?= $reel['user_reaction'] === 'laugh' ? 'active' : '' ?>">
+                        😂<span><?= $reel['laugh_count'] ?: '' ?></span>
+                    </button>
+                    <button onclick="openComments(<?= $reel['id'] ?>)">
+                        💬<span><?= $reel['comment_count'] ?: '' ?></span>
+                    </button>
                 </div>
             </div>
         </div>
@@ -419,17 +404,7 @@ function toggleReaction(postId, reactionType) {
     .then(response => response.json())
     .then(data => {
         if (data.status === 'success') {
-            // Update button appearance and count
-            const button = document.getElementById('like-' + postId);
-            const count = document.getElementById('like-count-' + postId);
-            
-            if (button.classList.contains('active')) {
-                button.classList.remove('active');
-                count.textContent = parseInt(count.textContent || 0) - 1 || '';
-            } else {
-                button.classList.add('active');
-                count.textContent = parseInt(count.textContent || 0) + 1;
-            }
+            location.reload(); // Simple reload for now to update all counts
         }
     });
 }

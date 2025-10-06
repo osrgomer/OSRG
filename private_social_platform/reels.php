@@ -160,7 +160,7 @@ $additional_css = '
         z-index: 1; 
     }
     .reel-ui-overlay { position: absolute; bottom: 0; left: 50%; transform: translateX(-50%); width: 70vw; max-width: 900px; height: auto; display: flex; flex-direction: row; justify-content: space-between; align-items: flex-end; padding: 16px; color: #fff; text-shadow: 0 1px 3px rgba(0, 0, 0, 0.5); z-index: 2; }
-    .user-info { display: flex; flex-direction: column; justify-content: flex-end; flex: 1; margin-bottom: 60px; }
+    .user-info { display: flex; flex-direction: column; justify-content: flex-end; flex: 1; margin-bottom: 100px; }
     .user-handle { font-weight: bold; font-size: 16px; margin-bottom: 4px; }
     .caption { font-size: 14px; margin-bottom: 8px; max-height: 4.5em; overflow: hidden; text-overflow: ellipsis; }
     .action-bar { display: flex; flex-direction: column; gap: 15px; text-align: center; align-items: center; margin-right: -60px; margin-bottom: 120px; }

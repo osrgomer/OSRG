@@ -163,7 +163,7 @@ $additional_css = '
     .user-info { display: flex; flex-direction: column; justify-content: flex-end; flex: 1; }
     .user-handle { font-weight: bold; font-size: 16px; margin-bottom: 4px; }
     .caption { font-size: 14px; margin-bottom: 8px; max-height: 4.5em; overflow: hidden; text-overflow: ellipsis; }
-    .action-bar { display: flex; flex-direction: column; gap: 15px; text-align: center; align-items: center; }
+    .action-bar { display: flex; flex-direction: column; gap: 15px; text-align: center; align-items: center; margin-right: -8px; margin-bottom: 20px; }
     .action-bar button { background: none; border: none; color: #fff; cursor: pointer; font-size: 24px; padding: 8px; }
     .action-bar button span { font-size: 12px; display: block; margin-top: 4px; }
     .action-bar button.active { color: #ff3040; }

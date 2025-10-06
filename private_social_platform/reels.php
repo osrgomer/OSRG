@@ -166,7 +166,8 @@ $additional_css = '
     .comment-form { padding: 15px; border-top: 1px solid #eee; display: flex; gap: 10px; }
     .comment-input { flex: 1; padding: 10px; border: 1px solid #ddd; border-radius: 20px; }
     .comment-submit { padding: 10px 20px; background: #1877f2; color: white; border: none; border-radius: 20px; }
-    .create-reel { position: fixed; top: 80px; left: 20px; right: 20px; background: linear-gradient(135deg, #ff6b6b, #4ecdc4); color: white; padding: 20px; border-radius: 15px; z-index: 100; }
+    .create-reel { position: fixed; top: 80px; left: 20px; right: 20px; background: linear-gradient(135deg, #ff6b6b, #4ecdc4); color: white; padding: 20px; border-radius: 15px; z-index: 100; max-height: 40vh; overflow-y: auto; }
+    .reel-item { margin-top: 250px; }
     .nav { position: fixed; top: 0; left: 0; right: 0; z-index: 200; }
 ';
 

@@ -145,7 +145,20 @@ $additional_css = '
     body { overflow: hidden; font-family: Roboto, Arial, sans-serif; }
     .reel-container { height: 100vh; width: 100vw; position: fixed; top: 0; left: 0; overflow-y: scroll; scroll-snap-type: y mandatory; background-color: #000; }
     .reel-item { height: 100vh; width: 100vw; position: relative; overflow: hidden; background-color: #000; scroll-snap-align: start; display: flex; align-items: center; justify-content: center; }
-    .reel-video { width: 250px; height: 400px; object-fit: cover; display: block; border-radius: 12px; position: relative; z-index: 1; }
+    .reel-video { 
+        width: 70vw; 
+        height: 70vh; 
+        max-width: 900px; 
+        max-height: 600px; 
+        object-fit: contain; 
+        display: block; 
+        margin: auto; 
+        border-radius: 18px; 
+        background: #222; 
+        box-shadow: 0 8px 32px rgba(0,0,0,0.4); 
+        position: relative; 
+        z-index: 1; 
+    }
     .reel-ui-overlay { position: absolute; top: 0; left: 50%; transform: translateX(-50%); width: 250px; height: 400px; display: flex; flex-direction: column; justify-content: flex-end; padding: 12px; color: #fff; text-shadow: 0 1px 3px rgba(0, 0, 0, 0.5); z-index: 2; }
     .user-info { display: flex; flex-direction: column; justify-content: flex-end; flex-grow: 1; }
     .user-handle { font-weight: bold; font-size: 16px; margin-bottom: 4px; }

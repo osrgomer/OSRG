@@ -1,24 +1,46 @@
 RewriteEngine On
+
+# Pretty URLs - check if file doesn't exist first
 RewriteCond %{REQUEST_FILENAME} !-f
 RewriteCond %{REQUEST_FILENAME} !-d
-
-# Pretty URLs
-RewriteRule ^home/?$ home.php [L]
-RewriteRule ^reels/?$ reels.php [L]
-RewriteRule ^find-friends/?$ find_friends.php [L]
-RewriteRule ^friends/?$ friends.php [L]
-RewriteRule ^messages/?$ messages.php [L]
-RewriteRule ^profile/?$ profile.php [L]
-RewriteRule ^settings/?$ settings.php [L]
-RewriteRule ^admin/?$ admin.php [L]
-RewriteRule ^login/?$ login.php [L]
-RewriteRule ^register/?$ register.php [L]
-RewriteRule ^logout/?$ logout.php [L]
- 
-# Map /home to index.php (there is no home.php in this project)
 RewriteRule ^home/?$ index.php [L]
 
-# Fallback: route anything not matching a real file to index.php (front controller)
 RewriteCond %{REQUEST_FILENAME} !-f
 RewriteCond %{REQUEST_FILENAME} !-d
-RewriteRule ^(.*)$ index.php [L,QSA]
+RewriteRule ^reels/?$ reels.php [L]
+
+RewriteCond %{REQUEST_FILENAME} !-f
+RewriteCond %{REQUEST_FILENAME} !-d
+RewriteRule ^find-friends/?$ find_friends.php [L]
+
+RewriteCond %{REQUEST_FILENAME} !-f
+RewriteCond %{REQUEST_FILENAME} !-d
+RewriteRule ^friends/?$ friends.php [L]
+
+RewriteCond %{REQUEST_FILENAME} !-f
+RewriteCond %{REQUEST_FILENAME} !-d
+RewriteRule ^messages/?$ messages.php [L]
+
+RewriteCond %{REQUEST_FILENAME} !-f
+RewriteCond %{REQUEST_FILENAME} !-d
+RewriteRule ^profile/?$ profile.php [L]
+
+RewriteCond %{REQUEST_FILENAME} !-f
+RewriteCond %{REQUEST_FILENAME} !-d
+RewriteRule ^settings/?$ settings.php [L]
+
+RewriteCond %{REQUEST_FILENAME} !-f
+RewriteCond %{REQUEST_FILENAME} !-d
+RewriteRule ^admin/?$ admin.php [L]
+
+RewriteCond %{REQUEST_FILENAME} !-f
+RewriteCond %{REQUEST_FILENAME} !-d
+RewriteRule ^login/?$ login.php [L]
+
+RewriteCond %{REQUEST_FILENAME} !-f
+RewriteCond %{REQUEST_FILENAME} !-d
+RewriteRule ^register/?$ register.php [L]
+
+RewriteCond %{REQUEST_FILENAME} !-f
+RewriteCond %{REQUEST_FILENAME} !-d
+RewriteRule ^logout/?$ logout.php [L]

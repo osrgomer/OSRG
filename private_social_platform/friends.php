@@ -52,33 +52,28 @@ try {
     $friends = [];
 }
 
-// Get posts from friends and yourself - simplified approach
+// Get posts from friends and yourself
+$friend_ids = array_column($friends, 'id');
+$friend_ids[] = $_SESSION['user_id'];
+
 try {
-    // Get all posts from friends and yourself, excluding reels
-    $stmt = $pdo->prepare("
-        SELECT p.id, p.content, p.created_at, u.username, u.avatar, p.file_path, p.file_type,
-               0 as like_count, 0 as love_count, 0 as laugh_count, 0 as comment_count,
-               NULL as user_reaction
-        FROM posts p 
-        JOIN users u ON p.user_id = u.id
-        WHERE u.approved = 1 AND (p.post_type IS NULL OR p.post_type = 'post')
-        ORDER BY p.created_at DESC
-        LIMIT 20
-    ");
-    $stmt->execute();
-    $all_posts = $stmt->fetchAll();
-    
-    // Filter to only show posts from friends and yourself
-    $friend_ids = array_column($friends, 'id');
-    $friend_ids[] = $_SESSION['user_id'];
-    
-    $friend_posts = array_filter($all_posts, function($post) use ($pdo, $friend_ids) {
-        $stmt = $pdo->prepare("SELECT id FROM users WHERE username = ? AND id IN (" . implode(',', array_fill(0, count($friend_ids), '?')) . ")");
-        $params = array_merge([$post['username']], $friend_ids);
-        $stmt->execute($params);
-        return $stmt->fetch() !== false;
-    });
-    
+    if (!empty($friend_ids)) {
+        $placeholders = implode(',', array_fill(0, count($friend_ids), '?'));
+        $stmt = $pdo->prepare("
+            SELECT p.id, p.content, p.created_at, u.username, u.avatar, p.file_path, p.file_type,
+                   0 as like_count, 0 as love_count, 0 as laugh_count, 0 as comment_count,
+                   NULL as user_reaction
+            FROM posts p 
+            JOIN users u ON p.user_id = u.id
+            WHERE u.approved = 1 AND p.user_id IN ($placeholders) AND (p.post_type IS NULL OR p.post_type = 'post')
+            ORDER BY p.created_at DESC
+            LIMIT 20
+        ");
+        $stmt->execute($friend_ids);
+        $friend_posts = $stmt->fetchAll();
+    } else {
+        $friend_posts = [];
+    }
 } catch (Exception $e) {
     $friend_posts = [];
 }
@@ -154,7 +149,8 @@ require_once 'header.php';
                     <p style="text-align: center; color: #666; padding: 20px;">
                         No posts from friends yet.<br>
                         <a href="/find-friends" style="color: #1877f2;">Add some friends to see their posts!</a><br><br>
-                        <small>Debug: <?= count($friends) ?> friends, <?= count($friend_posts) ?> posts found</small>
+                        <small>Debug: <?= count($friends) ?> friends, <?= count($friend_posts) ?> posts found<br>
+                        Friend IDs: <?= implode(',', $friend_ids) ?></small>
                     </p>
                 </div>
             <?php endif; ?>

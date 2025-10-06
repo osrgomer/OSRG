@@ -144,8 +144,8 @@ $additional_css = '
     * { box-sizing: border-box; margin: 0; padding: 0; }
     body { overflow: hidden; font-family: Roboto, Arial, sans-serif; }
     .reel-container { height: 100vh; width: 100vw; position: fixed; top: 0; left: 0; overflow-y: scroll; scroll-snap-type: y mandatory; background-color: #000; }
-    .reel-item { height: 100vh; width: 100vw; position: relative; overflow: hidden; background-color: #000; scroll-snap-align: start; }
-    .reel-video { width: 100%; height: 100%; object-fit: cover; display: block; }
+    .reel-item { height: 100vh; width: 100vw; position: relative; overflow: hidden; background-color: #000; scroll-snap-align: start; display: flex; align-items: center; justify-content: center; }
+    .reel-video { width: 300px; height: 500px; object-fit: cover; display: block; border-radius: 12px; }
     .reel-ui-overlay { position: absolute; top: 0; left: 0; width: 100%; height: 100%; display: flex; flex-direction: column; justify-content: flex-end; padding: 16px; color: #fff; text-shadow: 0 1px 3px rgba(0, 0, 0, 0.5); }
     .user-info { display: flex; flex-direction: column; justify-content: flex-end; flex-grow: 1; }
     .user-handle { font-weight: bold; font-size: 16px; margin-bottom: 4px; }

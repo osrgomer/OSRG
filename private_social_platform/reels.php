@@ -183,7 +183,7 @@ $additional_css = '
     .create-reel input { font-family: Roboto, Arial, sans-serif; font-size: 10px; }
     .create-reel button { font-family: Roboto, Arial, sans-serif; font-size: 11px; font-weight: 600; }
     .create-reel small { font-size: 9px; }
-    .toggle-create { position: fixed; top: 40px; right: 80px; background: #ff6b6b; color: white; border: none; padding: 8px 12px; border-radius: 20px; z-index: 1001; cursor: pointer; font-size: 12px; }
+    .toggle-create { position: fixed; top: 64px; right: 80px; background: #ff6b6b; color: white; border: none; padding: 8px 12px; border-radius: 20px; z-index: 1001; cursor: pointer; font-size: 12px; }
     .create-reel.hidden { display: none; }
     .nav { position: fixed; top: 0; left: 0; right: 0; z-index: 200; }
 ';

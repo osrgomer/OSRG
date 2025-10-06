@@ -96,7 +96,7 @@ if ($_POST['reaction'] ?? false) {
         $stmt->execute([$post_id, $_SESSION['user_id'], $reaction]);
     }
     
-    header('Location: /reels');
+    echo json_encode(['status' => 'success']);
     exit;
 }
 
@@ -142,7 +142,7 @@ try {
 $page_title = 'Reels - OSRG Connect';
 $additional_css = '
     body { overflow: hidden; }
-    .reel-container { position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background: black; overflow-y: scroll; scroll-snap-type: y mandatory; }
+    .reel-container { position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background: black; overflow-y: scroll; scroll-snap-type: y mandatory; padding-top: 200px; }
     .reel-item { position: relative; width: 100%; height: 100vh; display: flex; align-items: center; justify-content: center; scroll-snap-align: start; }
     .reel-video { max-width: 100%; max-height: 100%; width: auto; height: auto; object-fit: contain; }
     .reel-overlay { position: absolute; bottom: 0; left: 0; right: 0; background: linear-gradient(transparent, rgba(0,0,0,0.7)); padding: 20px; color: white; pointer-events: none; z-index: 10; }
@@ -166,8 +166,7 @@ $additional_css = '
     .comment-form { padding: 15px; border-top: 1px solid #eee; display: flex; gap: 10px; }
     .comment-input { flex: 1; padding: 10px; border: 1px solid #ddd; border-radius: 20px; }
     .comment-submit { padding: 10px 20px; background: #1877f2; color: white; border: none; border-radius: 20px; }
-    .create-reel { position: fixed; top: 80px; left: 20px; right: 20px; background: linear-gradient(135deg, #ff6b6b, #4ecdc4); color: white; padding: 20px; border-radius: 15px; z-index: 100; max-height: 40vh; overflow-y: auto; }
-    .reel-item { margin-top: 250px; }
+    .create-reel { position: absolute; top: 20px; left: 20px; right: 20px; background: linear-gradient(135deg, #ff6b6b, #4ecdc4); color: white; padding: 20px; border-radius: 15px; z-index: 100; }
     .nav { position: fixed; top: 0; left: 0; right: 0; z-index: 200; }
 ';
 
@@ -229,12 +228,9 @@ require_once 'header.php';
                 <?php endif; ?>
                 
                 <div class="reel-actions">
-                    <form method="POST" class="reel-action">
-                        <input type="hidden" name="post_id" value="<?= $reel['id'] ?>">
-                        <button type="submit" name="reaction" value="<?= $reel['user_reaction'] === 'like' ? 'remove' : 'like' ?>" class="reel-btn <?= $reel['user_reaction'] === 'like' ? 'active' : '' ?>">
-                            👍<span><?= $reel['like_count'] ?: '' ?></span>
-                        </button>
-                    </form>
+                    <button onclick="toggleReaction(<?= $reel['id'] ?>, 'like')" class="reel-btn <?= $reel['user_reaction'] === 'like' ? 'active' : '' ?>" id="like-<?= $reel['id'] ?>">
+                        👍<span id="like-count-<?= $reel['id'] ?>"><?= $reel['like_count'] ?: '' ?></span>
+                    </button>
                     <form method="POST" class="reel-action">
                         <input type="hidden" name="post_id" value="<?= $reel['id'] ?>">
                         <button type="submit" name="reaction" value="<?= $reel['user_reaction'] === 'love' ? 'remove' : 'love' ?>" class="reel-btn <?= $reel['user_reaction'] === 'love' ? 'active' : '' ?>">
@@ -385,6 +381,34 @@ videos.forEach(video => {
     video.muted = true; // Start muted for autoplay
     observer.observe(video);
 });
+
+// AJAX reaction function
+function toggleReaction(postId, reactionType) {
+    const formData = new FormData();
+    formData.append('post_id', postId);
+    formData.append('reaction', reactionType);
+    
+    fetch('/reels', {
+        method: 'POST',
+        body: formData
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.status === 'success') {
+            // Update button appearance and count
+            const button = document.getElementById('like-' + postId);
+            const count = document.getElementById('like-count-' + postId);
+            
+            if (button.classList.contains('active')) {
+                button.classList.remove('active');
+                count.textContent = parseInt(count.textContent || 0) - 1 || '';
+            } else {
+                button.classList.add('active');
+                count.textContent = parseInt(count.textContent || 0) + 1;
+            }
+        }
+    });
+}
 </script>
 
 </body>

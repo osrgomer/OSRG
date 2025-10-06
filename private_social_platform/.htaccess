@@ -1,4 +1,14 @@
 RewriteEngine On
 
-# Redirect video files in uploads to video viewer
-RewriteRule ^uploads/(.+\.(mp4|mov|avi))$ video.php?v=uploads/$1 [L,QSA]
+# Pretty URLs
+RewriteRule ^home$ home.php [L]
+RewriteRule ^reels$ reels.php [L]
+RewriteRule ^find-friends$ find_friends.php [L]
+RewriteRule ^friends$ friends.php [L]
+RewriteRule ^messages$ messages.php [L]
+RewriteRule ^profile$ profile.php [L]
+RewriteRule ^settings$ settings.php [L]
+RewriteRule ^admin$ admin.php [L]
+RewriteRule ^login$ login.php [L]
+RewriteRule ^register$ register.php [L]
+RewriteRule ^logout$ logout.php [L]

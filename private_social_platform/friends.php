@@ -65,7 +65,7 @@ try {
                    NULL as user_reaction
             FROM posts p 
             JOIN users u ON p.user_id = u.id
-            WHERE u.approved = 1 AND p.user_id IN ($placeholders)
+            WHERE u.approved = 1 AND p.user_id IN ($placeholders) AND (p.post_type IS NULL OR p.post_type = 'post')
             ORDER BY p.created_at DESC
             LIMIT 20
         ");
@@ -127,7 +127,31 @@ require_once 'header.php';
                         <strong><?= htmlspecialchars($post['username']) ?></strong>
                     </div>
                     
-                    <div><?= nl2br(htmlspecialchars($post['content'])) ?></div>
+                    <?php
+                    try {
+                        $processed = process_content_with_links($post['content']);
+                        echo '<div>' . $processed['content'] . '</div>';
+                        
+                        if (!empty($processed['previews'])): 
+                            foreach ($processed['previews'] as $preview): ?>
+                            <div style="border: 1px solid #e1e5e9; border-radius: 8px; margin: 10px 0; overflow: hidden; max-width: 400px;">
+                                <?php if ($preview['image']): ?>
+                                <img src="<?= htmlspecialchars($preview['image']) ?>" alt="Preview" style="width: 100%; height: 200px; object-fit: cover;">
+                                <?php endif; ?>
+                                <div style="padding: 12px;">
+                                    <div style="font-weight: bold; margin-bottom: 5px; color: #1d2129;"><?= htmlspecialchars($preview['title']) ?></div>
+                                    <?php if ($preview['description']): ?>
+                                    <div style="color: #606770; font-size: 14px; margin-bottom: 8px;"><?= htmlspecialchars(substr($preview['description'], 0, 100)) ?>...</div>
+                                    <?php endif; ?>
+                                    <div style="color: #8a8d91; font-size: 12px; text-transform: uppercase;"><?= parse_url($preview['url'], PHP_URL_HOST) ?></div>
+                                </div>
+                            </div>
+                            <?php endforeach;
+                        endif;
+                    } catch (Exception $e) {
+                        echo '<div>' . nl2br(htmlspecialchars($post['content'])) . '</div>';
+                    }
+                    ?>
                     
                     <?php if ($post['file_path']): ?>
                     <div style="margin: 10px 0;">

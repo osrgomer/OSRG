@@ -142,7 +142,8 @@ try {
 $page_title = 'Reels - OSRG Connect';
 $additional_css = '
     body { overflow: hidden; }
-    .reel-container { position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background: black; overflow-y: scroll; scroll-snap-type: y mandatory; padding-top: 200px; }
+    body { overflow: hidden; }
+    .reel-container { position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background: black; overflow-y: scroll; scroll-snap-type: y mandatory; }
     .reel-item { position: relative; width: 100%; height: 100vh; display: flex; align-items: center; justify-content: center; scroll-snap-align: start; }
     .reel-video { max-width: 100%; max-height: 100%; width: auto; height: auto; object-fit: contain; }
     .reel-overlay { position: absolute; bottom: 0; left: 0; right: 0; background: linear-gradient(transparent, rgba(0,0,0,0.7)); padding: 20px; color: white; pointer-events: none; z-index: 10; }
@@ -166,15 +167,19 @@ $additional_css = '
     .comment-form { padding: 15px; border-top: 1px solid #eee; display: flex; gap: 10px; }
     .comment-input { flex: 1; padding: 10px; border: 1px solid #ddd; border-radius: 20px; }
     .comment-submit { padding: 10px 20px; background: #1877f2; color: white; border: none; border-radius: 20px; }
-    .create-reel { position: absolute; top: 20px; left: 20px; right: 20px; background: linear-gradient(135deg, #ff6b6b, #4ecdc4); color: white; padding: 20px; border-radius: 15px; z-index: 100; }
+    .create-reel { position: fixed; top: 80px; left: 20px; right: 20px; background: linear-gradient(135deg, #ff6b6b, #4ecdc4); color: white; padding: 20px; border-radius: 15px; z-index: 1000; max-height: 300px; overflow-y: auto; }
+    .toggle-create { position: fixed; top: 20px; right: 20px; background: #ff6b6b; color: white; border: none; padding: 10px 15px; border-radius: 50px; z-index: 1001; cursor: pointer; }
+    .create-reel.hidden { display: none; }
     .nav { position: fixed; top: 0; left: 0; right: 0; z-index: 200; }
 ';
 
 require_once 'header.php';
 ?>
 
+<button class="toggle-create" onclick="toggleCreateForm()">➕</button>
+
 <div class="reel-container">
-    <div class="create-reel">
+    <div class="create-reel hidden" id="createForm">
         <h2>🎬 Create a Reel</h2>
         <?php if (isset($_SESSION['reel_success'])): ?>
             <div style="background: rgba(0,255,0,0.2); color: white; padding: 10px; border-radius: 8px; margin-bottom: 15px;">
@@ -381,6 +386,20 @@ videos.forEach(video => {
     video.muted = true; // Start muted for autoplay
     observer.observe(video);
 });
+
+// Toggle create form
+function toggleCreateForm() {
+    const form = document.getElementById('createForm');
+    const button = document.querySelector('.toggle-create');
+    
+    if (form.classList.contains('hidden')) {
+        form.classList.remove('hidden');
+        button.textContent = '✖️';
+    } else {
+        form.classList.add('hidden');
+        button.textContent = '➕';
+    }
+}
 
 // AJAX reaction function
 function toggleReaction(postId, reactionType) {

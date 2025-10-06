@@ -141,34 +141,39 @@ try {
 
 $page_title = 'Reels - OSRG Connect';
 $additional_css = '
-    body { overflow: hidden; }
-    body { overflow: hidden; }
+    @import url("https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;700&display=swap");
+    body { overflow: hidden; font-family: Roboto, Arial, sans-serif; font-size: 10px; }
     .reel-container { position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background: black; overflow-y: scroll; scroll-snap-type: y mandatory; }
     .reel-item { position: relative; width: 100%; height: 100vh; display: flex; align-items: center; justify-content: center; scroll-snap-align: start; }
     .reel-video { max-width: 100%; max-height: 100%; width: auto; height: auto; object-fit: contain; }
-    .reel-overlay { position: absolute; bottom: 0; left: 0; right: 0; background: linear-gradient(transparent, rgba(0,0,0,0.7)); padding: 20px; color: white; pointer-events: none; z-index: 10; }
+    .reel-overlay { position: absolute; bottom: 0; left: 0; right: 0; background: linear-gradient(transparent, rgba(0,0,0,0.7)); padding: 16px; color: white; pointer-events: none; z-index: 10; }
     .reel-overlay * { pointer-events: auto; }
-    .reel-info { display: flex; align-items: center; gap: 10px; margin-bottom: 10px; }
-    .reel-avatar { width: 32px; height: 32px; border-radius: 50%; border: 2px solid white; }
-    .reel-avatar-emoji { font-size: 24px; }
-    .reel-username { font-size: 14px; font-weight: bold; }
-    .reel-caption { font-size: 14px; margin-bottom: 15px; line-height: 1.3; }
-    .reel-actions { position: absolute; right: 15px; bottom: 100px; display: flex; flex-direction: column; gap: 20px; align-items: center; z-index: 10; }
+    .reel-info { display: flex; align-items: center; gap: 8px; margin-bottom: 8px; }
+    .reel-avatar { width: 28px; height: 28px; border-radius: 50%; border: 1.5px solid white; }
+    .reel-avatar-emoji { font-size: 20px; }
+    .reel-username { font-size: 12px; font-weight: 600; font-family: Roboto, Arial, sans-serif; }
+    .reel-caption { font-size: 11px; margin-bottom: 12px; line-height: 1.4; font-family: Roboto, Arial, sans-serif; font-weight: 400; }
+    .reel-actions { position: absolute; right: 12px; bottom: 80px; display: flex; flex-direction: column; gap: 16px; align-items: center; z-index: 10; }
     .reel-action { display: inline; }
-    .reel-btn { background: none; border: none; color: white; font-size: 28px; cursor: pointer; display: flex; flex-direction: column; align-items: center; gap: 5px; transition: transform 0.2s; }
+    .reel-btn { background: none; border: none; color: white; font-size: 24px; cursor: pointer; display: flex; flex-direction: column; align-items: center; gap: 3px; transition: transform 0.2s; }
     .reel-btn:hover { transform: scale(1.1); }
-    .reel-btn span { font-size: 12px; font-weight: bold; }
+    .reel-btn span { font-size: 10px; font-weight: 600; font-family: Roboto, Arial, sans-serif; }
     .reel-btn.active { color: #ff3040; }
-    .comment-modal { position: fixed; bottom: 0; left: 0; right: 0; background: white; border-radius: 20px 20px 0 0; max-height: 70vh; transform: translateY(100%); transition: transform 0.3s; z-index: 1000; }
+    .comment-modal { position: fixed; bottom: 0; left: 0; right: 0; background: white; border-radius: 16px 16px 0 0; max-height: 70vh; transform: translateY(100%); transition: transform 0.3s; z-index: 1000; font-family: Roboto, Arial, sans-serif; }
     .comment-modal.active { transform: translateY(0); }
-    .comment-header { padding: 15px; border-bottom: 1px solid #eee; text-align: center; font-weight: bold; }
-    .comment-list { max-height: 50vh; overflow-y: auto; padding: 10px; }
-    .comment-item { padding: 10px; border-bottom: 1px solid #f0f0f0; }
-    .comment-form { padding: 15px; border-top: 1px solid #eee; display: flex; gap: 10px; }
-    .comment-input { flex: 1; padding: 10px; border: 1px solid #ddd; border-radius: 20px; }
-    .comment-submit { padding: 10px 20px; background: #1877f2; color: white; border: none; border-radius: 20px; }
-    .create-reel { position: fixed; top: 80px; left: 20px; right: 20px; background: linear-gradient(135deg, #ff6b6b, #4ecdc4); color: white; padding: 20px; border-radius: 15px; z-index: 1000; max-height: 300px; overflow-y: auto; }
-    .toggle-create { position: fixed; top: 20px; right: 20px; background: #ff6b6b; color: white; border: none; padding: 10px 15px; border-radius: 50px; z-index: 1001; cursor: pointer; }
+    .comment-header { padding: 12px; border-bottom: 1px solid #eee; text-align: center; font-weight: 600; font-size: 12px; }
+    .comment-list { max-height: 50vh; overflow-y: auto; padding: 8px; }
+    .comment-item { padding: 8px; border-bottom: 1px solid #f0f0f0; font-size: 11px; }
+    .comment-form { padding: 12px; border-top: 1px solid #eee; display: flex; gap: 8px; }
+    .comment-input { flex: 1; padding: 8px 12px; border: 1px solid #ddd; border-radius: 16px; font-size: 11px; font-family: Roboto, Arial, sans-serif; }
+    .comment-submit { padding: 8px 16px; background: #1877f2; color: white; border: none; border-radius: 16px; font-size: 10px; font-weight: 600; }
+    .create-reel { position: fixed; top: 70px; left: 16px; right: 16px; background: linear-gradient(135deg, #ff6b6b, #4ecdc4); color: white; padding: 16px; border-radius: 12px; z-index: 1000; max-height: 280px; overflow-y: auto; font-family: Roboto, Arial, sans-serif; }
+    .create-reel h2 { font-size: 14px; font-weight: 600; margin-bottom: 12px; }
+    .create-reel textarea { font-family: Roboto, Arial, sans-serif; font-size: 11px; }
+    .create-reel input { font-family: Roboto, Arial, sans-serif; font-size: 10px; }
+    .create-reel button { font-family: Roboto, Arial, sans-serif; font-size: 11px; font-weight: 600; }
+    .create-reel small { font-size: 9px; }
+    .toggle-create { position: fixed; top: 16px; right: 16px; background: #ff6b6b; color: white; border: none; padding: 8px 12px; border-radius: 20px; z-index: 1001; cursor: pointer; font-size: 12px; }
     .create-reel.hidden { display: none; }
     .nav { position: fixed; top: 0; left: 0; right: 0; z-index: 200; }
 ';

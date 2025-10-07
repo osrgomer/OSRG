@@ -6,9 +6,9 @@ if (strpos($_SERVER['HTTP_HOST'], 'connect.osrg.lol') !== false) {
 session_start();
 date_default_timezone_set('Europe/London');
 
-// reCAPTCHA v3 Configuration
-define('RECAPTCHA_SITE_KEY', '6LdbleErAAAAAIXGOdwpux9nNKkLiZ2xzv2p-TfR');
-define('RECAPTCHA_SECRET_KEY', '6LdbleErAAAAAIQjKoxaCO7cfUnESotkAMfyjGnh');
+// reCAPTCHA v3 Configuration - Replace with your real keys on live server
+define('RECAPTCHA_SITE_KEY', 'YOUR_SITE_KEY_HERE');
+define('RECAPTCHA_SECRET_KEY', 'YOUR_SECRET_KEY_HERE');
 
 // Check for remember me token if not logged in
 if (!isset($_SESSION['user_id']) && isset($_COOKIE['remember_token'])) {

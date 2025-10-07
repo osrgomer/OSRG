@@ -65,7 +65,7 @@ try {
                    NULL as user_reaction
             FROM posts p 
             JOIN users u ON p.user_id = u.id
-            WHERE u.approved = 1 AND p.user_id IN ($placeholders)
+            WHERE u.approved = 1 AND p.user_id IN ($placeholders) AND (p.post_type IS NULL OR p.post_type != 'reel')
             ORDER BY p.created_at DESC
             LIMIT 20
         ");

@@ -384,13 +384,8 @@ const observer = new IntersectionObserver((entries) => {
     entries.forEach(entry => {
         if (entry.isIntersecting) {
             const video = entry.target;
-            if (userInteracted) {
-                video.play().catch(() => {});
-            } else {
-                // Show play button overlay if autoplay fails
-                video.muted = true;
-                video.play().catch(() => {});
-            }
+            video.muted = false; // Unmute when in view
+            video.play().catch(() => {});
         } else {
             entry.target.pause();
         }
@@ -398,7 +393,6 @@ const observer = new IntersectionObserver((entries) => {
 }, { threshold: 0.5 });
 
 videos.forEach(video => {
-    video.muted = true; // Start muted for autoplay
     observer.observe(video);
 });
 

@@ -8,7 +8,7 @@ date_default_timezone_set('Europe/London');
 
 // reCAPTCHA v3 Configuration
 define('RECAPTCHA_SITE_KEY', '6LdbleErAAAAAIXGOdwpux9nNKkLiZ2xzv2p-TfR');
-define('RECAPTCHA_SECRET_KEY', 'YOUR_SECRET_KEY_HERE'); // Add your secret key
+define('RECAPTCHA_SECRET_KEY', '6LdbleErAAAAAIQjKoxaCO7cfUnESotkAMfyjGnh');
 
 // Check for remember me token if not logged in
 if (!isset($_SESSION['user_id']) && isset($_COOKIE['remember_token'])) {

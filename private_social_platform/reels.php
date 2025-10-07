@@ -60,7 +60,7 @@ if (isset($_POST['content'])) {
     
     // Require video file for reels
     if ($file_path && in_array($file_type, ['mp4', 'mov', 'avi'])) {
-        // First ensure post_type column exists
+        // First ensure required columns exist
         try {
             $pdo->exec("ALTER TABLE posts ADD COLUMN post_type TEXT DEFAULT 'post'");
         } catch (Exception $e) {
@@ -68,10 +68,20 @@ if (isset($_POST['content'])) {
         }
         
         try {
-            $stmt = $pdo->prepare("INSERT INTO posts (user_id, content, file_path, file_type, post_type) VALUES (?, ?, ?, ?, 'reel')");
-            $result = $stmt->execute([$_SESSION['user_id'], $_POST['content'], $file_path, $file_type]);
+            $pdo->exec("ALTER TABLE posts ADD COLUMN reel_serial INTEGER");
+        } catch (Exception $e) {
+            // Column already exists, ignore
+        }
+        
+        try {
+            // Get next serial number for reels
+            $serial_stmt = $pdo->query("SELECT COALESCE(MAX(reel_serial), 0) + 1 as next_serial FROM posts WHERE post_type = 'reel'");
+            $next_serial = $serial_stmt->fetchColumn();
+            
+            $stmt = $pdo->prepare("INSERT INTO posts (user_id, content, file_path, file_type, post_type, reel_serial) VALUES (?, ?, ?, ?, 'reel', ?)");
+            $result = $stmt->execute([$_SESSION['user_id'], $_POST['content'], $file_path, $file_type, $next_serial]);
             $post_id = $pdo->lastInsertId();
-            $_SESSION['reel_success'] = 'Reel created successfully!';
+            $_SESSION['reel_success'] = "Reel #$next_serial created successfully!";
         } catch (Exception $e) {
             $_SESSION['reel_error'] = 'Database error: ' . $e->getMessage();
         }
@@ -117,7 +127,7 @@ try {
     $debug_posts = $pdo->query("SELECT id, user_id, file_path, created_at FROM posts WHERE file_type IN ('mp4', 'mov', 'avi') ORDER BY created_at DESC LIMIT 5")->fetchAll();
     
     $stmt = $pdo->prepare("
-        SELECT p.id, p.content, p.created_at, u.username, u.avatar, p.file_path, p.file_type,
+        SELECT p.id, p.content, p.created_at, u.username, u.avatar, p.file_path, p.file_type, p.reel_serial,
                COUNT(DISTINCT CASE WHEN r.reaction_type = 'like' THEN r.id END) as like_count,
                COUNT(DISTINCT CASE WHEN r.reaction_type = 'love' THEN r.id END) as love_count,
                COUNT(DISTINCT CASE WHEN r.reaction_type = 'laugh' THEN r.id END) as laugh_count,
@@ -162,6 +172,7 @@ $additional_css = '
     .reel-ui-overlay { position: absolute; bottom: 0; left: 50%; transform: translateX(-50%); width: 70vw; max-width: 900px; height: auto; display: flex; flex-direction: row; justify-content: space-between; align-items: flex-end; padding: 16px; color: #fff; text-shadow: 0 1px 3px rgba(0, 0, 0, 0.5); z-index: 2; }
     .user-info { display: flex; flex-direction: column; justify-content: flex-end; flex: 1; margin-bottom: 220px; margin-left: 40px; }
     .user-handle { font-weight: bold; font-size: 16px; margin-bottom: 4px; }
+    .reel-serial { font-size: 12px; color: rgba(255,255,255,0.7); margin-bottom: 4px; }
     .caption { font-size: 14px; margin-bottom: 8px; max-height: 4.5em; overflow: hidden; text-overflow: ellipsis; }
     .action-bar { display: flex; flex-direction: column; gap: 15px; text-align: center; align-items: center; margin-right: -60px; margin-bottom: 120px; }
     .action-bar button { background: none; border: none; color: #fff; cursor: pointer; font-size: 24px; padding: 8px; }
@@ -234,6 +245,7 @@ require_once 'header.php';
             <div class="reel-ui-overlay">
                 <div class="user-info">
                     <div class="user-handle"><?= htmlspecialchars($reel['username']) ?></div>
+                    <div class="reel-serial">Reel #<?= $reel['reel_serial'] ?: $reel['id'] ?></div>
                     <?php if ($reel['content']): ?>
                         <div class="caption"><?= nl2br(htmlspecialchars($reel['content'])) ?></div>
                     <?php endif; ?>

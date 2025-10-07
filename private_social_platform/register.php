@@ -5,7 +5,11 @@ init_db();
 $message = '';
 
 if ($_POST['username'] ?? false) {
-    $pdo = get_db();
+    // Verify reCAPTCHA
+    if (!isset($_POST['g-recaptcha-response']) || !verify_recaptcha($_POST['g-recaptcha-response'])) {
+        $message = 'reCAPTCHA verification failed. Please try again.';
+    } else {
+        $pdo = get_db();
     
     try {
         $password_hash = password_hash($_POST['password'], PASSWORD_DEFAULT);
@@ -38,8 +42,9 @@ if ($_POST['username'] ?? false) {
             
             $message = 'Registration submitted! Please wait for admin approval before logging in.';
         }
-    } catch (PDOException $e) {
-        $message = 'Username or email already exists';
+        } catch (PDOException $e) {
+            $message = 'Username or email already exists';
+        }
     }
 }
 ?>
@@ -61,6 +66,9 @@ if ($_POST['username'] ?? false) {
       function gtag(){dataLayer.push(arguments);}
       gtag('config', 'G-Y1Y8S6WHNH');
     </script>
+    
+    <!-- reCAPTCHA v3 -->
+    <script src="https://www.google.com/recaptcha/api.js?render=<?= RECAPTCHA_SITE_KEY ?>"></script>
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
         body { font-family: Arial, sans-serif; background: #f5f5f5; }
@@ -130,6 +138,24 @@ if ($_POST['username'] ?? false) {
                 strengthDiv.className = 'password-strength strength-strong';
             }
         }
+        
+        // reCAPTCHA v3 integration
+        document.addEventListener('DOMContentLoaded', function() {
+            const form = document.getElementById('registerForm');
+            form.addEventListener('submit', function(e) {
+                e.preventDefault();
+                const submitBtn = document.getElementById('submitBtn');
+                submitBtn.disabled = true;
+                submitBtn.textContent = 'Verifying...';
+                
+                grecaptcha.ready(function() {
+                    grecaptcha.execute('<?= RECAPTCHA_SITE_KEY ?>', {action: 'register'}).then(function(token) {
+                        document.getElementById('g-recaptcha-response').value = token;
+                        form.submit();
+                    });
+                });
+            });
+        });
     </script>
 </head>
 <body>
@@ -143,7 +169,7 @@ if ($_POST['username'] ?? false) {
             <div class="message"><?= $message ?></div>
         <?php endif; ?>
 
-        <form method="POST">
+        <form method="POST" id="registerForm">
             <div class="form-group">
                 <input type="text" name="username" placeholder="Username" required>
             </div>
@@ -158,8 +184,9 @@ if ($_POST['username'] ?? false) {
                 <div id="password-strength" class="password-strength"></div>
             </div>
             <div class="form-group">
-                <button type="submit">Register</button>
+                <button type="submit" id="submitBtn">Register</button>
             </div>
+            <input type="hidden" name="g-recaptcha-response" id="g-recaptcha-response">
         </form>
 
         <p style="text-align: center; margin-top: 20px;">

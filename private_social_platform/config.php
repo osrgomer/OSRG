@@ -6,6 +6,10 @@ if (strpos($_SERVER['HTTP_HOST'], 'connect.osrg.lol') !== false) {
 session_start();
 date_default_timezone_set('Europe/London');
 
+// reCAPTCHA v3 Configuration
+define('RECAPTCHA_SITE_KEY', '6LeIxAcTAAAAAJcZVRqyHh71UMIEGNQ_MXjiZKhI'); // Test key
+define('RECAPTCHA_SECRET_KEY', '6LeIxAcTAAAAAGG-vFI1TnRWxMZNFuojJ4WifJWe'); // Test key
+
 // Check for remember me token if not logged in
 if (!isset($_SESSION['user_id']) && isset($_COOKIE['remember_token'])) {
     $pdo = get_db();
@@ -190,5 +194,12 @@ function process_content_with_links($content) {
         'content' => $processed_content,
         'previews' => $link_previews
     ];
+}
+
+function verify_recaptcha($token) {
+    $secret = RECAPTCHA_SECRET_KEY;
+    $response = file_get_contents("https://www.google.com/recaptcha/api/siteverify?secret={$secret}&response={$token}");
+    $result = json_decode($response, true);
+    return $result['success'] && $result['score'] >= 0.5;
 }
 ?>

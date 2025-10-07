@@ -138,7 +138,7 @@ try {
         LEFT JOIN reactions r ON p.id = r.post_id
         LEFT JOIN comments c ON p.id = c.post_id
         LEFT JOIN reactions ur ON p.id = ur.post_id AND ur.user_id = ?
-        WHERE u.approved = 1 AND p.file_type IN ('mp4', 'mov', 'avi')
+        WHERE u.approved = 1 AND (p.file_type IN ('mp4', 'mov', 'avi') OR p.post_type = 'reel')
         GROUP BY p.id
         ORDER BY p.created_at DESC
     ");

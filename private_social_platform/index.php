@@ -123,6 +123,14 @@ if ($_GET['delete_post'] ?? false) {
 
 // Handle new post
 if (isset($_POST['content'])) {
+    // Check if user has remember me token and verify reCAPTCHA
+    $needs_captcha = isset($_COOKIE['remember_token']);
+    if ($needs_captcha && (!isset($_POST['g-recaptcha-response']) || !verify_recaptcha($_POST['g-recaptcha-response']))) {
+        // Redirect with error for remember me users
+        $_SESSION['post_error'] = 'Security verification failed. Please try again.';
+        header('Location: home');
+        exit;
+    }
     $file_path = null;
     $file_type = null;
     
@@ -202,6 +210,8 @@ if (isset($_POST['content'])) {
     <meta name="keywords" content="social media, private platform, friends, posts, community, OSRG">
     <meta name="author" content="OSRG">
     <script src="https://cdn.quilljs.com/1.3.6/quill.min.js"></script>
+    <!-- reCAPTCHA v3 for remember me users -->
+    <script src="https://www.google.com/recaptcha/api.js?render=<?= RECAPTCHA_SITE_KEY ?>"></script>
     <script>
         let lastPostCount = 0;
         let quill;
@@ -236,6 +246,31 @@ if (isset($_POST['content'])) {
                     e.preventDefault();
                     alert('Please write something before posting!');
                     return false;
+                }
+                
+                // Check if user has remember me token (needs reCAPTCHA)
+                const hasRememberToken = document.cookie.includes('remember_token');
+                if (hasRememberToken) {
+                    e.preventDefault();
+                    const submitBtn = document.querySelector('#postForm button[type="submit"]');
+                    submitBtn.disabled = true;
+                    submitBtn.textContent = 'Verifying...';
+                    
+                    grecaptcha.ready(function() {
+                        grecaptcha.execute('<?= RECAPTCHA_SITE_KEY ?>', {action: 'post'}).then(function(token) {
+                            // Add hidden input for reCAPTCHA token
+                            let tokenInput = document.getElementById('post-recaptcha-token');
+                            if (!tokenInput) {
+                                tokenInput = document.createElement('input');
+                                tokenInput.type = 'hidden';
+                                tokenInput.name = 'g-recaptcha-response';
+                                tokenInput.id = 'post-recaptcha-token';
+                                document.getElementById('postForm').appendChild(tokenInput);
+                            }
+                            tokenInput.value = token;
+                            document.getElementById('postForm').submit();
+                        });
+                    });
                 }
                 return true;
             });
@@ -516,6 +551,14 @@ if (isset($_POST['content'])) {
         </div>
         <?php endif; ?>
 
+        <?php if (isset($_SESSION['post_error'])): ?>
+        <div class="post" style="background: #ffebee; border-left: 4px solid #f44336;">
+            <div style="color: #c62828; padding: 10px;">
+                ❌ <?= htmlspecialchars($_SESSION['post_error']) ?>
+            </div>
+        </div>
+        <?php unset($_SESSION['post_error']); endif; ?>
+        
         <div class="post">
             <h3>Share something...</h3>
             <form method="POST" enctype="multipart/form-data" id="postForm">

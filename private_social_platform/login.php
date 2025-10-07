@@ -5,7 +5,11 @@ init_db();
 $error = '';
 
 if ($_POST['username'] ?? false) {
-    $pdo = get_db();
+    // Verify reCAPTCHA
+    if (!isset($_POST['g-recaptcha-response']) || !verify_recaptcha($_POST['g-recaptcha-response'])) {
+        $error = 'Security verification failed. Please try again.';
+    } else {
+        $pdo = get_db();
     $stmt = $pdo->prepare("SELECT * FROM users WHERE username = ? OR email = ?");
     $stmt->execute([$_POST['username'], $_POST['username']]);
     $user = $stmt->fetch();
@@ -42,8 +46,9 @@ if ($_POST['username'] ?? false) {
         } else {
             $error = 'Your account is pending approval.';
         }
-    } else {
-        $error = 'Invalid username or password.';
+        } else {
+            $error = 'Invalid username or password.';
+        }
     }
 }
 ?>
@@ -66,6 +71,9 @@ if ($_POST['username'] ?? false) {
 
       gtag('config', 'G-Y1Y8S6WHNH');
     </script>
+    
+    <!-- reCAPTCHA v3 -->
+    <script src="https://www.google.com/recaptcha/api.js?render=<?= RECAPTCHA_SITE_KEY ?>"></script>
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
         body { font-family: Arial, sans-serif; background: #f5f5f5; }
@@ -98,6 +106,24 @@ if ($_POST['username'] ?? false) {
                 showButton.textContent = '👁️';
             }
         }
+        
+        // reCAPTCHA v3 integration
+        document.addEventListener('DOMContentLoaded', function() {
+            const form = document.getElementById('loginForm');
+            form.addEventListener('submit', function(e) {
+                e.preventDefault();
+                const submitBtn = document.getElementById('submitBtn');
+                submitBtn.disabled = true;
+                submitBtn.textContent = 'Verifying...';
+                
+                grecaptcha.ready(function() {
+                    grecaptcha.execute('<?= RECAPTCHA_SITE_KEY ?>', {action: 'login'}).then(function(token) {
+                        document.getElementById('g-recaptcha-response').value = token;
+                        form.submit();
+                    });
+                });
+            });
+        });
     </script>
 </head>
 <body>
@@ -111,7 +137,7 @@ if ($_POST['username'] ?? false) {
             <div class="error"><?= $error ?></div>
         <?php endif; ?>
 
-        <form method="POST">
+        <form method="POST" id="loginForm">
             <div class="form-group">
                 <input type="text" name="username" placeholder="Username or Email" required>
             </div>
@@ -128,8 +154,9 @@ if ($_POST['username'] ?? false) {
                 </label>
             </div>
             <div class="form-group">
-                <button type="submit">Login</button>
+                <button type="submit" id="submitBtn">Login</button>
             </div>
+            <input type="hidden" name="g-recaptcha-response" id="g-recaptcha-response">
         </form>
 
         <p style="text-align: center; margin-top: 20px;">

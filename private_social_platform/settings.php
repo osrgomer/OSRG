@@ -95,10 +95,7 @@ if ($_POST['update_profile'] ?? false) {
     $current_username = $user['username'];
     $current_email = $user['email'];
     $current_avatar = $user['avatar'] ?? '';
-    // Update bio variable for display
-    if (isset($user['bio'])) {
-        // Bio is already in $user array from the refresh query
-    }
+    $current_bio = $user['bio'] ?? '';
 }
 
 // Handle password change
@@ -261,7 +258,7 @@ $timezones = [
                 </div>
                 <div class="form-group">
                     <label><strong>Bio:</strong></label>
-                    <textarea name="bio" placeholder="Tell us about yourself..." style="width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 5px; min-height: 80px; resize: vertical;"><?= htmlspecialchars($user['bio'] ?? '') ?></textarea>
+                    <textarea name="bio" placeholder="Tell us about yourself..." style="width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 5px; min-height: 80px; resize: vertical;"><?= htmlspecialchars($current_bio) ?></textarea>
                     <small style="color: #666; display: block; margin-top: 5px;">Optional - appears on your profile</small>
                 </div>
                 <div class="form-group">

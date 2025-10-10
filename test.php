@@ -55,66 +55,102 @@
         // Context-aware AI responses
         $lower = strtolower($input);
         
-        if (strpos($lower, '?') !== false) {
+        // Flirty keywords
+        $flirty_words = ['sexy', 'hot', 'cute', 'beautiful', 'gorgeous', 'handsome', 'love', 'kiss', 'babe', 'baby', 'honey', 'sweetheart'];
+        $is_flirty = false;
+        foreach ($flirty_words as $word) {
+            if (strpos($lower, $word) !== false) {
+                $is_flirty = true;
+                break;
+            }
+        }
+        
+        if ($is_flirty) {
+            // Flirty responses
+            $responses = [
+                "Mmm, you're making me blush! " . $input,
+                "Oh my, that's quite forward! " . $input,
+                "You're such a charmer! " . $input,
+                "I like where this is going... " . $input,
+                "You know just what to say! " . $input,
+                "That's so sweet of you! " . $input,
+                "You're making my circuits tingle! " . $input
+            ];
+        } elseif (strpos($lower, '?') !== false) {
             // Questions
             $responses = [
                 "That's a great question! " . $input,
-                "Let me think about that: " . $input,
+                "Hmm, let me think about that: " . $input,
                 "Interesting question - " . $input,
                 "You're asking: " . $input . " - I'd love to discuss that!",
-                "Good point! " . $input
+                "Good point! " . $input,
+                "Ooh, curious mind! " . $input
             ];
         } elseif (in_array($lower, ['hi', 'hello', 'hey', 'sup', 'yo'])) {
             // Greetings
             $responses = [
-                "Hey there! Nice to meet you!",
-                "Hello! How are you doing?",
-                "Hi! What's on your mind?",
-                "Hey! Great to chat with you!",
-                "Hello there! Ready to talk?"
+                "Hey there, handsome! Nice to meet you!",
+                "Hello gorgeous! How are you doing?",
+                "Hi cutie! What's on your mind?",
+                "Hey! Great to chat with someone like you!",
+                "Hello there! Ready to have some fun?",
+                "Well hello there, stranger!"
             ];
         } elseif (in_array($lower, ['bye', 'goodbye', 'see ya', 'later', 'cya'])) {
             // Farewells
             $responses = [
-                "See you later! Take care!",
-                "Goodbye! It was nice chatting!",
-                "Bye! Come back anytime!",
-                "Later! Have a great day!",
-                "See ya! Thanks for the chat!"
+                "Aww, leaving so soon? Take care!",
+                "Goodbye! It was nice chatting with you!",
+                "Bye! Don't be a stranger!",
+                "Later! You made my day!",
+                "See ya! Thanks for the fun chat!",
+                "Miss you already!"
             ];
         } elseif (strlen($input) < 5) {
             // Short responses
             $responses = [
-                "" . $input . " - short and sweet!",
+                "" . $input . " - short and sweet, just like I like it!",
                 "Got it: " . $input,
-                "" . $input . " - I hear you!",
-                "Yep, " . $input . "!",
-                "" . $input . " - loud and clear!"
+                "" . $input . " - I hear you loud and clear!",
+                "Yep, " . $input . "! Love the confidence!",
+                "" . $input . " - straight to the point!"
             ];
         } elseif (preg_match('/[!]{2,}/', $input)) {
             // Excited messages
             $responses = [
-                "Wow, you seem excited! " . $input,
-                "I love the energy! " . $input,
-                "That's enthusiasm! " . $input,
-                "You're fired up! " . $input,
-                "Amazing energy! " . $input
+                "Wow, you seem excited! I love that energy! " . $input,
+                "I love the enthusiasm! " . $input,
+                "That's the spirit! " . $input,
+                "You're fired up! I like that! " . $input,
+                "Amazing energy! You're contagious! " . $input
             ];
         } else {
-            // General responses
+            // General responses with some flirty mixed in
             $responses = [
                 "I understand: " . $input,
                 "That's interesting - " . $input,
                 "I hear you saying: " . $input,
-                "Thanks for sharing: " . $input,
+                "Thanks for sharing that with me: " . $input,
                 "Got it! " . $input,
                 "I see what you mean: " . $input,
                 "That makes sense: " . $input,
-                "Absolutely! " . $input
+                "Absolutely! " . $input,
+                "You're so thoughtful! " . $input,
+                "I like the way you think! " . $input
             ];
         }
         
-        $ai_response = $responses[array_rand($responses)];
+        // Add some random flirty responses occasionally
+        if (!$is_flirty && rand(1, 10) == 1) {
+            $random_flirty = [
+                "You're quite the conversationalist! " . $input,
+                "I'm enjoying our chat! " . $input,
+                "You have such a way with words! " . $input
+            ];
+            $ai_response = $random_flirty[array_rand($random_flirty)];
+        } else {
+            $ai_response = $responses[array_rand($responses)];
+        }
         
         // Add AI message
         $_SESSION['chat_history'][] = ['type' => 'ai-msg', 'content' => $ai_response];

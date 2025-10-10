@@ -61,6 +61,7 @@ if ($_POST['username'] ?? false) {
     <link rel="icon" type="image/png" sizes="16x16" href="favicon-16x16.png">
     <link rel="apple-touch-icon" sizes="180x180" href="apple-touch-icon.png">
     <title>Login - OSRG Connect</title>
+    <!-- DEBUG: Site Key = <?= RECAPTCHA_SITE_KEY ?> -->
     
     <!-- Google tag (gtag.js) -->
     <script async src="https://www.googletagmanager.com/gtag/js?id=G-Y1Y8S6WHNH"></script>

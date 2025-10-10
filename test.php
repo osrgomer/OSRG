@@ -145,7 +145,10 @@
             $random_flirty = [
                 "You're quite the conversationalist! " . $input,
                 "I'm enjoying our chat! " . $input,
-                "You have such a way with words! " . $input
+                "You have such a way with words! " . $input,
+                "You're making this chat fun! " . $input,
+                "I like talking to you! " . $input,
+                "You're so juicy " . $input
             ];
             $ai_response = $random_flirty[array_rand($random_flirty)];
         } else {

@@ -101,6 +101,35 @@ if ($_POST['update_profile'] ?? false) {
     }
 }
 
+// Handle password change
+if ($_POST['change_password'] ?? false) {
+    $current_password = $_POST['current_password'];
+    $new_password = $_POST['new_password'];
+    $confirm_password = $_POST['confirm_password'];
+    
+    // Get current password hash
+    $stmt = $pdo->prepare("SELECT password_hash FROM users WHERE id = ?");
+    $stmt->execute([$_SESSION['user_id']]);
+    $user_data = $stmt->fetch();
+    
+    if (password_verify($current_password, $user_data['password_hash'])) {
+        if ($new_password === $confirm_password) {
+            if (strlen($new_password) >= 6) {
+                $new_hash = password_hash($new_password, PASSWORD_DEFAULT);
+                $stmt = $pdo->prepare("UPDATE users SET password_hash = ? WHERE id = ?");
+                $stmt->execute([$new_hash, $_SESSION['user_id']]);
+                $message = 'Password changed successfully!';
+            } else {
+                $message = 'New password must be at least 6 characters long.';
+            }
+        } else {
+            $message = 'New passwords do not match.';
+        }
+    } else {
+        $message = 'Current password is incorrect.';
+    }
+}
+
 // Handle settings update (only if not profile update)
 if (($_POST['timezone'] ?? false) && !($_POST['update_profile'] ?? false)) {
     $email_notif = isset($_POST['email_notifications']) ? 1 : 0;
@@ -380,32 +409,25 @@ $timezones = [
             </div>
         </div>
         
-        <!-- Privacy & Security -->
+        <!-- Password Change -->
         <div class="post">
-            <h3>🔒 Privacy & Security</h3>
-            <div style="margin-top: 15px;">
-                <div style="display: flex; justify-content: space-between; align-items: center; padding: 15px 0; border-bottom: 1px solid rgba(225,229,233,0.5);">
-                    <div>
-                        <div style="font-weight: 600; color: #333; margin-bottom: 4px;">Change Password</div>
-                        <div style="color: #666; font-size: 14px;">Update your account password for security</div>
-                    </div>
-                    <a href="forgot_password.php" style="background: linear-gradient(135deg, #1877f2, #42a5f5); color: white; padding: 10px 20px; text-decoration: none; border-radius: 8px; font-size: 14px; font-weight: 500;">Change</a>
+            <h3>🔒 Change Password</h3>
+            <form method="POST">
+                <div class="form-group">
+                    <label><strong>Current Password:</strong></label>
+                    <input type="password" name="current_password" required>
                 </div>
-                <div style="display: flex; justify-content: space-between; align-items: center; padding: 15px 0; border-bottom: 1px solid rgba(225,229,233,0.5);">
-                    <div>
-                        <div style="font-weight: 600; color: #333; margin-bottom: 4px;">Account Status</div>
-                        <div style="color: #666; font-size: 14px;">Your account is active and verified</div>
-                    </div>
-                    <span style="background: linear-gradient(135deg, #4caf50, #66bb6a); color: white; padding: 6px 16px; border-radius: 20px; font-size: 12px; font-weight: 600;">✓ Active</span>
+                <div class="form-group">
+                    <label><strong>New Password:</strong></label>
+                    <input type="password" name="new_password" required minlength="6">
+                    <small style="color: #666; display: block; margin-top: 5px;">Minimum 6 characters</small>
                 </div>
-                <div style="display: flex; justify-content: space-between; align-items: center; padding: 15px 0;">
-                    <div>
-                        <div style="font-weight: 600; color: #333; margin-bottom: 4px;">Data Privacy</div>
-                        <div style="color: #666; font-size: 14px;">Your data is secure and encrypted</div>
-                    </div>
-                    <span style="background: rgba(76,175,80,0.1); color: #4caf50; padding: 6px 16px; border-radius: 20px; font-size: 12px; font-weight: 600;">🔒 Protected</span>
+                <div class="form-group">
+                    <label><strong>Confirm New Password:</strong></label>
+                    <input type="password" name="confirm_password" required minlength="6">
                 </div>
-            </div>
+                <button type="submit" name="change_password" value="1">Change Password</button>
+            </form>
         </div>
         
         <!-- Quick Actions -->

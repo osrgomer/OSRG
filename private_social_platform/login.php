@@ -14,15 +14,6 @@ if ($_POST['username'] ?? false) {
     $stmt->execute([$_POST['username'], $_POST['username']]);
     $user = $stmt->fetch();
     
-    // DEBUG: Show what we found
-    if ($user) {
-        $debug_info = "User found: " . $user['username'] . ", Approved: " . $user['approved'];
-        $debug_info .= ", Has password_hash: " . (isset($user['password_hash']) ? 'Yes' : 'No');
-        $debug_info .= ", Has password: " . (isset($user['password']) ? 'Yes' : 'No');
-        error_log($debug_info);
-    } else {
-        error_log("No user found for: " . $_POST['username']);
-    }
     
     // Check both possible password field names for backward compatibility
     $password_field = isset($user['password_hash']) ? $user['password_hash'] : $user['password'];
@@ -73,7 +64,6 @@ if ($_POST['username'] ?? false) {
     <link rel="icon" type="image/png" sizes="16x16" href="favicon-16x16.png">
     <link rel="apple-touch-icon" sizes="180x180" href="apple-touch-icon.png">
     <title>Login - OSRG Connect</title>
-    <!-- DEBUG: Site Key = <?= RECAPTCHA_SITE_KEY ?> -->
     
     <!-- Google tag (gtag.js) -->
     <script async src="https://www.googletagmanager.com/gtag/js?id=G-Y1Y8S6WHNH"></script>

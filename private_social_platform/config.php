@@ -6,17 +6,9 @@ if (strpos($_SERVER['HTTP_HOST'], 'connect.osrg.lol') !== false) {
 session_start();
 date_default_timezone_set('Europe/London');
 
-// reCAPTCHA v3 Configuration - Load from separate file if exists
-if (file_exists(__DIR__ . '/config_keys.php')) {
-    require_once 'config_keys.php';
-}
-// Fallback placeholders - reCAPTCHA will be disabled
-if (!defined('RECAPTCHA_SITE_KEY')) {
-    define('RECAPTCHA_SITE_KEY', 'YOUR_SITE_KEY_HERE');
-}
-if (!defined('RECAPTCHA_SECRET_KEY')) {
-    define('RECAPTCHA_SECRET_KEY', 'YOUR_SECRET_KEY_HERE');
-}
+// reCAPTCHA v3 Configuration - Temporary direct keys
+define('RECAPTCHA_SITE_KEY', '6LdfnuErAAAAAGYSK_kNF-Z02QjDxGTVkzswyofS');
+define('RECAPTCHA_SECRET_KEY', '6LdfnuErAAAAAOuWEvsDZGWj-a5ruWmz9JWio8PH');
 
 // Check for remember me token if not logged in
 if (!isset($_SESSION['user_id']) && isset($_COOKIE['remember_token'])) {

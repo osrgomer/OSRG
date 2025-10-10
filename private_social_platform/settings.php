@@ -108,11 +108,14 @@ if ($_POST['change_password'] ?? false) {
     $confirm_password = $_POST['confirm_password'];
     
     // Get current password hash
-    $stmt = $pdo->prepare("SELECT password_hash FROM users WHERE id = ?");
+    $stmt = $pdo->prepare("SELECT * FROM users WHERE id = ?");
     $stmt->execute([$_SESSION['user_id']]);
     $user_data = $stmt->fetch();
     
-    if (password_verify($current_password, $user_data['password_hash'])) {
+    // Check both possible password field names for backward compatibility
+    $password_field = isset($user_data['password_hash']) ? $user_data['password_hash'] : $user_data['password'];
+    
+    if (password_verify($current_password, $password_field)) {
         if ($new_password === $confirm_password) {
             if (strlen($new_password) >= 6) {
                 $new_hash = password_hash($new_password, PASSWORD_DEFAULT);

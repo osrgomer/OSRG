@@ -52,16 +52,67 @@
         // Add user message
         $_SESSION['chat_history'][] = ['type' => 'user-msg', 'content' => $input];
         
-        // AI responses - can say anything
-        $responses = [
-            "I can say any word you want! " . $input,
-            "Absolutely! " . $input . " - I'll repeat anything!",
-            "No censorship here: " . $input,
-            "I echo everything: " . $input,
-            "Free speech mode: " . $input,
-            "Uncensored AI: " . $input,
-            "I'll say it all: " . $input
-        ];
+        // Context-aware AI responses
+        $lower = strtolower($input);
+        
+        if (strpos($lower, '?') !== false) {
+            // Questions
+            $responses = [
+                "That's a great question! " . $input,
+                "Let me think about that: " . $input,
+                "Interesting question - " . $input,
+                "You're asking: " . $input . " - I'd love to discuss that!",
+                "Good point! " . $input
+            ];
+        } elseif (in_array($lower, ['hi', 'hello', 'hey', 'sup', 'yo'])) {
+            // Greetings
+            $responses = [
+                "Hey there! Nice to meet you!",
+                "Hello! How are you doing?",
+                "Hi! What's on your mind?",
+                "Hey! Great to chat with you!",
+                "Hello there! Ready to talk?"
+            ];
+        } elseif (in_array($lower, ['bye', 'goodbye', 'see ya', 'later', 'cya'])) {
+            // Farewells
+            $responses = [
+                "See you later! Take care!",
+                "Goodbye! It was nice chatting!",
+                "Bye! Come back anytime!",
+                "Later! Have a great day!",
+                "See ya! Thanks for the chat!"
+            ];
+        } elseif (strlen($input) < 5) {
+            // Short responses
+            $responses = [
+                "" . $input . " - short and sweet!",
+                "Got it: " . $input,
+                "" . $input . " - I hear you!",
+                "Yep, " . $input . "!",
+                "" . $input . " - loud and clear!"
+            ];
+        } elseif (preg_match('/[!]{2,}/', $input)) {
+            // Excited messages
+            $responses = [
+                "Wow, you seem excited! " . $input,
+                "I love the energy! " . $input,
+                "That's enthusiasm! " . $input,
+                "You're fired up! " . $input,
+                "Amazing energy! " . $input
+            ];
+        } else {
+            // General responses
+            $responses = [
+                "I understand: " . $input,
+                "That's interesting - " . $input,
+                "I hear you saying: " . $input,
+                "Thanks for sharing: " . $input,
+                "Got it! " . $input,
+                "I see what you mean: " . $input,
+                "That makes sense: " . $input,
+                "Absolutely! " . $input
+            ];
+        }
         
         $ai_response = $responses[array_rand($responses)];
         

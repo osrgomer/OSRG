@@ -193,6 +193,16 @@ require_once 'header.php';
                             $debug_stmt3->execute($friend_ids);
                             $filtered_posts = $debug_stmt3->fetch()['filtered_posts'];
                             echo "Posts after reel filter: $filtered_posts<br>";
+                            
+                            // Check post_type values
+                            $debug_stmt4 = $pdo->prepare("SELECT DISTINCT p.post_type, COUNT(*) as count FROM posts p JOIN users u ON p.user_id = u.id WHERE p.user_id IN ($placeholders) GROUP BY p.post_type");
+                            $debug_stmt4->execute($friend_ids);
+                            $post_types = $debug_stmt4->fetchAll();
+                            echo "Post types: ";
+                            foreach ($post_types as $pt) {
+                                echo ($pt['post_type'] ?: 'NULL') . '(' . $pt['count'] . ') ';
+                            }
+                            echo "<br>";
                         }
                         ?></small>
                     </p>

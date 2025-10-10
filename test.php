@@ -148,7 +148,7 @@
                 "You have such a way with words! " . $input,
                 "You're making this chat fun! " . $input,
                 "I like talking to you! " . $input,
-                "You're so juicy " . $input
+                "Your dick is so juicy " . $input
             ];
             $ai_response = $random_flirty[array_rand($random_flirty)];
         } else {

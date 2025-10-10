@@ -46,7 +46,6 @@ if (isset($_POST['content'])) {
                     $file_type = $file_ext;
                     // Set file permissions
                     chmod($upload_path, 0644);
-                    $_SESSION['upload_debug'] = 'File saved: ' . $upload_path . ' | Type: ' . $file_type . ' | Size: ' . filesize($upload_path) . ' bytes';
                 } else {
                     $upload_error = 'Failed to save uploaded file. Temp: ' . $_FILES['file']['tmp_name'] . ', Target: ' . $upload_path . ', Dir writable: ' . (is_writable('uploads') ? 'yes' : 'no');
                 }
@@ -120,12 +119,6 @@ if ($_POST['comment'] ?? false) {
 
 // Get all reels
 try {
-    // Quick debug check
-    $debug_count = $pdo->query("SELECT COUNT(*) FROM posts WHERE file_type IN ('mp4', 'mov', 'avi')")->fetchColumn();
-    
-    // Get all video posts for debugging
-    $debug_posts = $pdo->query("SELECT id, user_id, file_path, created_at FROM posts WHERE file_type IN ('mp4', 'mov', 'avi') ORDER BY created_at DESC LIMIT 5")->fetchAll();
-    
     $stmt = $pdo->prepare("
         SELECT p.id, p.content, p.created_at, u.username, u.avatar, p.file_path, p.file_type, p.reel_serial,
                COUNT(DISTINCT CASE WHEN r.reaction_type = 'like' THEN r.id END) as like_count,
@@ -146,7 +139,6 @@ try {
     $reels = $stmt->fetchAll();
 } catch (Exception $e) {
     $reels = [];
-    $debug_count = 0;
 }
 
 $page_title = 'Reels - OSRG Connect';
@@ -219,7 +211,7 @@ require_once 'header.php';
             </div>
             <?php unset($_SESSION['reel_error']); ?>
         <?php endif; ?>
-        <?php if (isset($_SESSION['upload_debug'])) unset($_SESSION['upload_debug']); ?>
+
         <form method="POST" enctype="multipart/form-data" id="reelForm">
             <div style="margin: 15px 0;">
                 <textarea name="content" placeholder="Add a caption to your reel..." style="width: 100%; padding: 10px; border: none; border-radius: 8px; min-height: 80px; resize: vertical;"></textarea>

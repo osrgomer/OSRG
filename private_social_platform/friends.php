@@ -176,15 +176,23 @@ require_once 'header.php';
                         <small>Debug: <?= count($friends) ?> friends, <?= count($friend_posts) ?> posts found<br>
                         Friend IDs: <?= implode(',', $friend_ids) ?><br>
                         <?php
-                        // Debug: Check all posts from these users
+                        // Simple debug: count all posts from these users
                         if (!empty($friend_ids)) {
-                            $debug_stmt = $pdo->prepare("SELECT p.id, p.user_id, p.post_type, p.content, u.username, u.approved FROM posts p JOIN users u ON p.user_id = u.id WHERE p.user_id IN (" . implode(',', array_fill(0, count($friend_ids), '?')) . ") ORDER BY p.created_at DESC LIMIT 5");
+                            $placeholders = implode(',', array_fill(0, count($friend_ids), '?'));
+                            $debug_stmt = $pdo->prepare("SELECT COUNT(*) as total FROM posts p JOIN users u ON p.user_id = u.id WHERE p.user_id IN ($placeholders)");
                             $debug_stmt->execute($friend_ids);
-                            $debug_posts = $debug_stmt->fetchAll();
-                            echo "All posts from friend IDs:<br>";
-                            foreach ($debug_posts as $dp) {
-                                echo "Post ID: {$dp['id']}, User: {$dp['username']} (ID: {$dp['user_id']}, Approved: {$dp['approved']}), Type: " . ($dp['post_type'] ?: 'NULL') . ", Content: " . substr($dp['content'], 0, 30) . "...<br>";
-                            }
+                            $total_posts = $debug_stmt->fetch()['total'];
+                            echo "Total posts from friends: $total_posts<br>";
+                            
+                            $debug_stmt2 = $pdo->prepare("SELECT COUNT(*) as approved_posts FROM posts p JOIN users u ON p.user_id = u.id WHERE p.user_id IN ($placeholders) AND u.approved = 1");
+                            $debug_stmt2->execute($friend_ids);
+                            $approved_posts = $debug_stmt2->fetch()['approved_posts'];
+                            echo "Posts from approved users: $approved_posts<br>";
+                            
+                            $debug_stmt3 = $pdo->prepare("SELECT COUNT(*) as filtered_posts FROM posts p JOIN users u ON p.user_id = u.id WHERE p.user_id IN ($placeholders) AND u.approved = 1 AND (p.post_type IS NULL OR p.post_type != 'reel')");
+                            $debug_stmt3->execute($friend_ids);
+                            $filtered_posts = $debug_stmt3->fetch()['filtered_posts'];
+                            echo "Posts after reel filter: $filtered_posts<br>";
                         }
                         ?></small>
                     </p>

@@ -5,8 +5,8 @@ init_db();
 $error = '';
 
 if ($_POST['username'] ?? false) {
-    // Verify reCAPTCHA
-    if (!isset($_POST['g-recaptcha-response']) || !verify_recaptcha($_POST['g-recaptcha-response'])) {
+    // Verify reCAPTCHA - temporarily disabled
+    if (false && (!isset($_POST['g-recaptcha-response']) || !verify_recaptcha($_POST['g-recaptcha-response']))) {
         $error = 'Security verification failed. Please try again.';
     } else {
         $pdo = get_db();

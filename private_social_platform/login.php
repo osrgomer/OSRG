@@ -14,6 +14,16 @@ if ($_POST['username'] ?? false) {
     $stmt->execute([$_POST['username'], $_POST['username']]);
     $user = $stmt->fetch();
     
+    // DEBUG: Show what we found
+    if ($user) {
+        $debug_info = "User found: " . $user['username'] . ", Approved: " . $user['approved'];
+        $debug_info .= ", Has password_hash: " . (isset($user['password_hash']) ? 'Yes' : 'No');
+        $debug_info .= ", Has password: " . (isset($user['password']) ? 'Yes' : 'No');
+        error_log($debug_info);
+    } else {
+        error_log("No user found for: " . $_POST['username']);
+    }
+    
     // Check both possible password field names for backward compatibility
     $password_field = isset($user['password_hash']) ? $user['password_hash'] : $user['password'];
     if ($user && password_verify($_POST['password'], $password_field)) {

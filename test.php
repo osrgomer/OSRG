@@ -53,6 +53,7 @@
         $_SESSION['chat_history'][] = ['type' => 'user-msg', 'content' => $input];
         
         // Check for gender and ask if not set
+        $lower = strtolower($input);
         if (!isset($_SESSION['user_gender'])) {
             // Check if user is stating their gender
             if (in_array($lower, ['male', 'man', 'boy', 'guy', 'm']) || strpos($lower, 'i am male') !== false || strpos($lower, 'i am a man') !== false) {
@@ -66,7 +67,6 @@
             }
         } else {
             // Context-aware AI responses
-            $lower = strtolower($input);
             $male = $_SESSION['user_gender'] === 'male';
             $female = $_SESSION['user_gender'] === 'female';
             

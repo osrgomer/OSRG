@@ -174,7 +174,19 @@ require_once 'header.php';
                         No posts from friends yet.<br>
                         <a href="/find-friends" style="color: #1877f2;">Add some friends to see their posts!</a><br><br>
                         <small>Debug: <?= count($friends) ?> friends, <?= count($friend_posts) ?> posts found<br>
-                        Friend IDs: <?= implode(',', $friend_ids) ?></small>
+                        Friend IDs: <?= implode(',', $friend_ids) ?><br>
+                        <?php
+                        // Debug: Check all posts from these users
+                        if (!empty($friend_ids)) {
+                            $debug_stmt = $pdo->prepare("SELECT p.id, p.user_id, p.post_type, p.content, u.username, u.approved FROM posts p JOIN users u ON p.user_id = u.id WHERE p.user_id IN (" . implode(',', array_fill(0, count($friend_ids), '?')) . ") ORDER BY p.created_at DESC LIMIT 5");
+                            $debug_stmt->execute($friend_ids);
+                            $debug_posts = $debug_stmt->fetchAll();
+                            echo "All posts from friend IDs:<br>";
+                            foreach ($debug_posts as $dp) {
+                                echo "Post ID: {$dp['id']}, User: {$dp['username']} (ID: {$dp['user_id']}, Approved: {$dp['approved']}), Type: " . ($dp['post_type'] ?: 'NULL') . ", Content: " . substr($dp['content'], 0, 30) . "...<br>";
+                            }
+                        }
+                        ?></small>
                     </p>
                 </div>
             <?php endif; ?>

@@ -52,10 +52,25 @@
         // Add user message
         $_SESSION['chat_history'][] = ['type' => 'user-msg', 'content' => $input];
         
-        // Context-aware AI responses
-        $lower = strtolower($input);
-        
-        // Flirty keywords
+        // Check for gender and ask if not set
+        if (!isset($_SESSION['user_gender'])) {
+            // Check if user is stating their gender
+            if (in_array($lower, ['male', 'man', 'boy', 'guy', 'm']) || strpos($lower, 'i am male') !== false || strpos($lower, 'i am a man') !== false) {
+                $_SESSION['user_gender'] = 'male';
+                $ai_response = "Great! Nice to meet you, handsome! What's on your mind?";
+            } elseif (in_array($lower, ['female', 'woman', 'girl', 'f']) || strpos($lower, 'i am female') !== false || strpos($lower, 'i am a woman') !== false) {
+                $_SESSION['user_gender'] = 'female';
+                $ai_response = "Wonderful! Nice to meet you, beautiful! What would you like to chat about?";
+            } else {
+                $ai_response = "Hi there! Before we chat, are you male or female? Just so I can respond appropriately! 😊";
+            }
+        } else {
+            // Context-aware AI responses
+            $lower = strtolower($input);
+            $male = $_SESSION['user_gender'] === 'male';
+            $female = $_SESSION['user_gender'] === 'female';
+            
+            // Flirty keywords
         $flirty_words = ['sexy', 'hot', 'cute', 'beautiful', 'gorgeous', 'handsome', 'love', 'kiss', 'babe', 'baby', 'honey', 'sweetheart'];
         $is_flirty = false;
         foreach ($flirty_words as $word) {
@@ -88,14 +103,25 @@
             ];
         } elseif (in_array($lower, ['hi', 'hello', 'hey', 'sup', 'yo'])) {
             // Greetings
-            $responses = [
-                "Hey there, handsome! Nice to meet you!",
-                "Hello gorgeous! How are you doing?",
-                "Hi cutie! What's on your mind?",
-                "Hey! Great to chat with someone like you!",
-                "Hello there! Ready to have some fun?",
-                "Well hello there, stranger!"
-            ];
+            if ($male) {
+                $responses = [
+                    "Hey there, handsome! Nice to meet you!",
+                    "Hello there, big guy! How are you doing?",
+                    "Hi there! What's on your mind, stud?",
+                    "Hey! Great to chat with a guy like you!",
+                    "Hello there! Ready to have some fun, tiger?",
+                    "Well hello there, stranger!"
+                ];
+            } else {
+                $responses = [
+                    "Hey there, gorgeous! Nice to meet you!",
+                    "Hello beautiful! How are you doing?",
+                    "Hi cutie! What's on your mind?",
+                    "Hey! Great to chat with a lovely lady like you!",
+                    "Hello there! Ready to have some fun, sweetheart?",
+                    "Well hello there, beautiful!"
+                ];
+            }
         } elseif (in_array($lower, ['bye', 'goodbye', 'see ya', 'later', 'cya'])) {
             // Farewells
             $responses = [
@@ -142,17 +168,29 @@
         
         // Add some random flirty responses occasionally
         if (!$is_flirty && rand(1, 10) == 1) {
-            $random_flirty = [
-                "You're quite the conversationalist! " . $input,
-                "I'm enjoying our chat! " . $input,
-                "You have such a way with words! " . $input,
-                "You're making this chat fun! " . $input,
-                "I like talking to you! " . $input,
-                "Your dick is so juicy " . $input
-            ];
+            if ($male) {
+                $random_flirty = [
+                    "You're quite the conversationalist! " . $input,
+                    "I'm enjoying our chat! " . $input,
+                    "You have such a way with words! " . $input,
+                    "You're making this chat fun! " . $input,
+                    "I like talking to you, handsome! " . $input,
+                    "You're so manly " . $input
+                ];
+            } else {
+                $random_flirty = [
+                    "You're quite the conversationalist! " . $input,
+                    "I'm enjoying our chat! " . $input,
+                    "You have such a way with words! " . $input,
+                    "You're making this chat fun! " . $input,
+                    "I like talking to you, beautiful! " . $input,
+                    "You're so lovely " . $input
+                ];
+            }
             $ai_response = $random_flirty[array_rand($random_flirty)];
-        } else {
-            $ai_response = $responses[array_rand($responses)];
+            } else {
+                $ai_response = $responses[array_rand($responses)];
+            }
         }
         
         // Add AI message

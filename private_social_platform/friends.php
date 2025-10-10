@@ -173,38 +173,7 @@ require_once 'header.php';
                     <p style="text-align: center; color: #666; padding: 20px;">
                         No posts from friends yet.<br>
                         <a href="/find-friends" style="color: #1877f2;">Add some friends to see their posts!</a><br><br>
-                        <small>Debug: <?= count($friends) ?> friends, <?= count($friend_posts) ?> posts found<br>
-                        Friend IDs: <?= implode(',', $friend_ids) ?><br>
-                        <?php
-                        // Simple debug: count all posts from these users
-                        if (!empty($friend_ids)) {
-                            $placeholders = implode(',', array_fill(0, count($friend_ids), '?'));
-                            $debug_stmt = $pdo->prepare("SELECT COUNT(*) as total FROM posts p JOIN users u ON p.user_id = u.id WHERE p.user_id IN ($placeholders)");
-                            $debug_stmt->execute($friend_ids);
-                            $total_posts = $debug_stmt->fetch()['total'];
-                            echo "Total posts from friends: $total_posts<br>";
-                            
-                            $debug_stmt2 = $pdo->prepare("SELECT COUNT(*) as approved_posts FROM posts p JOIN users u ON p.user_id = u.id WHERE p.user_id IN ($placeholders) AND u.approved = 1");
-                            $debug_stmt2->execute($friend_ids);
-                            $approved_posts = $debug_stmt2->fetch()['approved_posts'];
-                            echo "Posts from approved users: $approved_posts<br>";
-                            
-                            $debug_stmt3 = $pdo->prepare("SELECT COUNT(*) as filtered_posts FROM posts p JOIN users u ON p.user_id = u.id WHERE p.user_id IN ($placeholders) AND u.approved = 1 AND (p.post_type IS NULL OR p.post_type != 'reel')");
-                            $debug_stmt3->execute($friend_ids);
-                            $filtered_posts = $debug_stmt3->fetch()['filtered_posts'];
-                            echo "Posts after reel filter: $filtered_posts<br>";
-                            
-                            // Check post_type values
-                            $debug_stmt4 = $pdo->prepare("SELECT DISTINCT p.post_type, COUNT(*) as count FROM posts p JOIN users u ON p.user_id = u.id WHERE p.user_id IN ($placeholders) GROUP BY p.post_type");
-                            $debug_stmt4->execute($friend_ids);
-                            $post_types = $debug_stmt4->fetchAll();
-                            echo "Post types: ";
-                            foreach ($post_types as $pt) {
-                                echo ($pt['post_type'] ?: 'NULL') . '(' . $pt['count'] . ') ';
-                            }
-                            echo "<br>";
-                        }
-                        ?></small>
+
                     </p>
                 </div>
             <?php endif; ?>

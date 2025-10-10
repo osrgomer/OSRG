@@ -6,9 +6,14 @@ if (strpos($_SERVER['HTTP_HOST'], 'connect.osrg.lol') !== false) {
 session_start();
 date_default_timezone_set('Europe/London');
 
-// reCAPTCHA v3 Configuration - Replace with your real keys on live server
-define('RECAPTCHA_SITE_KEY', 'YOUR_SITE_KEY_HERE');
-define('RECAPTCHA_SECRET_KEY', 'YOUR_SECRET_KEY_HERE');
+// reCAPTCHA v3 Configuration - Load from separate file if exists
+if (file_exists(__DIR__ . '/config_keys.php')) {
+    require_once 'config_keys.php';
+} else {
+    // Fallback placeholders - reCAPTCHA will be disabled
+    define('RECAPTCHA_SITE_KEY', 'YOUR_SITE_KEY_HERE');
+    define('RECAPTCHA_SECRET_KEY', 'YOUR_SECRET_KEY_HERE');
+}
 
 // Check for remember me token if not logged in
 if (!isset($_SESSION['user_id']) && isset($_COOKIE['remember_token'])) {
@@ -198,6 +203,10 @@ function process_content_with_links($content) {
 
 function verify_recaptcha($token) {
     $secret = RECAPTCHA_SECRET_KEY;
+    // Skip verification if using placeholder keys
+    if ($secret === 'YOUR_SECRET_KEY_HERE') {
+        return true; // Allow login when keys are not configured
+    }
     $response = file_get_contents("https://www.google.com/recaptcha/api/siteverify?secret={$secret}&response={$token}");
     $result = json_decode($response, true);
     return $result['success'] && $result['score'] >= 0.5;

@@ -14,7 +14,9 @@ if ($_POST['username'] ?? false) {
     $stmt->execute([$_POST['username'], $_POST['username']]);
     $user = $stmt->fetch();
     
-    if ($user && password_verify($_POST['password'], $user['password_hash'])) {
+    // Check both possible password field names for backward compatibility
+    $password_field = isset($user['password_hash']) ? $user['password_hash'] : $user['password'];
+    if ($user && password_verify($_POST['password'], $password_field)) {
         if ($user['approved']) {
             $_SESSION['user_id'] = $user['id'];
             

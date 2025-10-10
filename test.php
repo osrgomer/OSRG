@@ -151,7 +151,7 @@
                     "Amazing energy! You're contagious!"
                 ];
             } else {
-                // General responses with some flirty mixed in
+                // General responses
                 $responses = [
                     "I understand!",
                     "That's interesting!",

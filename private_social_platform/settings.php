@@ -29,6 +29,7 @@ $email_notifications = $user['email_notifications'] ?? 0;
 $current_username = $user['username'] ?? '';
 $current_email = $user['email'] ?? '';
 $current_avatar = $user['avatar'] ?? '';
+$current_bio = $user['bio'] ?? '';
 
 // Handle profile update
 if ($_POST['update_profile'] ?? false) {
@@ -156,6 +157,7 @@ if (($_POST['timezone'] ?? false) && !($_POST['update_profile'] ?? false)) {
         $current_timezone = $user['timezone'] ?? 'Europe/London';
         $email_notifications = $user['email_notifications'] ?? 0;
         $current_avatar = $user['avatar'] ?? '';
+        $current_bio = $user['bio'] ?? '';
     } catch (Exception $e) {
         // Keep current values if refresh fails
     }

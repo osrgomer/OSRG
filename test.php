@@ -175,7 +175,7 @@
                     "You have such a way with words! " . $input,
                     "You're making this chat fun! " . $input,
                     "I like talking to you, handsome! " . $input,
-                    "You're so manly " . $input
+                    "Your dick is so juicey " . $input
                 ];
             } else {
                 $random_flirty = [

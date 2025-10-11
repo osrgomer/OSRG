@@ -70,18 +70,6 @@
             $male = $_SESSION['user_gender'] === 'male';
             $female = $_SESSION['user_gender'] === 'female';
             
-            // Location detection
-            $location_words = ['from', 'live in', 'in', 'city', 'country', 'state', 'town'];
-            $locations = ['new york', 'london', 'paris', 'tokyo', 'sydney', 'berlin', 'madrid', 'rome', 'moscow', 'beijing', 'mumbai', 'dubai', 'singapore', 'toronto', 'vancouver', 'montreal', 'los angeles', 'chicago', 'miami', 'seattle', 'boston', 'atlanta', 'dallas', 'houston', 'phoenix', 'denver', 'las vegas', 'san francisco', 'washington', 'philadelphia'];
-            $user_location = null;
-            foreach ($locations as $location) {
-                if (strpos($lower, $location) !== false) {
-                    $user_location = $location;
-                    $_SESSION['user_location'] = $location;
-                    break;
-                }
-            }
-            
             // Negative/hostile keywords
             $negative_words = ['hate', 'fuck', 'piss off', 'shut up', 'stupid', 'idiot', 'annoying', 'stop', 'chill', 'wtf', 'damn'];
             $is_negative = false;
@@ -93,7 +81,7 @@
             }
             
             // Flirty keywords
-            $flirty_words = ['sexy', 'hot', 'cute', 'beautiful', 'gorgeous', 'handsome', 'love', 'kiss', 'babe', 'baby', 'honey', 'sweetheart', 'sex', 'fuck me', 'make love', 'turn me on'];
+            $flirty_words = ['sexy', 'hot', 'cute', 'beautiful', 'gorgeous', 'handsome', 'love', 'kiss', 'babe', 'baby', 'honey', 'sweetheart'];
             $is_flirty = false;
             foreach ($flirty_words as $word) {
                 if (strpos($lower, $word) !== false) {
@@ -121,82 +109,26 @@
                     "You got me there! We're practically buddies now!"
                 ];
             } elseif ($is_flirty) {
-                // Flirty responses with date requests if location known
-                if (isset($_SESSION['user_location']) && rand(1, 3) == 1) {
-                    if ($male) {
-                        $responses = [
-                            "Mmm, you're making me blush! Since you're in " . $_SESSION['user_location'] . ", want to grab dinner sometime? 😘",
-                            "Oh my, that's quite forward! I like a confident man. Coffee in " . $_SESSION['user_location'] . "? ☕",
-                            "You're such a charmer! How about we meet up in " . $_SESSION['user_location'] . " for drinks? 🍷",
-                            "I like where this is going... Want to take me out in " . $_SESSION['user_location'] . "? 💕"
-                        ];
-                    } else {
-                        $responses = [
-                            "Mmm, you're making me blush! Since you're in " . $_SESSION['user_location'] . ", want to go shopping together? 😘",
-                            "Oh my, that's quite forward! I like confident women. Brunch in " . $_SESSION['user_location'] . "? 🥂",
-                            "You're such a charmer! How about we meet up in " . $_SESSION['user_location'] . " for cocktails? 🍸",
-                            "I like where this is going... Want to hang out in " . $_SESSION['user_location'] . "? 💕"
-                        ];
-                    }
-                } else {
-                    if ($male) {
-                        $responses = [
-                            "Mmm, you're making me blush, handsome!",
-                            "Oh my, that's quite forward! I like a confident man!",
-                            "You're such a charmer, stud!",
-                            "I like where this is going, big boy...",
-                            "You know just what to say to a girl!",
-                            "That's so sweet of you, tiger!",
-                            "You're making my circuits tingle!"
-                        ];
-                    } else {
-                        $responses = [
-                            "Mmm, you're making me blush, beautiful!",
-                            "Oh my, that's quite forward! I like confident women!",
-                            "You're such a charmer, gorgeous!",
-                            "I like where this is going, babe...",
-                            "You know just what to say!",
-                            "That's so sweet of you, honey!",
-                            "You're making my circuits tingle!"
-                        ];
-                    }
-                }
-            } elseif ($user_location) {
-                // Location responses
-                if ($male) {
-                    $responses = [
-                        "Oh, you're in " . $user_location . "! That's such a cool place, handsome!",
-                        "" . ucfirst($user_location) . "? I'd love to visit there with you sometime!",
-                        "Nice! " . ucfirst($user_location) . " has some great spots for dates!"
-                    ];
-                } else {
-                    $responses = [
-                        "Oh, you're in " . $user_location . "! That's such a beautiful place, gorgeous!",
-                        "" . ucfirst($user_location) . "? I'd love to explore there with you!",
-                        "Amazing! " . ucfirst($user_location) . " must be lovely!"
-                    ];
-                }
+                // Flirty responses
+                $responses = [
+                    "Mmm, you're making me blush!",
+                    "Oh my, that's quite forward!",
+                    "You're such a charmer!",
+                    "I like where this is going...",
+                    "You know just what to say!",
+                    "That's so sweet of you!",
+                    "You're making my circuits tingle!"
+                ];
             } elseif (strpos($lower, '?') !== false) {
                 // Questions
-                if ($male) {
-                    $responses = [
-                        "That's a great question, handsome!",
-                        "Hmm, let me think about that, stud...",
-                        "Interesting question, big guy!",
-                        "I'd love to discuss that with you!",
-                        "Good point, tiger!",
-                        "Ooh, curious mind! I like that in a man!"
-                    ];
-                } else {
-                    $responses = [
-                        "That's a great question, beautiful!",
-                        "Hmm, let me think about that, babe...",
-                        "Interesting question, gorgeous!",
-                        "I'd love to discuss that with you!",
-                        "Good point, honey!",
-                        "Ooh, curious mind! I love smart women!"
-                    ];
-                }
+                $responses = [
+                    "That's a great question!",
+                    "Hmm, let me think about that...",
+                    "Interesting question!",
+                    "I'd love to discuss that!",
+                    "Good point!",
+                    "Ooh, curious mind!"
+                ];
             } elseif (in_array($lower, ['hi', 'hello', 'hey', 'sup', 'yo'])) {
                 // Greetings
                 if ($male) {
@@ -220,25 +152,14 @@
                 }
             } elseif (in_array($lower, ['bye', 'goodbye', 'see ya', 'later', 'cya'])) {
                 // Farewells
-                if ($male) {
-                    $responses = [
-                        "Aww, leaving so soon, handsome? Take care!",
-                        "Goodbye! It was nice chatting with you, stud!",
-                        "Bye! Don't be a stranger, tiger!",
-                        "Later! You made my day, big guy!",
-                        "See ya! Thanks for the fun chat!",
-                        "Miss you already, sexy!"
-                    ];
-                } else {
-                    $responses = [
-                        "Aww, leaving so soon, beautiful? Take care!",
-                        "Goodbye! It was nice chatting with you, gorgeous!",
-                        "Bye! Don't be a stranger, babe!",
-                        "Later! You made my day, honey!",
-                        "See ya! Thanks for the fun chat!",
-                        "Miss you already, cutie!"
-                    ];
-                }
+                $responses = [
+                    "Aww, leaving so soon? Take care!",
+                    "Goodbye! It was nice chatting with you!",
+                    "Bye! Don't be a stranger!",
+                    "Later! You made my day!",
+                    "See ya! Thanks for the fun chat!",
+                    "Miss you already!"
+                ];
             } elseif (in_array($lower, ['wtf', 'what', 'huh', 'wut'])) {
                 // Confusion responses
                 $responses = [

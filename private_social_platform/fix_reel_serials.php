@@ -6,12 +6,12 @@ echo "<h2>Fix Reel Serial Numbers</h2>";
 
 if ($_POST['fix_serials'] ?? false) {
     // Get all reels ordered by creation date
-    $stmt = $pdo->query("SELECT id, reel_serial, file_path, created_at FROM posts WHERE post_type = 'reel' ORDER BY created_at ASC");
+    $stmt = $pdo->query("SELECT id, reel_serial, file_path, created_at FROM posts WHERE post_type = 'reel' OR file_type IN ('mp4', 'mov', 'avi') ORDER BY created_at ASC");
     $reels = $stmt->fetchAll();
     
     $serial = 1;
     foreach ($reels as $reel) {
-        $stmt = $pdo->prepare("UPDATE posts SET reel_serial = ? WHERE id = ?");
+        $stmt = $pdo->prepare("UPDATE posts SET reel_serial = ?, post_type = 'reel' WHERE id = ?");
         $stmt->execute([$serial, $reel['id']]);
         echo "<p>Updated Reel ID {$reel['id']} to Serial #{$serial} ({$reel['file_path']})</p>";
         $serial++;
@@ -21,14 +21,14 @@ if ($_POST['fix_serials'] ?? false) {
 
 if ($_POST['delete_reel'] ?? false) {
     $reel_id = $_POST['delete_reel'];
-    $stmt = $pdo->prepare("DELETE FROM posts WHERE id = ? AND post_type = 'reel'");
+    $stmt = $pdo->prepare("DELETE FROM posts WHERE id = ? AND (post_type = 'reel' OR file_type IN ('mp4', 'mov', 'avi'))");
     $stmt->execute([$reel_id]);
     echo "<p style='color: red;'>❌ Deleted reel ID: $reel_id</p>";
 }
 
 // Show current reels
 echo "<h3>Current Reels:</h3>";
-$stmt = $pdo->query("SELECT id, reel_serial, file_path, content, created_at FROM posts WHERE post_type = 'reel' ORDER BY reel_serial ASC");
+$stmt = $pdo->query("SELECT id, reel_serial, file_path, content, created_at FROM posts WHERE post_type = 'reel' OR file_type IN ('mp4', 'mov', 'avi') ORDER BY reel_serial ASC, created_at ASC");
 $reels = $stmt->fetchAll();
 
 foreach ($reels as $reel) {

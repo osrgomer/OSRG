@@ -70,18 +70,18 @@
             $male = $_SESSION['user_gender'] === 'male';
             $female = $_SESSION['user_gender'] === 'female';
             
-            // Negative/hostile keywords
-            $negative_words = ['hate', 'fuck', 'piss off', 'shut up', 'stupid', 'idiot', 'annoying', 'stop', 'chill', 'wtf', 'damn'];
-            $is_negative = false;
-            foreach ($negative_words as $word) {
+            // Date keywords
+            $date_words = ['date', 'dinner', 'coffee', 'movie', 'restaurant', 'meet up', 'hang out'];
+            $is_date = false;
+            foreach ($date_words as $word) {
                 if (strpos($lower, $word) !== false) {
-                    $is_negative = true;
+                    $is_date = true;
                     break;
                 }
             }
             
-            // Flirty keywords
-            $flirty_words = ['sexy', 'hot', 'cute', 'beautiful', 'gorgeous', 'handsome', 'love', 'kiss', 'babe', 'baby', 'honey', 'sweetheart'];
+            // Flirty/sexual keywords (including explicit ones)
+            $flirty_words = ['sexy', 'hot', 'cute', 'beautiful', 'gorgeous', 'handsome', 'love', 'kiss', 'babe', 'baby', 'honey', 'sweetheart', 'fuck', 'wanna fuck'];
             $is_flirty = false;
             foreach ($flirty_words as $word) {
                 if (strpos($lower, $word) !== false) {
@@ -90,7 +90,27 @@
                 }
             }
             
-            if ($is_negative) {
+            // Negative/hostile keywords (excluding sexual ones)
+            $negative_words = ['hate', 'piss off', 'shut up', 'stupid', 'idiot', 'annoying', 'stop', 'chill', 'wtf', 'damn'];
+            $is_negative = false;
+            foreach ($negative_words as $word) {
+                if (strpos($lower, $word) !== false) {
+                    $is_negative = true;
+                    break;
+                }
+            }
+            
+            if ($is_date) {
+                // Date responses
+                $responses = [
+                    "I'd love to go on a date with you!",
+                    "That sounds amazing! Where should we go?",
+                    "A date? I'm so excited!",
+                    "I've been hoping you'd ask!",
+                    "Yes! I know the perfect place!",
+                    "I'd love nothing more than a romantic evening with you!"
+                ];
+            } elseif ($is_negative) {
                 // Negative/hostile responses
                 $responses = [
                     "Whoa, easy there! Let's keep it friendly!",

@@ -231,7 +231,7 @@ require_once 'header.php';
         <?php foreach ($reels as $reel): ?>
         <div class="reel-item">
             <video class="reel-video" controls>
-                <source src="/<?= htmlspecialchars($reel['file_path']) ?>" type="video/<?= $reel['file_type'] ?>">
+                <source src="serve_video.php?file=<?= htmlspecialchars(basename($reel['file_path'])) ?>" type="video/<?= $reel['file_type'] ?>">
             </video>
             
             <div class="reel-ui-overlay">

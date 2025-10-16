@@ -209,7 +209,16 @@ function joinRoom() {
         if (data.success) {
             updateGameState(data);
             startGameLoop();
+        } else {
+            console.error('Join failed:', data.error);
+            document.getElementById('status').textContent = 'Failed to join room: ' + (data.error || 'Unknown error');
+            document.getElementById('status').className = 'status error';
         }
+    })
+    .catch(error => {
+        console.error('Network error:', error);
+        document.getElementById('status').textContent = 'Network error. Please try again.';
+        document.getElementById('status').className = 'status error';
     });
 }
 
@@ -294,8 +303,12 @@ function updateGameState(data) {
 
 function updateScoreboard() {
     const scoreboard = document.getElementById('scoreboard');
+    if (!players || Object.keys(players).length === 0) {
+        scoreboard.innerHTML = '<div class="player-score">No players yet</div>';
+        return;
+    }
     scoreboard.innerHTML = Object.entries(players)
-        .map(([id, player]) => `<div class="player-score">${player.username}: ${player.score}</div>`)
+        .map(([id, player]) => `<div class="player-score">${player.username || 'Player'}: ${player.score || 0}</div>`)
         .join('');
 }
 

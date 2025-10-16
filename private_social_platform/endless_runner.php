@@ -174,7 +174,7 @@ require_once 'header.php';
         <strong>How to Play:</strong><br>
         • Press SPACEBAR to jump over ground obstacles<br>
         • Press RIGHT ARROW to slide under floating obstacles<br>
-        • Collect gold coins to increase your score<br>
+        • Collect gold coins for 10 points each<br>
         • Avoid obstacles or the game ends<br>
         • See how far you can run!
     </div>
@@ -282,7 +282,7 @@ function spawnObstacle() {
 }
 
 function spawnCoin() {
-    const y = Math.random() * 150 + 50;
+    const y = Math.random() * 200 + 200; // spawn between y=200 and y=400 (reachable by jumping)
     coins.push({
         x: canvas.width,
         y: y,
@@ -435,7 +435,7 @@ function update() {
             player.x + player.width > coins[i].x &&
             player.y < coins[i].y + coins[i].height &&
             player.y + player.height > coins[i].y) {
-            score += 1;
+            score += 10;
             scoreDisplay.textContent = 'Score: ' + score;
             coins.splice(i, 1);
         }

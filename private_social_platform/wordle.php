@@ -119,7 +119,7 @@ require_once 'header.php';
 
 <script>
 // === FIXED WORD LIST ===
-const wordList = ["TRACE", "FIRST", "SPOOF", "HOUSE", "PLANT", "WORLD", "MUSIC", "DANCE", "LIGHT", "HAPPY", "BRAVE", "SMART", "QUICK", "BROWN", "GREEN", "WHITE", "BLACK", "YELLOW", "SUGAR", "SPICE"];
+const wordList = ["TRACE", "FIRST", "SPOOF", "CRANE", "SLATE", "CRATE", "CARET", "CARTE", "PLATE", "STARE", "SAINT", "LEAST", "STALE", "TASER", "PARSE", "BLAST", "GRAPE", "FLARE", "SHINE", "BRAVE", "GLASS", "CHASE", "STORM", "FLICK", "GRIND", "DRAFT", "FLINT", "SCOUT", "PRIDE", "BRINK", "FLUSH", "GRANT", "CRISP", "CLASH", "TRICK", "BRACE", "SLICK", "FRAME", "BLEND", "GRACE", "TREND", "GLINT", "BLINK", "STORK", "SLANT", "SPARK", "BRINE", "STICK", "FLUTE", "CRASH", "SLASH", "GRASP", "PRONG", "STOMP", "CRAVE", "BLUFF", "GRIPE", "SHORE", "BRISK", "TRACK", "GLARE", "FRANK", "SQUAD", "PLUCK", "CRUST", "STINT", "FLAME", "BRASH", "SPINE", "CLOUT", "STRAP", "GRATE", "CRANK", "GRILL", "SHOCK", "BLURB", "DINGO", "TRUCK", "SWORD", "BRUSH", "PLANT"];
 const answer = wordList[Math.floor(Math.random() * wordList.length)];
 
 const maxRows = 6;

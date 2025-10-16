@@ -282,7 +282,7 @@ function spawnObstacle() {
 }
 
 function spawnCoin() {
-    const y = Math.random() * 200 + 200; // spawn between y=200 and y=400 (reachable by jumping)
+    const y = Math.random() * 120 + 150; // spawn between y=150 and y=270 (perfect jump range)
     coins.push({
         x: canvas.width,
         y: y,

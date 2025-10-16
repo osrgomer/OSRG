@@ -205,6 +205,15 @@ $additional_css = '
             color: #333;
             font-size: 15px;
         }
+        /* Fix for OSRG first post text overflow on mobile */
+        @media (max-width: 768px) {
+            .post-item:first-child .post-content {
+                word-wrap: break-word;
+                overflow-wrap: break-word;
+                white-space: normal;
+                overflow: hidden;
+            }
+        }
         .no-posts {
             text-align: center;
             color: #888;

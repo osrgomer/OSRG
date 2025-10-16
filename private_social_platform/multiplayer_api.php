@@ -1,15 +1,28 @@
 <?php
 require_once 'config.php';
 
+header('Content-Type: application/json');
+
 if (!isset($_SESSION['user_id'])) {
     http_response_code(401);
     echo json_encode(['success' => false, 'error' => 'Not logged in']);
     exit;
 }
 
-$input = json_decode(file_get_contents('php://input'), true);
-$action = $input['action'] ?? '';
-$room = $input['room'] ?? '';
+try {
+    $input = json_decode(file_get_contents('php://input'), true);
+    if (!$input) {
+        echo json_encode(['success' => false, 'error' => 'Invalid JSON input']);
+        exit;
+    }
+    
+    $action = $input['action'] ?? '';
+    $room = $input['room'] ?? '';
+    
+    if (!$action) {
+        echo json_encode(['success' => false, 'error' => 'No action specified']);
+        exit;
+    }
 
 function generateDifferences() {
     $diffs = [];
@@ -25,12 +38,15 @@ function generateDifferences() {
     return $diffs;
 }
 
-// Simple file-based storage
-$gameFile = 'games/' . preg_replace('/[^a-zA-Z0-9]/', '', $room) . '.json';
-
-if (!is_dir('games')) {
-    mkdir('games', 0755, true);
-}
+    // Simple file-based storage
+    $gameFile = 'games/' . preg_replace('/[^a-zA-Z0-9]/', '', $room) . '.json';
+    
+    if (!is_dir('games')) {
+        if (!mkdir('games', 0755, true)) {
+            echo json_encode(['success' => false, 'error' => 'Cannot create games directory']);
+            exit;
+        }
+    }
 
 switch ($action) {
     case 'join':
@@ -55,7 +71,10 @@ switch ($action) {
             'lastActive' => time()
         ];
         
-        file_put_contents($gameFile, json_encode($gameData));
+        if (file_put_contents($gameFile, json_encode($gameData)) === false) {
+            echo json_encode(['success' => false, 'error' => 'Cannot save game data']);
+            exit;
+        }
         
         echo json_encode([
             'success' => true,
@@ -82,7 +101,10 @@ switch ($action) {
             }
         }
         
-        file_put_contents($gameFile, json_encode($gameData));
+        if (file_put_contents($gameFile, json_encode($gameData)) === false) {
+            echo json_encode(['success' => false, 'error' => 'Cannot save game data']);
+            exit;
+        }
         
         echo json_encode([
             'success' => true,
@@ -106,7 +128,10 @@ switch ($action) {
             $gameData['differences'][$index]['found'] = true;
             $gameData['players'][$_SESSION['user_id']]['score'] += 10;
             
-            file_put_contents($gameFile, json_encode($gameData));
+            if (file_put_contents($gameFile, json_encode($gameData)) === false) {
+                echo json_encode(['success' => false, 'error' => 'Cannot save game data']);
+                exit;
+            }
             
             echo json_encode([
                 'success' => true,
@@ -135,5 +160,9 @@ switch ($action) {
         
     default:
         echo json_encode(['success' => false, 'error' => 'Invalid action']);
+}
+
+} catch (Exception $e) {
+    echo json_encode(['success' => false, 'error' => 'Server error: ' . $e->getMessage()]);
 }
 ?>

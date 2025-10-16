@@ -116,11 +116,10 @@ require_once 'header.php';
 
 <div class="games-grid">
     <div class="game-card">
-        <div class="coming-soon">Coming Soon</div>
         <span class="game-icon">📝</span>
         <h3 class="game-title">Wordle</h3>
         <p class="game-description">Guess the 5-letter word in 6 tries! A daily word puzzle challenge.</p>
-        <a href="#" class="play-button" onclick="alert('Coming soon!')">Play Now</a>
+        <a href="/wordle" class="play-button">Play Now</a>
     </div>
     
     <div class="game-card">

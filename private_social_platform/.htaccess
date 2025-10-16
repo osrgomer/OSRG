@@ -15,6 +15,10 @@ RewriteRule ^games/?$ games.php [L]
 
 RewriteCond %{REQUEST_FILENAME} !-f
 RewriteCond %{REQUEST_FILENAME} !-d
+RewriteRule ^wordle/?$ wordle.php [L]
+
+RewriteCond %{REQUEST_FILENAME} !-f
+RewriteCond %{REQUEST_FILENAME} !-d
 RewriteRule ^find-friends/?$ users.php [L]
 
 RewriteCond %{REQUEST_FILENAME} !-f

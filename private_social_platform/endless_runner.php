@@ -125,6 +125,27 @@ $additional_css = '
         transform: translateY(-2px);
         box-shadow: 0 4px 15px rgba(24,119,242,0.4);
     }
+    #restartBtn {
+        position: absolute;
+        top: 60px;
+        right: 20px;
+        padding: 8px 16px;
+        font-size: 12px;
+        cursor: pointer;
+        color: white;
+        background: linear-gradient(135deg, #ff6b6b, #e74c3c);
+        border: none;
+        border-radius: 20px;
+        font-family: Arial, sans-serif;
+        transition: all 0.3s ease;
+        box-shadow: 0 4px 15px rgba(255, 107, 107, 0.3);
+        z-index: 50;
+    }
+    #restartBtn:hover {
+        background: linear-gradient(135deg, #e74c3c, #c0392b);
+        transform: translateY(-2px);
+        box-shadow: 0 6px 20px rgba(255, 107, 107, 0.4);
+    }
     @media (max-width: 768px) {
         body { padding-top: 60px; }
         .game-wrapper { padding: 25px 20px; margin: 15px; }
@@ -161,6 +182,7 @@ require_once 'header.php';
     <div class="game-container">
         <canvas id="gameCanvas" width="800" height="400"></canvas>
         <div id="score">Score: 0</div>
+        <button id="restartBtn" onclick="restartGame()">🔄 Restart</button>
         <div class="game-over" id="gameOver">
             <h2>Game Over!</h2>
             <p id="finalScore">Score: 0</p>

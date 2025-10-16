@@ -264,7 +264,7 @@ function spawnObstacle() {
     if (isFloating) {
         obstacles.push({
             x: canvas.width,
-            y: canvas.height - 150, // floating height
+            y: canvas.height - 100, // lower floating height for sliding
             width: 40,
             height: 20,
             type: 'floating'
@@ -406,9 +406,9 @@ function update() {
         // Collision detection
         let playerHitbox = {
             x: player.x,
-            y: player.sliding ? player.y + 25 : player.y, // lower hitbox when sliding
+            y: player.sliding ? player.y + 30 : player.y, // lower hitbox when sliding
             width: player.width,
-            height: player.sliding ? 25 : player.height // smaller height when sliding
+            height: player.sliding ? 20 : player.height // smaller height when sliding
         };
 
         if (playerHitbox.x < obstacles[i].x + obstacles[i].width &&

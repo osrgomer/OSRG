@@ -205,14 +205,8 @@ $additional_css = '
             color: #333;
             font-size: 15px;
         }
-        /* Fix for OSRG first post text overflow on mobile */
-        @media (max-width: 768px) {
-            .post-item:first-child .post-content {
-                word-wrap: break-word;
-                overflow-wrap: break-word;
-                white-space: normal;
-                overflow: hidden;
-            }
+        .post-contentt {
+            overflow: scroll;
         }
         .no-posts {
             text-align: center;
@@ -281,7 +275,7 @@ require_once 'header.php';
         <h3 class="posts-title">📝 Posts by <?= htmlspecialchars($profile_user['username']) ?></h3>
         
         <?php if ($user_posts): ?>
-            <?php foreach ($user_posts as $post): ?>
+            <?php foreach ($user_posts as $index => $post): ?>
                 <div class="post-item">
                     <div class="post-header">
                         <div class="post-author"><?= htmlspecialchars($profile_user['username']) ?></div>
@@ -289,7 +283,7 @@ require_once 'header.php';
                             <?= date('M j, Y H:i', strtotime($post['created_at'])) ?>
                         </div>
                     </div>
-                    <div class="post-content">
+                    <div class="<?= $index === 0 ? 'post-contentt' : 'post-content' ?>">
                         <?= nl2br(htmlspecialchars($post['content'])) ?>
                     </div>
                 </div>

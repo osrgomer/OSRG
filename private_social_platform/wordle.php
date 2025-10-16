@@ -119,7 +119,7 @@ require_once 'header.php';
 
 <script>
 // === FIXED WORD LIST ===
-const wordList = ["TRACE", "FIRST", "SPOOF", "HOUSE", "PLANT", "WORLD", "MUSIC", "DANCE", "LIGHT", "HAPPY"];
+const wordList = ["TRACE", "FIRST", "SPOOF", "HOUSE", "PLANT", "WORLD", "MUSIC", "DANCE", "LIGHT", "HAPPY", "BRAVE", "SMART", "QUICK", "BROWN", "GREEN", "WHITE", "BLACK", "YELLOW", "SUGAR", "SPICE"];
 const answer = wordList[Math.floor(Math.random() * wordList.length)];
 
 const maxRows = 6;

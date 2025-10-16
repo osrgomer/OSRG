@@ -174,6 +174,7 @@ const ctx = canvas.getContext('2d');
 
 let score = 0;
 let gameRunning = true;
+let speed = 6; // starting speed
 const scoreDisplay = document.getElementById('score');
 const gameOverDiv = document.getElementById('gameOver');
 const finalScoreDiv = document.getElementById('finalScore');
@@ -186,7 +187,8 @@ const player = {
     dy: 0,
     gravity: 1,
     jumpPower: -15,
-    grounded: true
+    grounded: true,
+    frame: 0
 };
 
 const obstacles = [];
@@ -217,7 +219,9 @@ function spawnCoin() {
 }
 
 function drawPlayer() {
-    ctx.fillStyle = '#e74c3c';
+    // Animated running colors
+    const colors = ['#e74c3c', '#ff6b6b', '#ff9999'];
+    ctx.fillStyle = colors[Math.floor(player.frame/5) % colors.length];
     ctx.fillRect(player.x, player.y, player.width, player.height);
     
     // Simple face
@@ -226,6 +230,8 @@ function drawPlayer() {
     ctx.fillRect(player.x + 32, player.y + 10, 8, 8);
     ctx.fillStyle = 'black';
     ctx.fillRect(player.x + 20, player.y + 30, 10, 5);
+    
+    player.frame++;
 }
 
 function drawObstacle(obstacle) {
@@ -261,6 +267,9 @@ function update() {
     
     ctx.clearRect(0, 0, canvas.width, canvas.height);
 
+    // Increase speed gradually every 300 frames (about 5 seconds)
+    if (frame % 300 === 0) speed += 0.5;
+
     // Player physics
     player.dy += player.gravity;
     player.y += player.dy;
@@ -275,7 +284,7 @@ function update() {
 
     // Obstacles
     for (let i = obstacles.length - 1; i >= 0; i--) {
-        obstacles[i].x -= 6;
+        obstacles[i].x -= speed;
         drawObstacle(obstacles[i]);
 
         // Collision detection
@@ -294,7 +303,7 @@ function update() {
 
     // Coins
     for (let i = coins.length - 1; i >= 0; i--) {
-        coins[i].x -= 6;
+        coins[i].x -= speed;
         drawCoin(coins[i]);
 
         // Collision detection
@@ -329,6 +338,7 @@ function restartGame() {
     gameRunning = true;
     score = 0;
     frame = 0;
+    speed = 6; // reset speed
     scoreDisplay.textContent = 'Score: 0';
     gameOverDiv.style.display = 'none';
     
@@ -337,6 +347,7 @@ function restartGame() {
     player.y = 300;
     player.dy = 0;
     player.grounded = true;
+    player.frame = 0;
     
     // Clear arrays
     obstacles.length = 0;

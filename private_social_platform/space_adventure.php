@@ -16,20 +16,22 @@ $additional_css = '
         align-items: center;
         min-height: 100vh;
         background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-        font-family: "Press Start 2P", cursive;
+        font-family: Arial, sans-serif;
         overflow-x: hidden;
+        padding-top: 80px;
     }
     .game-wrapper {
         background: rgba(255,255,255,0.95);
         backdrop-filter: blur(20px);
         border-radius: 20px;
-        padding: 30px;
+        padding: 40px;
         margin: 20px;
         box-shadow: 0 20px 60px rgba(0,0,0,0.15);
         border: 1px solid rgba(255,255,255,0.3);
         text-align: center;
-        max-width: 700px;
-        width: 100%;
+        max-width: 650px;
+        width: calc(100% - 40px);
+        box-sizing: border-box;
     }
     .back-button {
         background: linear-gradient(135deg, #1877f2, #42a5f5);
@@ -52,43 +54,52 @@ $additional_css = '
     }
     h1 {
         color: #1877f2;
-        margin-bottom: 20px;
-        font-size: 1.8em;
+        margin-bottom: 30px;
+        font-size: 2.5em;
         font-weight: 700;
         font-family: "Press Start 2P", cursive;
     }
     .game-container {
         text-align: center;
         width: 100%;
-        max-width: 600px;
-        box-sizing: border-box;
+        position: relative;
         margin: 0 auto;
     }
     #gameCanvas {
-        background: radial-gradient(circle, #000046, #000000);
-        border: 4px solid #3b82f6;
-        box-shadow: 0 0 20px rgba(59, 130, 246, 0.5);
-        border-radius: 16px;
+        background: radial-gradient(circle at center, #001122, #000000);
+        border: 3px solid #3b82f6;
+        box-shadow: 0 0 30px rgba(59, 130, 246, 0.6), inset 0 0 20px rgba(0,0,0,0.3);
+        border-radius: 12px;
         width: 100%;
-        height: auto;
-        max-height: 60vh;
-        aspect-ratio: 3/4;
+        max-width: 500px;
+        height: 400px;
+        display: block;
+        margin: 0 auto;
+    }
+    #controls {
+        margin-top: 25px;
+        display: flex;
+        justify-content: center;
+        gap: 15px;
+        flex-wrap: wrap;
     }
     #startButton, #muteButton {
-        margin-top: 20px;
-        padding: 10px 20px;
-        font-size: 0.8rem;
+        padding: 12px 24px;
+        font-size: 14px;
         cursor: pointer;
         color: white;
-        background-color: #3b82f6;
+        background: linear-gradient(135deg, #3b82f6, #2563eb);
         border: none;
-        border-radius: 8px;
+        border-radius: 25px;
         font-family: "Press Start 2P", cursive;
-        transition: background-color 0.3s ease;
-        margin-right: 10px;
+        transition: all 0.3s ease;
+        box-shadow: 0 4px 15px rgba(59, 130, 246, 0.3);
+        font-weight: 400;
     }
     #startButton:hover, #muteButton:hover {
-        background-color: #2563eb;
+        background: linear-gradient(135deg, #2563eb, #1d4ed8);
+        transform: translateY(-2px);
+        box-shadow: 0 6px 20px rgba(59, 130, 246, 0.4);
     }
     #message {
         position: absolute;
@@ -96,31 +107,51 @@ $additional_css = '
         top: 50%;
         left: 50%;
         transform: translate(-50%, -50%);
-        font-size: 1rem;
+        font-size: 16px;
         text-align: center;
-        background-color: rgba(0, 0, 0, 0.8);
-        padding: 20px;
-        border-radius: 8px;
+        background: rgba(0, 0, 0, 0.9);
+        padding: 25px;
+        border-radius: 15px;
         display: none;
-        z-index: 10;
-        max-width: 300px;
+        z-index: 100;
+        max-width: 350px;
+        font-family: "Press Start 2P", cursive;
+        border: 2px solid #3b82f6;
+        box-shadow: 0 0 20px rgba(59, 130, 246, 0.5);
     }
     .instructions {
         background: rgba(24,119,242,0.1);
-        padding: 15px;
+        padding: 20px;
         border-radius: 15px;
-        margin-bottom: 20px;
+        margin-bottom: 30px;
         color: #333;
-        line-height: 1.4;
+        line-height: 1.6;
         font-family: Arial, sans-serif;
-        font-size: 12px;
+        font-size: 14px;
     }
     @media (max-width: 768px) {
-        .game-wrapper { padding: 20px; margin: 10px; }
-        h1 { font-size: 1.4em; }
-        #gameCanvas { max-height: 50vh; }
-        #startButton, #muteButton { font-size: 0.7rem; padding: 8px 16px; }
-        #message { font-size: 0.9rem; padding: 16px; }
+        body { padding-top: 60px; }
+        .game-wrapper { padding: 25px 20px; margin: 15px; }
+        h1 { font-size: 1.8em; margin-bottom: 20px; }
+        #gameCanvas { height: 300px; max-width: 100%; }
+        #startButton, #muteButton { 
+            font-size: 12px; 
+            padding: 10px 20px;
+            margin: 5px;
+        }
+        #message { 
+            font-size: 12px; 
+            padding: 20px;
+            max-width: 280px;
+        }
+        .instructions { font-size: 12px; padding: 15px; }
+        #controls { gap: 10px; }
+    }
+    @media (max-width: 480px) {
+        .game-wrapper { padding: 20px 15px; }
+        h1 { font-size: 1.5em; }
+        #gameCanvas { height: 250px; }
+        #startButton, #muteButton { font-size: 10px; padding: 8px 16px; }
     }
 ';
 
@@ -159,20 +190,10 @@ const startButton = document.getElementById('startButton');
 const muteButton = document.getElementById('muteButton');
 const messageElement = document.getElementById('message');
 
-let dimensions = { width: 0, height: 0 };
-const updateDimensions = () => {
-    const containerElement = document.querySelector('.game-container');
-    const width = Math.min(containerElement.clientWidth, 600);
-    const height = width * (4 / 3);
-    dimensions = { width, height };
-    canvas.width = dimensions.width;
-    canvas.height = dimensions.height;
-};
-
-updateDimensions();
-const resizeObserver = new ResizeObserver(updateDimensions);
-resizeObserver.observe(document.querySelector('.game-container'));
-window.addEventListener('resize', updateDimensions);
+// Fixed canvas dimensions
+const dimensions = { width: 500, height: 400 };
+canvas.width = dimensions.width;
+canvas.height = dimensions.height;
 
 let player;
 let bullets = [];
@@ -309,10 +330,10 @@ function drawEnemy(enemy) {
 
 function drawScore() {
     ctx.fillStyle = '#ffffff';
-    ctx.font = '16px "Press Start 2P"';
+    ctx.font = '14px "Press Start 2P"';
     ctx.shadowColor = '#ffffff';
-    ctx.shadowBlur = 10;
-    ctx.fillText(`Score: ${score}`, 10, 30);
+    ctx.shadowBlur = 8;
+    ctx.fillText(`Score: ${score}`, 15, 35);
     ctx.shadowBlur = 0;
 }
 

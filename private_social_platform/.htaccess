@@ -31,6 +31,10 @@ RewriteRule ^spot-difference/?$ spot_difference.php [L]
 
 RewriteCond %{REQUEST_FILENAME} !-f
 RewriteCond %{REQUEST_FILENAME} !-d
+RewriteRule ^multiplayer-spot/?$ multiplayer_spot.php [L]
+
+RewriteCond %{REQUEST_FILENAME} !-f
+RewriteCond %{REQUEST_FILENAME} !-d
 RewriteRule ^find-friends/?$ users.php [L]
 
 RewriteCond %{REQUEST_FILENAME} !-f

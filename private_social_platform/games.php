@@ -117,9 +117,9 @@ require_once 'header.php';
 <div class="games-grid">
     <div class="game-card">
         <div class="coming-soon">Coming Soon</div>
-        <span class="game-icon">🎯</span>
-        <h3 class="game-title">Target Practice</h3>
-        <p class="game-description">Test your aim and reflexes in this exciting target shooting game!</p>
+        <span class="game-icon">📝</span>
+        <h3 class="game-title">Wordle</h3>
+        <p class="game-description">Guess the 5-letter word in 6 tries! A daily word puzzle challenge.</p>
         <a href="#" class="play-button" onclick="alert('Coming soon!')">Play Now</a>
     </div>
     

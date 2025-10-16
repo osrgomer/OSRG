@@ -79,7 +79,10 @@ switch ($action) {
         }
         
         // Add/update player
-        $stmt = $pdo->prepare("INSERT OR REPLACE INTO game_players (room_name, user_id, username, score, last_active) VALUES (?, ?, ?, 0, datetime('now'))");
+        $stmt = $pdo->prepare("DELETE FROM game_players WHERE room_name = ? AND user_id = ?");
+        $stmt->execute([$room, $_SESSION['user_id']]);
+        
+        $stmt = $pdo->prepare("INSERT INTO game_players (room_name, user_id, username, score, last_active) VALUES (?, ?, ?, 0, datetime('now'))");
         $stmt->execute([$room, $_SESSION['user_id'], $_SESSION['username']]);
         
         $gameData = getGameData($room);

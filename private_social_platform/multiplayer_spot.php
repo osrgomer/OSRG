@@ -26,7 +26,7 @@ try {
         last_active DATETIME DEFAULT CURRENT_TIMESTAMP
     )");
 } catch (Exception $e) {
-    // Tables already exist
+    error_log('Database error: ' . $e->getMessage());
 }
 
 $page_title = 'Multiplayer Spot the Difference - OSRG Connect';

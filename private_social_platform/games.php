@@ -131,11 +131,10 @@ require_once 'header.php';
     </div>
     
     <div class="game-card">
-        <div class="coming-soon">Coming Soon</div>
         <span class="game-icon">🏃</span>
         <h3 class="game-title">Endless Runner</h3>
         <p class="game-description">Run as far as you can while avoiding obstacles and collecting coins!</p>
-        <a href="#" class="play-button" onclick="alert('Coming soon!')">Play Now</a>
+        <a href="/endless-runner" class="play-button">Play Now</a>
     </div>
     
     <div class="game-card">

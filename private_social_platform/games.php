@@ -155,11 +155,10 @@ require_once 'header.php';
     </div>
     
     <div class="game-card">
-        <div class="coming-soon">Coming Soon</div>
         <span class="game-icon">🚀</span>
         <h3 class="game-title">Space Adventure</h3>
         <p class="game-description">Explore the galaxy and battle aliens in this space shooter game.</p>
-        <a href="#" class="play-button" onclick="alert('Coming soon!')">Play Now</a>
+        <a href="/space-adventure" class="play-button">Play Now</a>
     </div>
 </div>
 

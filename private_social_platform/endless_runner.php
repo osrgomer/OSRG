@@ -188,7 +188,8 @@ const player = {
     gravity: 1,
     jumpPower: -15,
     grounded: true,
-    frame: 0
+    frame: 0,
+    animFrame: 0
 };
 
 const obstacles = [];
@@ -197,6 +198,32 @@ const coins = [];
 let frame = 0;
 const obstacleFrequency = 120;
 const coinFrequency = 180;
+
+// Ninja sprite images
+const ninjaSprites = {
+    run: [],
+    jump: [],
+    dead: []
+};
+
+// Load ninja sprites
+function loadNinjaSprites() {
+    for(let i = 0; i < 10; i++) {
+        const runImg = new Image();
+        runImg.src = `assets/ninja/png/Run__00${i}.png`;
+        ninjaSprites.run.push(runImg);
+        
+        const jumpImg = new Image();
+        jumpImg.src = `assets/ninja/png/Jump__00${i}.png`;
+        ninjaSprites.jump.push(jumpImg);
+        
+        const deadImg = new Image();
+        deadImg.src = `assets/ninja/png/Dead__00${i}.png`;
+        ninjaSprites.dead.push(deadImg);
+    }
+}
+
+loadNinjaSprites();
 
 function spawnObstacle() {
     const height = Math.random() * 30 + 20;
@@ -219,19 +246,31 @@ function spawnCoin() {
 }
 
 function drawPlayer() {
-    // Animated running colors
-    const colors = ['#e74c3c', '#ff6b6b', '#ff9999'];
-    ctx.fillStyle = colors[Math.floor(player.frame/5) % colors.length];
-    ctx.fillRect(player.x, player.y, player.width, player.height);
+    let sprites, animSpeed;
     
-    // Simple face
-    ctx.fillStyle = 'white';
-    ctx.fillRect(player.x + 10, player.y + 10, 8, 8);
-    ctx.fillRect(player.x + 32, player.y + 10, 8, 8);
-    ctx.fillStyle = 'black';
-    ctx.fillRect(player.x + 20, player.y + 30, 10, 5);
+    if (!gameRunning) {
+        sprites = ninjaSprites.dead;
+        animSpeed = 8;
+    } else if (!player.grounded) {
+        sprites = ninjaSprites.jump;
+        animSpeed = 6;
+    } else {
+        sprites = ninjaSprites.run;
+        animSpeed = 4;
+    }
     
-    player.frame++;
+    const spriteIndex = Math.floor(player.animFrame / animSpeed) % sprites.length;
+    const sprite = sprites[spriteIndex];
+    
+    if (sprite && sprite.complete) {
+        ctx.drawImage(sprite, player.x, player.y, player.width, player.height);
+    } else {
+        // Fallback to colored rectangle if sprite not loaded
+        ctx.fillStyle = '#e74c3c';
+        ctx.fillRect(player.x, player.y, player.width, player.height);
+    }
+    
+    player.animFrame++;
 }
 
 function drawObstacle(obstacle) {
@@ -348,6 +387,7 @@ function restartGame() {
     player.dy = 0;
     player.grounded = true;
     player.frame = 0;
+    player.animFrame = 0;
     
     // Clear arrays
     obstacles.length = 0;

@@ -66,7 +66,7 @@ switch ($action) {
         }
         
         $gameData['players'][$_SESSION['user_id']] = [
-            'username' => $_SESSION['username'],
+            'username' => $_SESSION['username'] ?: 'Player' . $_SESSION['user_id'],
             'score' => 0,
             'lastActive' => time()
         ];

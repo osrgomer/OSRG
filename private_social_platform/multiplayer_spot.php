@@ -199,7 +199,7 @@ function joinRoom() {
     document.getElementById('gameArea').style.display = 'block';
     
     // Join room via AJAX
-    fetch('multiplayer_api_simple.php', {
+    fetch('multiplayer_api.php', {
         method: 'POST',
         headers: {'Content-Type': 'application/json'},
         body: JSON.stringify({action: 'join', room: roomName})

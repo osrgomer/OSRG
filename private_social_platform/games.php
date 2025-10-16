@@ -123,11 +123,10 @@ require_once 'header.php';
     </div>
     
     <div class="game-card">
-        <div class="coming-soon">Coming Soon</div>
-        <span class="game-icon">🧩</span>
-        <h3 class="game-title">Puzzle Master</h3>
-        <p class="game-description">Challenge your mind with brain-teasing puzzles and logic games.</p>
-        <a href="#" class="play-button" onclick="alert('Coming soon!')">Play Now</a>
+        <span class="game-icon">🔍</span>
+        <h3 class="game-title">Spot the Difference</h3>
+        <p class="game-description">Find all the hidden differences in this visual puzzle game.</p>
+        <a href="/spot-difference" class="play-button">Play Now</a>
     </div>
     
     <div class="game-card">

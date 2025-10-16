@@ -27,6 +27,10 @@ RewriteRule ^endless-runner/?$ endless_runner.php [L]
 
 RewriteCond %{REQUEST_FILENAME} !-f
 RewriteCond %{REQUEST_FILENAME} !-d
+RewriteRule ^spot-difference/?$ spot_difference.php [L]
+
+RewriteCond %{REQUEST_FILENAME} !-f
+RewriteCond %{REQUEST_FILENAME} !-d
 RewriteRule ^find-friends/?$ users.php [L]
 
 RewriteCond %{REQUEST_FILENAME} !-f

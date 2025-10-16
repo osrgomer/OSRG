@@ -109,10 +109,11 @@ $additional_css = '
 require_once 'header.php';
 ?>
 
-<div class="games-header">
-    <h1 class="games-title">🎮 Games</h1>
-    <p class="games-subtitle">Play fun games and compete with friends!</p>
-</div>
+<div class="container">
+        <div class="games-header">
+        <h1 class="games-title">🎮 Games</h1>
+        <p class="games-subtitle">Play fun games and compete with friends!</p>
+    </div>
 
 <div class="games-grid">
     <div class="game-card">
@@ -160,6 +161,7 @@ require_once 'header.php';
         <h3 class="game-title">Space Adventure</h3>
         <p class="game-description">Explore the galaxy and battle aliens in this space shooter game.</p>
         <a href="/space-adventure" class="play-button">Play Now</a>
+    </div>
     </div>
 </div>
 

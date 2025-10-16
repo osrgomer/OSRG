@@ -7,28 +7,6 @@ if (!isset($_SESSION['user_id'])) {
     exit;
 }
 
-// Create multiplayer games table
-try {
-    $pdo->exec("CREATE TABLE IF NOT EXISTS multiplayer_games (
-        id INTEGER PRIMARY KEY AUTOINCREMENT,
-        room_name TEXT NOT NULL,
-        game_data TEXT NOT NULL,
-        created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
-        updated_at DATETIME DEFAULT CURRENT_TIMESTAMP
-    )");
-    
-    $pdo->exec("CREATE TABLE IF NOT EXISTS game_players (
-        id INTEGER PRIMARY KEY AUTOINCREMENT,
-        room_name TEXT NOT NULL,
-        user_id INTEGER NOT NULL,
-        username TEXT NOT NULL,
-        score INTEGER DEFAULT 0,
-        last_active DATETIME DEFAULT CURRENT_TIMESTAMP
-    )");
-} catch (Exception $e) {
-    error_log('Database error: ' . $e->getMessage());
-}
-
 $page_title = 'Multiplayer Spot the Difference - OSRG Connect';
 $additional_css = '
     body {

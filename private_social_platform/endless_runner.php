@@ -151,9 +151,10 @@ require_once 'header.php';
     
     <div class="instructions">
         <strong>How to Play:</strong><br>
-        • Press SPACEBAR to jump over obstacles<br>
+        • Press SPACEBAR to jump over ground obstacles<br>
+        • Press RIGHT ARROW to slide under floating obstacles<br>
         • Collect gold coins to increase your score<br>
-        • Avoid brown obstacles or the game ends<br>
+        • Avoid obstacles or the game ends<br>
         • See how far you can run!
     </div>
     
@@ -189,7 +190,11 @@ const player = {
     jumpPower: -15,
     grounded: true,
     frame: 0,
-    animFrame: 0
+    animFrame: 0,
+    sliding: false,
+    slideTimer: 0,
+    dying: false,
+    deathTimer: 0
 };
 
 const obstacles = [];
@@ -198,12 +203,14 @@ const coins = [];
 let frame = 0;
 const obstacleFrequency = 120;
 const coinFrequency = 180;
+let keys = {};
 
 // Ninja sprite images
 const ninjaSprites = {
     run: [],
     jump: [],
-    dead: []
+    dead: [],
+    slide: []
 };
 
 // Load ninja sprites
@@ -220,19 +227,36 @@ function loadNinjaSprites() {
         const deadImg = new Image();
         deadImg.src = `assets/ninja/png/Dead__00${i}.png`;
         ninjaSprites.dead.push(deadImg);
+        
+        const slideImg = new Image();
+        slideImg.src = `assets/ninja/png/Slide__00${i}.png`;
+        ninjaSprites.slide.push(slideImg);
     }
 }
 
 loadNinjaSprites();
 
 function spawnObstacle() {
-    const height = Math.random() * 30 + 20;
-    obstacles.push({
-        x: canvas.width,
-        y: canvas.height - height - 50,
-        width: 30,
-        height: height
-    });
+    const isFloating = Math.random() < 0.4; // 40% chance for floating obstacle
+    
+    if (isFloating) {
+        obstacles.push({
+            x: canvas.width,
+            y: canvas.height - 150, // floating height
+            width: 40,
+            height: 20,
+            type: 'floating'
+        });
+    } else {
+        const height = Math.random() * 30 + 20;
+        obstacles.push({
+            x: canvas.width,
+            y: canvas.height - height - 50,
+            width: 30,
+            height: height,
+            type: 'ground'
+        });
+    }
 }
 
 function spawnCoin() {
@@ -248,9 +272,12 @@ function spawnCoin() {
 function drawPlayer() {
     let sprites, animSpeed;
     
-    if (!gameRunning) {
+    if (player.dying || !gameRunning) {
         sprites = ninjaSprites.dead;
         animSpeed = 8;
+    } else if (player.sliding) {
+        sprites = ninjaSprites.slide;
+        animSpeed = 6;
     } else if (!player.grounded) {
         sprites = ninjaSprites.jump;
         animSpeed = 6;
@@ -274,7 +301,11 @@ function drawPlayer() {
 }
 
 function drawObstacle(obstacle) {
-    ctx.fillStyle = '#8b4513';
+    if (obstacle.type === 'floating') {
+        ctx.fillStyle = '#e74c3c'; // red for floating obstacles
+    } else {
+        ctx.fillStyle = '#8b4513'; // brown for ground obstacles
+    }
     ctx.fillRect(obstacle.x, obstacle.y, obstacle.width, obstacle.height);
 }
 
@@ -302,20 +333,44 @@ function drawGround() {
 }
 
 function update() {
-    if (!gameRunning) return;
+    if (!gameRunning && !player.dying) return;
     
     ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+    // Handle death animation
+    if (player.dying) {
+        player.deathTimer++;
+        if (player.deathTimer > 60) { // 1 second at 60fps
+            gameOver();
+            return;
+        }
+        drawGround();
+        drawPlayer();
+        requestAnimationFrame(update);
+        return;
+    }
 
     // Increase speed gradually every 300 frames (about 5 seconds)
     if (frame % 300 === 0) speed += 0.5;
 
+    // Handle sliding
+    if (player.sliding) {
+        player.slideTimer++;
+        if (player.slideTimer > 30) { // slide for 0.5 seconds
+            player.sliding = false;
+            player.slideTimer = 0;
+        }
+    }
+
     // Player physics
-    player.dy += player.gravity;
-    player.y += player.dy;
-    if (player.y + player.height > canvas.height - 50) {
-        player.y = canvas.height - 50 - player.height;
-        player.dy = 0;
-        player.grounded = true;
+    if (!player.sliding) {
+        player.dy += player.gravity;
+        player.y += player.dy;
+        if (player.y + player.height > canvas.height - 50) {
+            player.y = canvas.height - 50 - player.height;
+            player.dy = 0;
+            player.grounded = true;
+        }
     }
 
     drawGround();
@@ -327,11 +382,19 @@ function update() {
         drawObstacle(obstacles[i]);
 
         // Collision detection
-        if (player.x < obstacles[i].x + obstacles[i].width &&
-            player.x + player.width > obstacles[i].x &&
-            player.y < obstacles[i].y + obstacles[i].height &&
-            player.y + player.height > obstacles[i].y) {
-            gameOver();
+        let playerHitbox = {
+            x: player.x,
+            y: player.sliding ? player.y + 25 : player.y, // lower hitbox when sliding
+            width: player.width,
+            height: player.sliding ? 25 : player.height // smaller height when sliding
+        };
+
+        if (playerHitbox.x < obstacles[i].x + obstacles[i].width &&
+            playerHitbox.x + playerHitbox.width > obstacles[i].x &&
+            playerHitbox.y < obstacles[i].y + obstacles[i].height &&
+            playerHitbox.y + playerHitbox.height > obstacles[i].y) {
+            player.dying = true;
+            player.deathTimer = 0;
             return;
         }
 
@@ -388,6 +451,10 @@ function restartGame() {
     player.grounded = true;
     player.frame = 0;
     player.animFrame = 0;
+    player.sliding = false;
+    player.slideTimer = 0;
+    player.dying = false;
+    player.deathTimer = 0;
     
     // Clear arrays
     obstacles.length = 0;
@@ -397,19 +464,48 @@ function restartGame() {
 }
 
 document.addEventListener('keydown', (e) => {
-    if (e.code === 'Space' && player.grounded && gameRunning) {
+    keys[e.code] = true;
+    
+    if (e.code === 'Space' && player.grounded && gameRunning && !player.sliding) {
         e.preventDefault();
         player.dy = player.jumpPower;
         player.grounded = false;
     }
+    
+    if (e.code === 'ArrowRight' && player.grounded && gameRunning && !player.sliding) {
+        e.preventDefault();
+        player.sliding = true;
+        player.slideTimer = 0;
+    }
+});
+
+document.addEventListener('keyup', (e) => {
+    keys[e.code] = false;
 });
 
 // Touch support for mobile
 canvas.addEventListener('touchstart', (e) => {
     e.preventDefault();
-    if (player.grounded && gameRunning) {
+    if (player.grounded && gameRunning && !player.sliding) {
         player.dy = player.jumpPower;
         player.grounded = false;
+    }
+});
+
+// Touch support for sliding (swipe right)
+let touchStartX = 0;
+canvas.addEventListener('touchstart', (e) => {
+    touchStartX = e.touches[0].clientX;
+});
+
+canvas.addEventListener('touchend', (e) => {
+    const touchEndX = e.changedTouches[0].clientX;
+    const swipeDistance = touchEndX - touchStartX;
+    
+    if (swipeDistance > 50 && player.grounded && gameRunning && !player.sliding) {
+        // Swipe right detected
+        player.sliding = true;
+        player.slideTimer = 0;
     }
 });
 

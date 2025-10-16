@@ -1,0 +1,330 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Multiplayer Spot the Difference</title>
+<style>
+body { 
+    margin: 0; 
+    font-family: Arial, sans-serif; 
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 20px;
+}
+.game-container {
+    background: rgba(255,255,255,0.95);
+    backdrop-filter: blur(20px);
+    border-radius: 20px;
+    padding: 30px;
+    box-shadow: 0 20px 60px rgba(0,0,0,0.15);
+    border: 1px solid rgba(255,255,255,0.3);
+    text-align: center;
+    max-width: 800px;
+    width: 100%;
+}
+h1 {
+    color: #1877f2;
+    margin-bottom: 20px;
+    font-size: 2.5em;
+    font-weight: 700;
+}
+#gameCanvas { 
+    border: 3px solid #1877f2; 
+    border-radius: 12px;
+    cursor: crosshair;
+    background: #f0f0f0;
+    box-shadow: 0 0 20px rgba(24, 119, 242, 0.3);
+}
+.scoreboard {
+    display: flex;
+    justify-content: space-around;
+    margin: 20px 0;
+    padding: 15px;
+    background: rgba(24,119,242,0.1);
+    border-radius: 15px;
+}
+.player-score {
+    font-size: 18px;
+    font-weight: bold;
+    color: #1877f2;
+}
+.controls {
+    margin-top: 20px;
+    display: flex;
+    gap: 15px;
+    justify-content: center;
+    flex-wrap: wrap;
+}
+button {
+    background: linear-gradient(135deg, #1877f2, #42a5f5);
+    color: white;
+    padding: 12px 24px;
+    border: none;
+    border-radius: 25px;
+    cursor: pointer;
+    font-size: 16px;
+    transition: all 0.3s ease;
+    box-shadow: 0 4px 15px rgba(24, 119, 242, 0.3);
+}
+button:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px rgba(24, 119, 242, 0.4);
+}
+.room-input {
+    padding: 10px 15px;
+    border: 2px solid #1877f2;
+    border-radius: 25px;
+    font-size: 16px;
+    margin-right: 10px;
+    outline: none;
+}
+.game-over {
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    background: rgba(0,0,0,0.9);
+    color: white;
+    padding: 30px;
+    border-radius: 15px;
+    text-align: center;
+    z-index: 100;
+    display: none;
+    border: 2px solid #1877f2;
+}
+.status {
+    margin: 15px 0;
+    padding: 10px;
+    border-radius: 10px;
+    font-weight: bold;
+}
+.found { background: rgba(40, 167, 69, 0.2); color: #28a745; }
+.waiting { background: rgba(255, 193, 7, 0.2); color: #ffc107; }
+@media (max-width: 768px) {
+    .game-container { padding: 20px; margin: 10px; }
+    h1 { font-size: 2em; }
+    #gameCanvas { width: 100%; height: auto; }
+    .scoreboard { flex-direction: column; gap: 10px; }
+}
+</style>
+</head>
+<body>
+
+<div class="game-container">
+    <h1>🔍 Multiplayer Spot the Difference</h1>
+    
+    <div id="roomSetup">
+        <input type="text" id="roomInput" class="room-input" placeholder="Enter room name" value="room1">
+        <button onclick="joinRoom()">Join Game</button>
+    </div>
+    
+    <div id="gameArea" style="display: none;">
+        <div class="scoreboard" id="scoreboard"></div>
+        <canvas id="gameCanvas" width="600" height="400"></canvas>
+        <div class="status" id="status"></div>
+        <div class="controls">
+            <button onclick="newGame()">🎮 New Game</button>
+            <button onclick="leaveRoom()">🚪 Leave Room</button>
+        </div>
+    </div>
+</div>
+
+<div class="game-over" id="gameOver">
+    <h2>🎉 Game Over!</h2>
+    <p id="winnerText"></p>
+    <div id="finalScores"></div>
+    <button onclick="newGame(); document.getElementById('gameOver').style.display='none';">Play Again</button>
+</div>
+
+<script src="/socket.io/socket.io.js"></script>
+<script>
+const socket = io();
+const canvas = document.getElementById('gameCanvas');
+const ctx = canvas.getContext('2d');
+const scoreboard = document.getElementById('scoreboard');
+const status = document.getElementById('status');
+
+let currentRoom = '';
+let differences = [];
+let players = {};
+
+function joinRoom() {
+    const roomName = document.getElementById('roomInput').value.trim();
+    if (!roomName) return;
+    
+    currentRoom = roomName;
+    socket.emit('joinRoom', roomName);
+    document.getElementById('roomSetup').style.display = 'none';
+    document.getElementById('gameArea').style.display = 'block';
+    status.textContent = `Joined room: ${roomName}`;
+    status.className = 'status waiting';
+}
+
+function leaveRoom() {
+    socket.disconnect();
+    socket.connect();
+    document.getElementById('roomSetup').style.display = 'block';
+    document.getElementById('gameArea').style.display = 'none';
+    currentRoom = '';
+}
+
+function newGame() {
+    if (currentRoom) {
+        socket.emit('newGame', currentRoom);
+    }
+}
+
+socket.on('gameData', (game) => {
+    differences = game.differences;
+    players = game.players;
+    updateScoreboard();
+    drawGame();
+    status.textContent = 'Game started! Find the differences!';
+    status.className = 'status waiting';
+});
+
+socket.on('updateDifference', (data) => {
+    differences[data.index].found = true;
+    differences[data.index].foundBy = data.playerId;
+    players = data.players;
+    updateScoreboard();
+    drawGame();
+    
+    if (data.playerId === socket.id) {
+        status.textContent = `You found a difference! +10 points`;
+        status.className = 'status found';
+    } else {
+        status.textContent = `${data.playerName} found a difference!`;
+        status.className = 'status waiting';
+    }
+});
+
+socket.on('gameOver', (data) => {
+    document.getElementById('winnerText').textContent = `Winner: ${data.winner}!`;
+    const scoresHtml = Object.entries(data.finalScores)
+        .map(([id, player]) => `<p>${player.name}: ${player.score} points</p>`)
+        .join('');
+    document.getElementById('finalScores').innerHTML = scoresHtml;
+    document.getElementById('gameOver').style.display = 'block';
+});
+
+socket.on('playerLeft', (data) => {
+    players = data.players;
+    updateScoreboard();
+    status.textContent = 'A player left the game';
+    status.className = 'status waiting';
+});
+
+function updateScoreboard() {
+    scoreboard.innerHTML = Object.entries(players)
+        .map(([id, player]) => `<div class="player-score">${player.name}: ${player.score}</div>`)
+        .join('');
+}
+
+function drawGame() {
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    
+    // Background pattern
+    ctx.fillStyle = '#e8f4f8';
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
+    
+    // Grid pattern
+    ctx.strokeStyle = '#d0e8f0';
+    ctx.lineWidth = 1;
+    for (let i = 0; i < canvas.width; i += 30) {
+        ctx.beginPath();
+        ctx.moveTo(i, 0);
+        ctx.lineTo(i, canvas.height);
+        ctx.stroke();
+    }
+    for (let i = 0; i < canvas.height; i += 30) {
+        ctx.beginPath();
+        ctx.moveTo(0, i);
+        ctx.lineTo(canvas.width, i);
+        ctx.stroke();
+    }
+    
+    // Draw differences
+    differences.forEach((diff) => {
+        if (!diff.found) {
+            const gradient = ctx.createRadialGradient(diff.x, diff.y, 0, diff.x, diff.y, diff.radius);
+            gradient.addColorStop(0, diff.color);
+            gradient.addColorStop(1, diff.color + '80');
+            
+            ctx.fillStyle = gradient;
+            ctx.beginPath();
+            ctx.arc(diff.x, diff.y, diff.radius, 0, Math.PI * 2);
+            ctx.fill();
+            
+            ctx.strokeStyle = '#fff';
+            ctx.lineWidth = 2;
+            ctx.stroke();
+        } else {
+            // Draw found indicator
+            ctx.fillStyle = '#28a745';
+            ctx.beginPath();
+            ctx.arc(diff.x, diff.y, diff.radius, 0, Math.PI * 2);
+            ctx.fill();
+            
+            // Draw checkmark
+            ctx.strokeStyle = '#fff';
+            ctx.lineWidth = 3;
+            ctx.beginPath();
+            ctx.moveTo(diff.x - 8, diff.y);
+            ctx.lineTo(diff.x - 2, diff.y + 6);
+            ctx.lineTo(diff.x + 8, diff.y - 6);
+            ctx.stroke();
+        }
+    });
+}
+
+canvas.addEventListener('click', (e) => {
+    if (!currentRoom) return;
+    
+    const rect = canvas.getBoundingClientRect();
+    const mouseX = (e.clientX - rect.left) * (canvas.width / rect.width);
+    const mouseY = (e.clientY - rect.top) * (canvas.height / rect.height);
+    
+    differences.forEach((diff, index) => {
+        if (!diff.found) {
+            const dx = mouseX - diff.x;
+            const dy = mouseY - diff.y;
+            const distance = Math.sqrt(dx * dx + dy * dy);
+            
+            if (distance < diff.radius) {
+                socket.emit('foundDifference', { room: currentRoom, index });
+            }
+        }
+    });
+});
+
+// Touch support
+canvas.addEventListener('touchstart', (e) => {
+    e.preventDefault();
+    if (!currentRoom) return;
+    
+    const rect = canvas.getBoundingClientRect();
+    const touch = e.touches[0];
+    const mouseX = (touch.clientX - rect.left) * (canvas.width / rect.width);
+    const mouseY = (touch.clientY - rect.top) * (canvas.height / rect.height);
+    
+    differences.forEach((diff, index) => {
+        if (!diff.found) {
+            const dx = mouseX - diff.x;
+            const dy = mouseY - diff.y;
+            const distance = Math.sqrt(dx * dx + dy * dy);
+            
+            if (distance < diff.radius) {
+                socket.emit('foundDifference', { room: currentRoom, index });
+            }
+        }
+    });
+});
+</script>
+
+</body>
+</html>

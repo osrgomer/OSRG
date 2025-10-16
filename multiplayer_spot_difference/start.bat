@@ -1,0 +1,6 @@
+@echo off
+echo Installing dependencies...
+npm install
+echo Starting multiplayer server...
+node server.js
+pause

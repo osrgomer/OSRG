@@ -125,15 +125,11 @@ require_once 'header.php';
     <div class="game-card">
         <span class="game-icon">🔍</span>
         <h3 class="game-title">Spot the Difference</h3>
-        <p class="game-description">Single-player: Find all the hidden differences in this visual puzzle game.</p>
-        <a href="/spot-difference" class="play-button">Play Solo</a>
-    </div>
-    
-    <div class="game-card">
-        <span class="game-icon">🔍👥</span>
-        <h3 class="game-title">Multiplayer Spot the Difference</h3>
-        <p class="game-description">Compete with friends to find differences first in real-time!</p>
-        <a href="/multiplayer-spot" class="play-button">Play Multiplayer</a>
+        <p class="game-description">Find all the hidden differences in this visual puzzle game.</p>
+        <div style="display: flex; gap: 10px; justify-content: center; flex-wrap: wrap;">
+            <a href="/spot-difference" class="play-button" style="flex: 1; min-width: 120px;">Play Solo</a>
+            <a href="/multiplayer-spot" class="play-button" style="flex: 1; min-width: 120px;">Multiplayer</a>
+        </div>
     </div>
     
     <div class="game-card">

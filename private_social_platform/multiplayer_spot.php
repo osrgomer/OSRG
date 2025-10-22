@@ -354,11 +354,22 @@ function updateGameState(data) {
     const image1 = document.getElementById('image1');
     const image2 = document.getElementById('image2');
     
-    if (!image1.src) {
-        image1.src = 'assets/spot_the_difference/scene1.svg';
+    // Add error handlers for images
+    const handleImageError = (img, num) => {
+        console.error(`Failed to load image ${num}:`, img.src);
+        showStatus(`Failed to load image ${num}. Check console for details.`, 'error');
+    };
+    
+    image1.onerror = () => handleImageError(image1, 1);
+    image2.onerror = () => handleImageError(image2, 2);
+    
+    if (!image1.src || image1.src.endsWith('scene1.svg')) {
+        console.log('Setting image1 src to:', '/private_social_platform/assets/spot_the_difference/scene1.svg');
+        image1.src = 'assets/spot_the_difference/scene1.svg?v=' + new Date().getTime();
     }
-    if (!image2.src) {
-        image2.src = 'assets/spot_the_difference/scene2.svg';
+    if (!image2.src || image2.src.endsWith('scene2.svg')) {
+        console.log('Setting image2 src to:', 'assets/spot_the_difference/scene1.svg');
+        image2.src = 'assets/spot_the_difference/scene2.svg?v=' + new Date().getTime();
     }
     
     updateScoreboard();

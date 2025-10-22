@@ -7,6 +7,64 @@ if (!isset($_SESSION['user_id'])) {
     exit;
 }
 
+// Handle AJAX requests for saving/loading game state
+if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action'])) {
+    header('Content-Type: application/json');
+    
+    if ($_POST['action'] === 'save_game') {
+        $gameState = json_decode($_POST['gameState'], true);
+        $user_id = $_SESSION['user_id'];
+        
+        // Save to database
+        $stmt = $db->prepare("INSERT INTO wordle_games (user_id, answer, current_row, guesses, date_started) 
+                            VALUES (?, ?, ?, ?, NOW())
+                            ON DUPLICATE KEY UPDATE
+                            current_row = ?, guesses = ?");
+        $stmt->execute([$user_id, $gameState['answer'], $gameState['currentRow'], 
+                       $gameState['guesses'], $gameState['currentRow'], $gameState['guesses']]);
+        
+        echo json_encode(['success' => true]);
+        exit;
+    }
+    
+    if ($_POST['action'] === 'load_game') {
+        $user_id = $_SESSION['user_id'];
+        
+        // Load from database
+        $stmt = $db->prepare("SELECT answer, current_row, guesses, date_started 
+                            FROM wordle_games 
+                            WHERE user_id = ? 
+                            AND DATE(date_started) = CURDATE()
+                            LIMIT 1");
+        $stmt->execute([$user_id]);
+        $game = $stmt->fetch(PDO::FETCH_ASSOC);
+        
+        if ($game) {
+            echo json_encode([
+                'success' => true,
+                'gameState' => $game
+            ]);
+        } else {
+            echo json_encode([
+                'success' => false,
+                'message' => 'No saved game found for today'
+            ]);
+        }
+        exit;
+    }
+}
+
+// Create wordle_games table if it doesn't exist
+$db->exec("CREATE TABLE IF NOT EXISTS wordle_games (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    user_id INT NOT NULL,
+    answer VARCHAR(5) NOT NULL,
+    current_row INT NOT NULL DEFAULT 0,
+    guesses TEXT NOT NULL,
+    date_started DATETIME NOT NULL,
+    UNIQUE KEY unique_game (user_id, DATE(date_started))
+)");
+
 $page_title = 'Wordle - OSRG Connect';
 $additional_css = '
     body { 
@@ -132,14 +190,115 @@ const wordList = [
 ];
 
 // Choose answer from the cleaned wordList
-const answer = wordList[Math.floor(Math.random() * wordList.length)];
-
+// Initialize with saved game or new game
+let answer, currentRow, currentCol, savedGuesses;
 const maxRows = 6;
-let currentRow = 0;
-let currentCol = 0;
+
+// Function to save game state
+async function saveGameState() {
+    const guesses = [];
+    for(let row = 0; row < currentRow; row++) {
+        let guess = "";
+        for(let col = 0; col < 5; col++) {
+            guess += cells[row*5 + col].textContent;
+        }
+        guesses.push(guess);
+    }
+    
+    const gameState = {
+        answer: answer,
+        currentRow: currentRow,
+        guesses: JSON.stringify(guesses)
+    };
+    
+    try {
+        const response = await fetch(window.location.href, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/x-www-form-urlencoded',
+            },
+            body: new URLSearchParams({
+                'action': 'save_game',
+                'gameState': JSON.stringify(gameState)
+            })
+        });
+        const data = await response.json();
+        if (!data.success) {
+            console.error('Failed to save game state');
+        }
+    } catch (error) {
+        console.error('Error saving game state:', error);
+    }
+}
+
+// Function to load saved game state
+async function loadGameState() {
+    try {
+        const response = await fetch(window.location.href, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/x-www-form-urlencoded',
+            },
+            body: new URLSearchParams({
+                'action': 'load_game'
+            })
+        });
+        const data = await response.json();
+        
+        if (data.success) {
+            answer = data.gameState.answer;
+            currentRow = parseInt(data.gameState.current_row);
+            savedGuesses = JSON.parse(data.gameState.guesses);
+            return true;
+        }
+    } catch (error) {
+        console.error('Error loading game state:', error);
+    }
+    return false;
+}
 
 const grid = document.getElementById('grid');
 const message = document.getElementById('message');
+
+// Initialize the game (load saved state or start new game)
+async function initGame() {
+    const hasSavedGame = await loadGameState();
+    
+    if (!hasSavedGame) {
+        // Start new game
+        answer = wordList[Math.floor(Math.random() * wordList.length)];
+        currentRow = 0;
+        savedGuesses = [];
+    }
+    
+    currentCol = 0;
+    
+    // Replay saved guesses if any
+    if (savedGuesses && savedGuesses.length > 0) {
+        for(let i = 0; i < savedGuesses.length; i++) {
+            const guess = savedGuesses[i];
+            for(let j = 0; j < guess.length; j++) {
+                cells[i*5 + j].textContent = guess[j];
+                
+                // Apply appropriate color
+                if(guess[j] === answer[j]) {
+                    cells[i*5 + j].classList.add('green');
+                } else if(answer.includes(guess[j])) {
+                    cells[i*5 + j].classList.add('yellow');
+                } else {
+                    cells[i*5 + j].classList.add('gray');
+                }
+            }
+        }
+        
+        if (savedGuesses[savedGuesses.length - 1] === answer) {
+            message.textContent = "🎉 Congrats! You guessed the word!";
+            currentRow = maxRows; // stop further input
+        } else if (currentRow === maxRows) {
+            message.textContent = "😔 Game over! The word was: " + answer;
+        }
+    }
+}
 
 // create grid
 for(let i=0;i<maxRows*5;i++){
@@ -184,6 +343,7 @@ function handleInput(key) {
       if(guess === answer){
         message.textContent = "🎉 Congrats! You guessed the word!";
         currentRow = maxRows; // stop further input
+        saveGameState(); // Save final state
         return;
       }
 
@@ -195,6 +355,9 @@ function handleInput(key) {
       } else {
         message.textContent = "";
       }
+      
+      // Save game state after each valid guess
+      saveGameState();
     }
   } else if(key.length === 1 && /[a-zA-Z]/.test(key)){
     if(currentCol < 5){
@@ -241,6 +404,9 @@ if(/Android|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.use
     setTimeout(() => mobileInput.focus(), 100);
   });
 }
+
+// Initialize game (load saved state or start new)
+initGame();
 </script>
 
 </body>

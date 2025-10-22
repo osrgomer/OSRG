@@ -166,7 +166,7 @@ function handleInput(key) {
       }
       guess = guess.toUpperCase();
 
-      if(!uniqueWordList.includes(guess)){
+      if(!wordList.includes(guess)){
         message.textContent = "Word not in list!";
         return;
       }

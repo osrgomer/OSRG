@@ -99,7 +99,7 @@ if (!isset($_SESSION['user_id'])) {
         <div class="nav-links" id="navLinks">
             <a href="/home">Home</a>
             <a href="/reels">🎬 Reels</a>
-            <a href="games.php">🎮 Games</a>
+            <a href="/games">🎮 Games</a>
             <a href="/find-friends">Find Friends</a>
             <a href="/friends">My Friends</a>
             <a href="/messages">Messages</a>

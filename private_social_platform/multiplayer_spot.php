@@ -123,9 +123,10 @@ $additional_css = '
     .game-image img {
         width: 100%;
         height: 100%;
-        object-fit: cover;
+        object-fit: contain;
+        background: white;
     }
-    #gameCanvas {
+    #gameCanvas1, #gameCanvas2 {
         position: absolute;
         top: 0;
         left: 0;
@@ -354,10 +355,10 @@ function updateGameState(data) {
     const image2 = document.getElementById('image2');
     
     if (!image1.src) {
-        image1.src = 'assets/spot_the_difference/scene1.jpg';
+        image1.src = 'assets/spot_the_difference/scene1.svg';
     }
     if (!image2.src) {
-        image2.src = 'assets/spot_the_difference/scene2.jpg';
+        image2.src = 'assets/spot_the_difference/scene2.svg';
     }
     
     updateScoreboard();
@@ -438,48 +439,52 @@ function drawGame() {
 }
 
 // Canvas click handler
-document.getElementById('gameCanvas').addEventListener('click', (e) => {
-    if (!currentRoom) return;
-    
-    const canvas = document.getElementById('gameCanvas');
-    const rect = canvas.getBoundingClientRect();
-    const mouseX = (e.clientX - rect.left) * (canvas.width / rect.width);
-    const mouseY = (e.clientY - rect.top) * (canvas.height / rect.height);
-    
-    differences.forEach((diff, index) => {
-        if (!diff.found) {
-            const dx = mouseX - diff.x;
-            const dy = mouseY - diff.y;
-            const distance = Math.sqrt(dx * dx + dy * dy);
-            
-            if (distance < diff.radius) {
-                foundDifference(index);
+['gameCanvas1', 'gameCanvas2'].forEach(canvasId => {
+    document.getElementById(canvasId).addEventListener('click', (e) => {
+        if (!currentRoom) return;
+        
+        const canvas = document.getElementById(canvasId);
+        const rect = canvas.getBoundingClientRect();
+        const mouseX = (e.clientX - rect.left) * (canvas.width / rect.width);
+        const mouseY = (e.clientY - rect.top) * (canvas.height / rect.height);
+        
+        differences.forEach((diff, index) => {
+            if (!diff.found) {
+                const dx = mouseX - (canvasId === 'gameCanvas1' ? diff.x1 : diff.x2);
+                const dy = mouseY - diff.y;
+                const distance = Math.sqrt(dx * dx + dy * dy);
+                
+                if (distance < diff.radius) {
+                    foundDifference(index);
+                }
             }
-        }
+        });
     });
 });
 
 // Touch support
-document.getElementById('gameCanvas').addEventListener('touchstart', (e) => {
-    e.preventDefault();
-    if (!currentRoom) return;
-    
-    const canvas = document.getElementById('gameCanvas');
-    const rect = canvas.getBoundingClientRect();
-    const touch = e.touches[0];
-    const mouseX = (touch.clientX - rect.left) * (canvas.width / rect.width);
-    const mouseY = (touch.clientY - rect.top) * (canvas.height / rect.height);
-    
-    differences.forEach((diff, index) => {
-        if (!diff.found) {
-            const dx = mouseX - diff.x;
-            const dy = mouseY - diff.y;
-            const distance = Math.sqrt(dx * dx + dy * dy);
-            
-            if (distance < diff.radius) {
-                foundDifference(index);
+['gameCanvas1', 'gameCanvas2'].forEach(canvasId => {
+    document.getElementById(canvasId).addEventListener('touchstart', (e) => {
+        e.preventDefault();
+        if (!currentRoom) return;
+        
+        const canvas = document.getElementById(canvasId);
+        const rect = canvas.getBoundingClientRect();
+        const touch = e.touches[0];
+        const mouseX = (touch.clientX - rect.left) * (canvas.width / rect.width);
+        const mouseY = (touch.clientY - rect.top) * (canvas.height / rect.height);
+        
+        differences.forEach((diff, index) => {
+            if (!diff.found) {
+                const dx = mouseX - (canvasId === 'gameCanvas1' ? diff.x1 : diff.x2);
+                const dy = mouseY - diff.y;
+                const distance = Math.sqrt(dx * dx + dy * dy);
+                
+                if (distance < diff.radius) {
+                    foundDifference(index);
+                }
             }
-        }
+        });
     });
 });
 </script>

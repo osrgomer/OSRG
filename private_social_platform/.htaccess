@@ -1,5 +1,8 @@
 RewriteEngine On
 
+# Test simple rewrite first
+RewriteRule ^test-rewrite/?$ test_htaccess.php [L]
+
 # Pretty URLs - check if file doesn't exist first
 RewriteCond %{REQUEST_FILENAME} !-f
 RewriteCond %{REQUEST_FILENAME} !-d

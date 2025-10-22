@@ -291,12 +291,13 @@ function drawGame() {
     });
 }
 
-function checkClick(mouseX, mouseY) {
+function checkClick(mouseX, mouseY, isFirstCanvas) {
     if (!gameRunning) return;
     
     differences.forEach((diff) => {
         if (!diff.found) {
-            const dx = mouseX - diff.x;
+            const x = isFirstCanvas ? diff.x1 : diff.x2;
+            const dx = mouseX - x;
             const dy = mouseY - diff.y;
             const distance = Math.sqrt(dx * dx + dy * dy);
             
@@ -327,21 +328,25 @@ function newGame() {
     drawGame();
 }
 
-canvas.addEventListener('click', (e) => {
-    const rect = canvas.getBoundingClientRect();
-    const mouseX = (e.clientX - rect.left) * (canvas.width / rect.width);
-    const mouseY = (e.clientY - rect.top) * (canvas.height / rect.height);
-    checkClick(mouseX, mouseY);
-});
+['gameCanvas1', 'gameCanvas2'].forEach(canvasId => {
+    document.getElementById(canvasId).addEventListener('click', (e) => {
+        const canvas = document.getElementById(canvasId);
+        const rect = canvas.getBoundingClientRect();
+        const mouseX = (e.clientX - rect.left) * (canvas.width / rect.width);
+        const mouseY = (e.clientY - rect.top) * (canvas.height / rect.height);
+        checkClick(mouseX, mouseY, canvasId === 'gameCanvas1');
+    });
 
-// Touch support for mobile
-canvas.addEventListener('touchstart', (e) => {
-    e.preventDefault();
-    const rect = canvas.getBoundingClientRect();
-    const touch = e.touches[0];
-    const mouseX = (touch.clientX - rect.left) * (canvas.width / rect.width);
-    const mouseY = (touch.clientY - rect.top) * (canvas.height / rect.height);
-    checkClick(mouseX, mouseY);
+    // Touch support for mobile
+    document.getElementById(canvasId).addEventListener('touchstart', (e) => {
+        e.preventDefault();
+        const canvas = document.getElementById(canvasId);
+        const rect = canvas.getBoundingClientRect();
+        const touch = e.touches[0];
+        const mouseX = (touch.clientX - rect.left) * (canvas.width / rect.width);
+        const mouseY = (touch.clientY - rect.top) * (canvas.height / rect.height);
+        checkClick(mouseX, mouseY, canvasId === 'gameCanvas1');
+    });
 });
 
 // Initialize game

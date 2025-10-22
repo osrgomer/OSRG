@@ -243,60 +243,50 @@ function generateDifferences() {
 }
 
 function drawGame() {
-    ctx.clearRect(0, 0, canvas.width, canvas.height);
-    
-    // Background pattern
-    ctx.fillStyle = '#e8f4f8';
-    ctx.fillRect(0, 0, canvas.width, canvas.height);
-    
-    // Draw grid pattern
-    ctx.strokeStyle = '#d0e8f0';
-    ctx.lineWidth = 1;
-    for (let i = 0; i < canvas.width; i += 30) {
-        ctx.beginPath();
-        ctx.moveTo(i, 0);
-        ctx.lineTo(i, canvas.height);
-        ctx.stroke();
-    }
-    for (let i = 0; i < canvas.height; i += 30) {
-        ctx.beginPath();
-        ctx.moveTo(0, i);
-        ctx.lineTo(canvas.width, i);
-        ctx.stroke();
-    }
+    ctx1.clearRect(0, 0, canvas1.width, canvas1.height);
+    ctx2.clearRect(0, 0, canvas2.width, canvas2.height);
     
     // Draw differences
     differences.forEach((diff) => {
         if (!diff.found) {
-            // Draw circle with gradient
-            const gradient = ctx.createRadialGradient(diff.x, diff.y, 0, diff.x, diff.y, diff.radius);
-            gradient.addColorStop(0, diff.color);
-            gradient.addColorStop(1, diff.color + '80');
+            // Draw circle with gradient on first canvas
+            const gradient1 = ctx1.createRadialGradient(diff.x1, diff.y, 0, diff.x1, diff.y, diff.radius);
+            gradient1.addColorStop(0, diff.color);
+            gradient1.addColorStop(1, diff.color.replace(')', ', 0.5)').replace('hsl', 'hsla'));
             
-            ctx.fillStyle = gradient;
-            ctx.beginPath();
-            ctx.arc(diff.x, diff.y, diff.radius, 0, Math.PI * 2);
-            ctx.fill();
+            ctx1.fillStyle = gradient1;
+            ctx1.beginPath();
+            ctx1.arc(diff.x1, diff.y, diff.radius, 0, Math.PI * 2);
+            ctx1.fill();
             
-            // Add border
-            ctx.strokeStyle = '#fff';
-            ctx.lineWidth = 2;
-            ctx.stroke();
+            // Draw circle with gradient on second canvas
+            const gradient2 = ctx2.createRadialGradient(diff.x2, diff.y, 0, diff.x2, diff.y, diff.radius);
+            gradient2.addColorStop(0, diff.color);
+            gradient2.addColorStop(1, diff.color.replace(')', ', 0.5)').replace('hsl', 'hsla'));
+            
+            ctx2.fillStyle = gradient2;
+            ctx2.beginPath();
+            ctx2.arc(diff.x2, diff.y, diff.radius, 0, Math.PI * 2);
+            ctx2.fill();
         } else {
-            // Draw found indicator
-            ctx.fillStyle = '#28a745';
-            ctx.beginPath();
-            ctx.arc(diff.x, diff.y, diff.radius, 0, Math.PI * 2);
-            ctx.fill();
-            
-            // Draw checkmark
-            ctx.strokeStyle = '#fff';
-            ctx.lineWidth = 3;
-            ctx.beginPath();
-            ctx.moveTo(diff.x - 8, diff.y);
-            ctx.lineTo(diff.x - 2, diff.y + 6);
-            ctx.lineTo(diff.x + 8, diff.y - 6);
-            ctx.stroke();
+            // Draw found indicators on both canvases
+            [ctx1, ctx2].forEach((ctx, index) => {
+                const x = index === 0 ? diff.x1 : diff.x2;
+                
+                ctx.fillStyle = '#28a745';
+                ctx.beginPath();
+                ctx.arc(x, diff.y, diff.radius, 0, Math.PI * 2);
+                ctx.fill();
+                
+                // Draw checkmark
+                ctx.strokeStyle = '#fff';
+                ctx.lineWidth = 3;
+                ctx.beginPath();
+                ctx.moveTo(x - 8, diff.y);
+                ctx.lineTo(x - 2, diff.y + 6);
+                ctx.lineTo(x + 8, diff.y - 6);
+                ctx.stroke();
+            });
         }
     });
 }

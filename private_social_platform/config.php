@@ -136,7 +136,7 @@ function get_link_preview($url) {
         $title = $xpath->query('//title');
         $title = $title->length > 0 ? $title->item(0)->textContent : null;
     } else {
-        $title = $title->item(0)->value;
+        $title = $title->item(0)->nodeValue;
     }
     
     // Don't show preview if we can't get a proper title
@@ -146,7 +146,7 @@ function get_link_preview($url) {
     
     $image_url = '';
     if ($image->length > 0) {
-        $image_url = $image->item(0)->value;
+        $image_url = $image->item(0)->nodeValue;
         if ($image_url && !filter_var($image_url, FILTER_VALIDATE_URL)) {
             $parsed_url = parse_url($url);
             $base_url = $parsed_url['scheme'] . '://' . $parsed_url['host'];
@@ -165,7 +165,7 @@ function get_link_preview($url) {
     
     return [
         'title' => $title,
-        'description' => $description->length > 0 ? $description->item(0)->value : '',
+        'description' => $description->length > 0 ? $description->item(0)->nodeValue : '',
         'image' => $image_url,
         'url' => $url
     ];
@@ -202,8 +202,25 @@ function verify_recaptcha($token) {
     if ($secret === 'YOUR_SECRET_KEY_HERE') {
         return true; // Allow login when keys are not configured
     }
-    $response = file_get_contents("https://www.google.com/recaptcha/api/siteverify?secret={$secret}&response={$token}");
-    $result = json_decode($response, true);
-    return $result['success'] && $result['score'] >= 0.5;
+    
+    try {
+        $response = @file_get_contents("https://www.google.com/recaptcha/api/siteverify?secret={$secret}&response={$token}");
+        if ($response === false) {
+            error_log('Failed to verify reCAPTCHA: Unable to contact verification service');
+            return false;
+        }
+        
+        $result = json_decode($response, true);
+        if (!is_array($result)) {
+            error_log('Failed to verify reCAPTCHA: Invalid response format');
+            return false;
+        }
+        
+        return isset($result['success']) && isset($result['score']) && 
+               $result['success'] === true && $result['score'] >= 0.5;
+    } catch (Exception $e) {
+        error_log('reCAPTCHA verification error: ' . $e->getMessage());
+        return false;
+    }
 }
 ?>

@@ -1,92 +1,88 @@
 <?php
+// Enable error reporting for debugging
+error_reporting(E_ALL);
+ini_set('display_errors', 1);
+
 require_once 'config.php';
-init_db();
+$db = init_db();
+
+if (!$db) {
+    error_log('Failed to initialize database');
+    http_response_code(500);
+    die('Database initialization failed');
+}
 
 if (!isset($_SESSION['user_id'])) {
     header('Location: /login');
     exit;
 }
 
+// Create table if not exists (simplified version)
+try {
+    $db->exec("CREATE TABLE IF NOT EXISTS wordle_saves (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        user_id INTEGER NOT NULL,
+        game_state TEXT,
+        created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+        UNIQUE(user_id)
+    )");
+} catch (PDOException $e) {
+    die('Database Error: ' . $e->getMessage());
+}
+
 // Handle AJAX requests for saving/loading game state
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action'])) {
+    header('Content-Type: application/json');
+    $user_id = $_SESSION['user_id'];
+
     try {
-        if ($_POST['action'] === 'save_game') {
-            if (!isset($_POST['gameState'])) {
-                sendJsonError('Missing game state data');
-            }
-            
-            $gameState = json_decode($_POST['gameState'], true);
-            if (!$gameState) {
-                sendJsonError('Invalid game state format');
-            }
-            
-            $user_id = $_SESSION['user_id'];
-            $answer = $gameState['answer'] ?? '';
-            $currentRow = intval($gameState['currentRow'] ?? 0);
-            $guesses = $gameState['guesses'] ?? '[]';
-            
-            // Save to database
-            $stmt = $db->prepare("INSERT INTO wordle_games 
-                                (user_id, answer, current_row, guesses, date_started) 
-                                VALUES (?, ?, ?, ?, NOW())
-                                ON DUPLICATE KEY UPDATE
-                                answer = VALUES(answer),
-                                current_row = VALUES(current_row),
-                                guesses = VALUES(guesses)");
-                                
-            $stmt->execute([$user_id, $answer, $currentRow, $guesses]);
-            
+        if ($_POST['action'] === 'save_game' && isset($_POST['gameState'])) {
+            // Simple save - just store the JSON string using SQLite UPSERT
+            $stmt = $db->prepare("INSERT INTO wordle_saves (user_id, game_state) VALUES (?, ?)
+                                ON CONFLICT(user_id) DO UPDATE SET game_state = excluded.game_state");
+            $stmt->execute([$user_id, $_POST['gameState']]);
             echo json_encode(['success' => true]);
             exit;
         }
         
         if ($_POST['action'] === 'load_game') {
-            $user_id = $_SESSION['user_id'];
-            
-            // Load from database
-            $stmt = $db->prepare("SELECT answer, current_row, guesses, date_started 
-                                FROM wordle_games 
-                                WHERE user_id = ? 
-                                AND DATE(date_started) = CURDATE()
-                                LIMIT 1");
+            // Simple load - just get the JSON string
+            $stmt = $db->prepare("SELECT game_state FROM wordle_saves WHERE user_id = ?");
             $stmt->execute([$user_id]);
-            $game = $stmt->fetch(PDO::FETCH_ASSOC);
+            $result = $stmt->fetch(PDO::FETCH_ASSOC);
             
-            if ($game) {
-                // Ensure guesses is always a string
-                $game['guesses'] = $game['guesses'] ?? '[]';
-                
+            if ($result && $result['game_state']) {
                 echo json_encode([
                     'success' => true,
-                    'gameState' => $game
+                    'gameState' => json_decode($result['game_state'], true)
                 ]);
             } else {
                 echo json_encode([
                     'success' => false,
-                    'message' => 'No saved game found for today'
+                    'message' => 'No saved game found'
                 ]);
             }
             exit;
         }
-        
-        sendJsonError('Invalid action');
-        
     } catch (Exception $e) {
-        error_log('Wordle game error: ' . $e->getMessage());
-        sendJsonError('Internal server error');
+        echo json_encode([
+            'success' => false,
+            'error' => $e->getMessage()
+        ]);
+        exit;
     }
 }
 
 // Create wordle_games table if it doesn't exist
 try {
     $db->exec("CREATE TABLE IF NOT EXISTS wordle_games (
-        id INT AUTO_INCREMENT PRIMARY KEY,
-        user_id INT NOT NULL,
-        answer VARCHAR(5) NOT NULL,
-        current_row INT NOT NULL DEFAULT 0,
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        user_id INTEGER NOT NULL,
+        answer TEXT NOT NULL,
+        current_row INTEGER NOT NULL DEFAULT 0,
         guesses TEXT,
         date_started DATETIME NOT NULL,
-        UNIQUE KEY unique_game (user_id, DATE(date_started))
+        UNIQUE(user_id, date(date_started))
     )");
 } catch (Exception $e) {
     error_log('Error creating wordle_games table: ' . $e->getMessage());
@@ -231,6 +227,7 @@ const maxRows = 6;
 // Function to save game state
 async function saveGameState() {
     try {
+        // Collect current game state
         const guesses = [];
         for(let row = 0; row < currentRow; row++) {
             let guess = "";
@@ -241,12 +238,12 @@ async function saveGameState() {
         }
         
         const gameState = {
-            answer: answer || '',
-            currentRow: currentRow || 0,
-            guesses: JSON.stringify(guesses)
+            answer: answer,
+            currentRow: currentRow,
+            guesses: guesses
         };
         
-        const response = await fetch(window.location.href, {
+        await fetch(window.location.href, {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/x-www-form-urlencoded',
@@ -256,17 +253,8 @@ async function saveGameState() {
                 'gameState': JSON.stringify(gameState)
             })
         });
-        
-        if (!response.ok) {
-            throw new Error(`HTTP error! status: ${response.status}`);
-        }
-        
-        const data = await response.json();
-        if (!data.success) {
-            throw new Error(data.error || 'Failed to save game state');
-        }
     } catch (error) {
-        console.error('Error saving game state:', error);
+        console.error('Save error:', error);
     }
 }
 
@@ -283,28 +271,16 @@ async function loadGameState() {
             })
         });
         
-        if (!response.ok) {
-            throw new Error(`HTTP error! status: ${response.status}`);
-        }
-        
         const data = await response.json();
         
         if (data.success && data.gameState) {
-            answer = data.gameState.answer || '';
-            currentRow = parseInt(data.gameState.current_row || '0');
-            try {
-                savedGuesses = JSON.parse(data.gameState.guesses || '[]');
-            } catch (e) {
-                savedGuesses = [];
-            }
+            answer = data.gameState.answer;
+            currentRow = data.gameState.currentRow;
+            savedGuesses = data.gameState.guesses;
             return true;
         }
     } catch (error) {
-        console.error('Error loading game state:', error);
-        // On error, we'll start a new game
-        answer = '';
-        currentRow = 0;
-        savedGuesses = [];
+        console.error('Load error:', error);
     }
     return false;
 }

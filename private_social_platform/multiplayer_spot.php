@@ -212,12 +212,23 @@ function joinRoom() {
     document.getElementById('gameArea').style.display = 'block';
     
     // Join room via AJAX
-    fetch('multiplayer_api.php', {
+    fetch('/multiplayer_api.php', {
         method: 'POST',
         headers: {'Content-Type': 'application/json'},
         body: JSON.stringify({action: 'join', room: roomName})
     })
-    .then(response => response.json())
+    .then(async response => {
+        if (!response.ok) {
+            throw new Error(`HTTP error! status: ${response.status}`);
+        }
+        const text = await response.text();
+        try {
+            return JSON.parse(text);
+        } catch (e) {
+            console.error('Failed to parse JSON:', text);
+            throw new Error('Invalid JSON response from server');
+        }
+    })
     .then(data => {
         if (data.success) {
             updateGameState(data);
@@ -237,11 +248,12 @@ function joinRoom() {
 
 function leaveRoom() {
     if (currentRoom) {
-        fetch('multiplayer_api.php', {
+        fetch('/multiplayer_api.php', {
             method: 'POST',
             headers: {'Content-Type': 'application/json'},
             body: JSON.stringify({action: 'leave', room: currentRoom})
-        });
+        })
+        .catch(error => console.error('Error leaving room:', error));
     }
     
     clearInterval(gameInterval);
@@ -253,7 +265,7 @@ function leaveRoom() {
 function newGame() {
     if (!currentRoom) return;
     
-    fetch('multiplayer_api.php', {
+    fetch('/multiplayer_api.php', {
         method: 'POST',
         headers: {'Content-Type': 'application/json'},
         body: JSON.stringify({action: 'newgame', room: currentRoom})
@@ -269,7 +281,7 @@ function newGame() {
 function foundDifference(index) {
     if (!currentRoom) return;
     
-    fetch('multiplayer_api.php', {
+    fetch('/multiplayer_api.php', {
         method: 'POST',
         headers: {'Content-Type': 'application/json'},
         body: JSON.stringify({action: 'found', room: currentRoom, index: index})
@@ -285,7 +297,7 @@ function foundDifference(index) {
 function startGameLoop() {
     gameInterval = setInterval(() => {
         if (currentRoom) {
-            fetch('multiplayer_api.php', {
+            fetch('/multiplayer_api.php', {
                 method: 'POST',
                 headers: {'Content-Type': 'application/json'},
                 body: JSON.stringify({action: 'update', room: currentRoom})

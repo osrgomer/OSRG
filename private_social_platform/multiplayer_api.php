@@ -1,5 +1,18 @@
 <?php
+// Enable error reporting
+error_reporting(E_ALL);
+ini_set('display_errors', 1);
+
 require_once 'config.php';
+
+// Allow CORS for development
+header('Access-Control-Allow-Origin: *');
+header('Access-Control-Allow-Methods: POST, GET, OPTIONS');
+header('Access-Control-Allow-Headers: Content-Type');
+
+if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
+    exit(0);
+}
 
 header('Content-Type: application/json');
 
@@ -10,9 +23,14 @@ if (!isset($_SESSION['user_id'])) {
 }
 
 try {
-    $input = json_decode(file_get_contents('php://input'), true);
+    $rawInput = file_get_contents('php://input');
+    error_log('Raw input: ' . $rawInput);
+    
+    $input = json_decode($rawInput, true);
     if (!$input) {
-        echo json_encode(['success' => false, 'error' => 'Invalid JSON input']);
+        $jsonError = json_last_error_msg();
+        error_log('JSON decode error: ' . $jsonError);
+        echo json_encode(['success' => false, 'error' => 'Invalid JSON input: ' . $jsonError]);
         exit;
     }
     
@@ -38,23 +56,38 @@ function generateDifferences() {
     return $diffs;
 }
 
-    // Simple file-based storage with absolute path
-    $gamesDir = __DIR__ . '/games';
+    // Use a directory inside the uploads directory which should already exist and be writable
+    $gamesDir = __DIR__ . '/uploads/games';
+    
+    // First check if uploads exists (it should since it's used for other features)
+    if (!is_dir(__DIR__ . '/uploads')) {
+        error_log('Uploads directory does not exist');
+        echo json_encode(['success' => false, 'error' => 'Server configuration error']);
+        exit;
+    }
+    
+    // Create games directory inside uploads if it doesn't exist
     if (!is_dir($gamesDir)) {
-        if (!mkdir($gamesDir, 0755, true)) {
-            error_log('Failed to create games directory: ' . error_get_last()['message']);
-            echo json_encode(['success' => false, 'error' => 'Cannot create games directory']);
-            exit;
+        if (!@mkdir($gamesDir, 0777, true)) {
+            error_log('Failed to create games directory in uploads: ' . error_get_last()['message']);
+            // Try alternative location
+            $gamesDir = __DIR__ . '/assets/games';
+            if (!is_dir($gamesDir)) {
+                if (!@mkdir($gamesDir, 0777, true)) {
+                    error_log('Failed to create games directory in assets: ' . error_get_last()['message']);
+                    echo json_encode(['success' => false, 'error' => 'Server storage error']);
+                    exit;
+                }
+            }
         }
     }
     
     $gameFile = $gamesDir . '/' . preg_replace('/[^a-zA-Z0-9]/', '', $room) . '.json';
     
-    // Ensure the games directory is writable
-    if (!is_writable($gamesDir)) {
-        error_log('Games directory is not writable: ' . $gamesDir);
-        echo json_encode(['success' => false, 'error' => 'Games directory is not writable']);
-        exit;
+    // Create an empty index.php in the games directory for security
+    $indexFile = $gamesDir . '/index.php';
+    if (!file_exists($indexFile)) {
+        @file_put_contents($indexFile, '<?php // Silence is golden');
     }
 
 switch ($action) {
@@ -65,9 +98,21 @@ switch ($action) {
         }
         
         $gameData = [];
-        if (file_exists($gameFile)) {
-            $gameData = json_decode(file_get_contents($gameFile), true) ?: [];
-        } else {
+        try {
+            if (file_exists($gameFile)) {
+                $content = @file_get_contents($gameFile);
+                if ($content === false) {
+                    throw new Exception('Cannot read game file');
+                }
+                $gameData = json_decode($content, true) ?: [];
+            } else {
+                $gameData = [
+                    'differences' => generateDifferences(),
+                    'players' => []
+                ];
+            }
+        } catch (Exception $e) {
+            error_log('Game file error: ' . $e->getMessage());
             $gameData = [
                 'differences' => generateDifferences(),
                 'players' => []
@@ -80,10 +125,26 @@ switch ($action) {
             'lastActive' => time()
         ];
         
-        if (file_put_contents($gameFile, json_encode($gameData)) === false) {
-            $error = error_get_last();
-            error_log('Failed to save game data: ' . ($error ? $error['message'] : 'Unknown error'));
-            echo json_encode(['success' => false, 'error' => 'Cannot save game data. Check error logs.']);
+        try {
+            $jsonData = json_encode($gameData);
+            if ($jsonData === false) {
+                throw new Exception('Failed to encode game data: ' . json_last_error_msg());
+            }
+            
+            // First write to a temporary file
+            $tempFile = $gameFile . '.tmp';
+            if (@file_put_contents($tempFile, $jsonData) === false) {
+                throw new Exception('Failed to write temporary file');
+            }
+            
+            // Then rename it to the actual file
+            if (!@rename($tempFile, $gameFile)) {
+                @unlink($tempFile); // Clean up temp file
+                throw new Exception('Failed to save game file');
+            }
+        } catch (Exception $e) {
+            error_log('Save game error: ' . $e->getMessage());
+            echo json_encode(['success' => false, 'error' => 'Cannot save game data: ' . $e->getMessage()]);
             exit;
         }
         

@@ -38,14 +38,23 @@ function generateDifferences() {
     return $diffs;
 }
 
-    // Simple file-based storage
-    $gameFile = 'games/' . preg_replace('/[^a-zA-Z0-9]/', '', $room) . '.json';
-    
-    if (!is_dir('games')) {
-        if (!mkdir('games', 0755, true)) {
+    // Simple file-based storage with absolute path
+    $gamesDir = __DIR__ . '/games';
+    if (!is_dir($gamesDir)) {
+        if (!mkdir($gamesDir, 0755, true)) {
+            error_log('Failed to create games directory: ' . error_get_last()['message']);
             echo json_encode(['success' => false, 'error' => 'Cannot create games directory']);
             exit;
         }
+    }
+    
+    $gameFile = $gamesDir . '/' . preg_replace('/[^a-zA-Z0-9]/', '', $room) . '.json';
+    
+    // Ensure the games directory is writable
+    if (!is_writable($gamesDir)) {
+        error_log('Games directory is not writable: ' . $gamesDir);
+        echo json_encode(['success' => false, 'error' => 'Games directory is not writable']);
+        exit;
     }
 
 switch ($action) {
@@ -72,7 +81,9 @@ switch ($action) {
         ];
         
         if (file_put_contents($gameFile, json_encode($gameData)) === false) {
-            echo json_encode(['success' => false, 'error' => 'Cannot save game data']);
+            $error = error_get_last();
+            error_log('Failed to save game data: ' . ($error ? $error['message'] : 'Unknown error'));
+            echo json_encode(['success' => false, 'error' => 'Cannot save game data. Check error logs.']);
             exit;
         }
         

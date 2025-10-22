@@ -190,10 +190,23 @@ let differences = [];
 let players = {};
 let gameInterval;
 
+// Show status message helper
+function showStatus(message, type = 'waiting') {
+    const status = document.getElementById('status');
+    if (status) {
+        status.textContent = message;
+        status.className = 'status ' + type;
+    }
+}
+
 function joinRoom() {
     const roomName = document.getElementById('roomInput').value.trim();
-    if (!roomName) return;
+    if (!roomName) {
+        showStatus('Please enter a room name', 'error');
+        return;
+    }
     
+    showStatus('Joining room...', 'waiting');
     currentRoom = roomName;
     document.querySelector('.room-setup').style.display = 'none';
     document.getElementById('gameArea').style.display = 'block';

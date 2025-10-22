@@ -49,9 +49,15 @@ try {
 function generateDifferences() {
     $diffs = [];
     for ($i = 0; $i < 5; $i++) {
+        // Generate coordinates for both images, slightly different
+        $y = rand(50, 250);
+        $x1 = rand(50, 350);
+        $x2 = $x1 + (rand(-20, 20)); // Slightly different x position in second image
+        
         $diffs[] = [
-            'x' => rand(50, 550),
-            'y' => rand(50, 350),
+            'x1' => $x1,
+            'x2' => $x2,
+            'y' => $y,
             'radius' => 25,
             'found' => false,
             'color' => sprintf("hsl(%d, 70%%, 50%%)", rand(0, 360))

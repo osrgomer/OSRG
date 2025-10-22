@@ -106,17 +106,33 @@ $additional_css = '
         background: rgba(255,255,255,0.7);
         border-radius: 10px;
     }
-    #gameCanvas {
-        background: #f0f0f0;
+    .game-images {
+        display: flex;
+        justify-content: center;
+        gap: 20px;
+        margin-bottom: 20px;
+    }
+    .game-image {
+        position: relative;
+        width: 400px;
+        height: 300px;
         border: 3px solid #1877f2;
-        box-shadow: 0 0 30px rgba(24, 119, 242, 0.3);
         border-radius: 12px;
+        overflow: hidden;
+    }
+    .game-image img {
         width: 100%;
-        max-width: 600px;
-        height: 400px;
-        display: block;
-        margin: 0 auto;
+        height: 100%;
+        object-fit: cover;
+    }
+    #gameCanvas {
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
         cursor: crosshair;
+        background: transparent;
     }
     .game-controls {
         margin-top: 20px;
@@ -175,7 +191,16 @@ require_once 'header.php';
     
     <div id="gameArea" style="display: none;">
         <div class="scoreboard" id="scoreboard"></div>
-        <canvas id="gameCanvas" width="600" height="400"></canvas>
+        <div class="game-images">
+            <div class="game-image">
+                <img src="" id="image1" alt="Spot the Difference Image 1">
+                <canvas id="gameCanvas1" width="400" height="300"></canvas>
+            </div>
+            <div class="game-image">
+                <img src="" id="image2" alt="Spot the Difference Image 2">
+                <canvas id="gameCanvas2" width="400" height="300"></canvas>
+            </div>
+        </div>
         <div class="status waiting" id="status">Waiting for game data...</div>
         <div class="game-controls">
             <button onclick="newGame()" class="control-btn">🎮 New Game</button>
@@ -324,6 +349,17 @@ function updateGameState(data) {
     differences = data.differences || [];
     players = data.players || {};
     
+    // Set placeholder images if not already set
+    const image1 = document.getElementById('image1');
+    const image2 = document.getElementById('image2');
+    
+    if (!image1.src) {
+        image1.src = 'assets/spot_the_difference/scene1.jpg';
+    }
+    if (!image2.src) {
+        image2.src = 'assets/spot_the_difference/scene2.jpg';
+    }
+    
     updateScoreboard();
     drawGame();
     
@@ -346,61 +382,57 @@ function updateScoreboard() {
 }
 
 function drawGame() {
-    const canvas = document.getElementById('gameCanvas');
-    const ctx = canvas.getContext('2d');
+    const canvas1 = document.getElementById('gameCanvas1');
+    const canvas2 = document.getElementById('gameCanvas2');
+    const ctx1 = canvas1.getContext('2d');
+    const ctx2 = canvas2.getContext('2d');
     
-    ctx.clearRect(0, 0, canvas.width, canvas.height);
-    
-    // Background pattern
-    ctx.fillStyle = '#e8f4f8';
-    ctx.fillRect(0, 0, canvas.width, canvas.height);
-    
-    // Grid pattern
-    ctx.strokeStyle = '#d0e8f0';
-    ctx.lineWidth = 1;
-    for (let i = 0; i < canvas.width; i += 30) {
-        ctx.beginPath();
-        ctx.moveTo(i, 0);
-        ctx.lineTo(i, canvas.height);
-        ctx.stroke();
-    }
-    for (let i = 0; i < canvas.height; i += 30) {
-        ctx.beginPath();
-        ctx.moveTo(0, i);
-        ctx.lineTo(canvas.width, i);
-        ctx.stroke();
-    }
+    ctx1.clearRect(0, 0, canvas1.width, canvas1.height);
+    ctx2.clearRect(0, 0, canvas2.width, canvas2.height);
     
     // Draw differences
     differences.forEach((diff) => {
         if (!diff.found) {
-            const gradient = ctx.createRadialGradient(diff.x, diff.y, 0, diff.x, diff.y, diff.radius);
-            gradient.addColorStop(0, diff.color);
-            gradient.addColorStop(1, diff.color + '80');
+            // Convert HSL to HSLA for proper alpha support
+            const color = diff.color.replace(')', ', 1)').replace('hsl', 'hsla');
+            const colorFaded = diff.color.replace(')', ', 0.5)').replace('hsl', 'hsla');
             
-            ctx.fillStyle = gradient;
-            ctx.beginPath();
-            ctx.arc(diff.x, diff.y, diff.radius, 0, Math.PI * 2);
-            ctx.fill();
+            // Draw on first image
+            const gradient1 = ctx1.createRadialGradient(diff.x1, diff.y, 0, diff.x1, diff.y, diff.radius);
+            gradient1.addColorStop(0, color);
+            gradient1.addColorStop(1, colorFaded);
             
-            ctx.strokeStyle = '#fff';
-            ctx.lineWidth = 2;
-            ctx.stroke();
+            ctx1.fillStyle = gradient1;
+            ctx1.beginPath();
+            ctx1.arc(diff.x1, diff.y, diff.radius, 0, Math.PI * 2);
+            ctx1.fill();
+            
+            // Draw on second image
+            const gradient2 = ctx2.createRadialGradient(diff.x2, diff.y, 0, diff.x2, diff.y, diff.radius);
+            gradient2.addColorStop(0, color);
+            gradient2.addColorStop(1, colorFaded);
+            
+            ctx2.fillStyle = gradient2;
+            ctx2.beginPath();
+            ctx2.arc(diff.x2, diff.y, diff.radius, 0, Math.PI * 2);
+            ctx2.fill();
         } else {
-            // Draw found indicator
-            ctx.fillStyle = '#28a745';
-            ctx.beginPath();
-            ctx.arc(diff.x, diff.y, diff.radius, 0, Math.PI * 2);
-            ctx.fill();
-            
-            // Draw checkmark
-            ctx.strokeStyle = '#fff';
-            ctx.lineWidth = 3;
-            ctx.beginPath();
-            ctx.moveTo(diff.x - 8, diff.y);
-            ctx.lineTo(diff.x - 2, diff.y + 6);
-            ctx.lineTo(diff.x + 8, diff.y - 6);
-            ctx.stroke();
+            // Draw found indicators
+            [ctx1, ctx2].forEach(ctx => {
+                ctx.fillStyle = '#28a745';
+                ctx.beginPath();
+                ctx.arc(diff.x1, diff.y, diff.radius, 0, Math.PI * 2);
+                ctx.fill();
+                
+                // Draw checkmark
+                ctx.strokeStyle = '#fff';
+                ctx.lineWidth = 3;
+                ctx.beginPath();
+                ctx.moveTo(diff.x1 - 8, diff.y);
+                ctx.lineTo(diff.x1 - 2, diff.y + 6);
+                ctx.lineTo(diff.x1 + 8, diff.y - 6);
+                ctx.stroke();
+            });
         }
     });
 }

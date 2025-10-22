@@ -115,6 +115,9 @@ require_once 'header.php';
     
     <div id="grid"></div>
     <p id="message"></p>
+    
+    <!-- Hidden input for mobile keyboard -->
+    <input type="text" id="mobileInput" style="position: absolute; left: -9999px; opacity: 0;" autocomplete="off" autocapitalize="characters" maxlength="1">
 </div>
 
 <script>
@@ -138,15 +141,17 @@ for(let i=0;i<maxRows*5;i++){
 
 const cells = grid.children;
 
-document.addEventListener('keydown', (e) => {
+const mobileInput = document.getElementById('mobileInput');
+
+function handleInput(key) {
   if(currentRow >= maxRows) return;
 
-  if(e.key === "Backspace"){
+  if(key === "Backspace"){
     if(currentCol > 0){
       currentCol--;
       cells[currentRow*5 + currentCol].textContent = "";
     }
-  } else if(e.key === "Enter"){
+  } else if(key === "Enter"){
     if(currentCol === 5){
       let guess = "";
       for(let i=0;i<5;i++){
@@ -182,15 +187,51 @@ document.addEventListener('keydown', (e) => {
         message.textContent = "";
       }
     }
-  } else if(e.key.length === 1 && /[a-zA-Z]/.test(e.key)){
+  } else if(key.length === 1 && /[a-zA-Z]/.test(key)){
     if(currentCol < 5){
-      cells[currentRow*5 + currentCol].textContent = e.key.toUpperCase();
+      cells[currentRow*5 + currentCol].textContent = key.toUpperCase();
       currentCol++;
     }
   }
+}
+
+// Desktop keyboard
+document.addEventListener('keydown', (e) => {
+  handleInput(e.key);
 });
 
+// Mobile support
+grid.addEventListener('click', () => {
+  mobileInput.focus();
+});
+
+mobileInput.addEventListener('input', (e) => {
+  const value = e.target.value.toUpperCase();
+  if(value && /[A-Z]/.test(value)) {
+    handleInput(value);
+  }
+  e.target.value = '';
+});
+
+mobileInput.addEventListener('keydown', (e) => {
+  if(e.key === 'Backspace' || e.key === 'Enter') {
+    handleInput(e.key);
+  }
+});
+
+// Auto-focus on mobile
+if(/Android|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent)) {
+  setTimeout(() => mobileInput.focus(), 500);
+}
+
 message.textContent = "Start typing your first guess!";
+
+// Focus mobile input on page load for mobile devices
+if(/Android|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent)) {
+  document.addEventListener('DOMContentLoaded', () => {
+    setTimeout(() => mobileInput.focus(), 100);
+  });
+}
 </script>
 
 </body>

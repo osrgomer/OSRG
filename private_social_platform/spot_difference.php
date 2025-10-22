@@ -64,17 +64,34 @@ $additional_css = '
         position: relative;
         margin: 0 auto;
     }
-    #gameCanvas {
-        background: #f0f0f0;
+    .game-images {
+        display: flex;
+        justify-content: center;
+        gap: 20px;
+        margin-bottom: 20px;
+    }
+    .game-image {
+        position: relative;
+        width: 400px;
+        height: 300px;
         border: 3px solid #1877f2;
-        box-shadow: 0 0 30px rgba(24, 119, 242, 0.3);
         border-radius: 12px;
+        overflow: hidden;
+    }
+    .game-image img {
         width: 100%;
-        max-width: 600px;
-        height: 400px;
-        display: block;
-        margin: 0 auto;
+        height: 100%;
+        object-fit: contain;
+        background: white;
+    }
+    #gameCanvas1, #gameCanvas2 {
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
         cursor: crosshair;
+        background: transparent;
     }
     #score {
         position: absolute;
@@ -175,7 +192,16 @@ require_once 'header.php';
     </div>
     
     <div class="game-container">
-        <canvas id="gameCanvas" width="600" height="400"></canvas>
+        <div class="game-images">
+            <div class="game-image">
+                <img src="assets/spot_the_difference/scene1.svg" id="image1" alt="Spot the Difference Image 1">
+                <canvas id="gameCanvas1" width="400" height="300"></canvas>
+            </div>
+            <div class="game-image">
+                <img src="assets/spot_the_difference/scene2.svg" id="image2" alt="Spot the Difference Image 2">
+                <canvas id="gameCanvas2" width="400" height="300"></canvas>
+            </div>
+        </div>
         <div id="score">Score: 0 / 5</div>
         <button id="newGameBtn" onclick="newGame()">🎮 New Game</button>
         <div class="game-over" id="gameOver">
@@ -187,8 +213,10 @@ require_once 'header.php';
 </div>
 
 <script>
-const canvas = document.getElementById('gameCanvas');
-const ctx = canvas.getContext('2d');
+const canvas1 = document.getElementById('gameCanvas1');
+const canvas2 = document.getElementById('gameCanvas2');
+const ctx1 = canvas1.getContext('2d');
+const ctx2 = canvas2.getContext('2d');
 const scoreDisplay = document.getElementById('score');
 const gameOverDiv = document.getElementById('gameOver');
 
@@ -199,9 +227,14 @@ let gameRunning = true;
 function generateDifferences() {
     differences = [];
     for (let i = 0; i < 5; i++) {
+        // Calculate position that works for both canvases
+        const x = Math.random() * (canvas1.width - 40) + 20;
+        const offset = Math.random() * 40 - 20; // Random offset between -20 and 20
+        
         differences.push({
-            x: Math.random() * (canvas.width - 40) + 20,
-            y: Math.random() * (canvas.height - 40) + 20,
+            x1: x,
+            x2: x + offset,
+            y: Math.random() * (canvas1.height - 40) + 20,
             radius: 20,
             found: false,
             color: `hsl(${Math.random() * 360}, 70%, 50%)`

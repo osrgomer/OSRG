@@ -1,7 +1,11 @@
 <?php
-// Enable error reporting
-error_reporting(E_ALL);
-ini_set('display_errors', 1);
+// Prevent warnings from being displayed in output
+error_reporting(0);
+ini_set('display_errors', 0);
+
+// Log errors instead
+ini_set('log_errors', 1);
+error_log('Multiplayer API called');
 
 require_once 'config.php';
 
@@ -119,8 +123,9 @@ switch ($action) {
             ];
         }
         
+        $username = isset($_SESSION['username']) ? $_SESSION['username'] : 'Player' . $_SESSION['user_id'];
         $gameData['players'][$_SESSION['user_id']] = [
-            'username' => $_SESSION['username'] ?: 'Player' . $_SESSION['user_id'],
+            'username' => $username,
             'score' => 0,
             'lastActive' => time()
         ];

@@ -198,6 +198,9 @@ require_once 'header.php';
     <div id="gameArea" style="display: none;">
         <div class="scoreboard" id="scoreboard"></div>
         <div class="game-images">
+            <div class="game-counter" id="differenceCounter" style="text-align: center; margin-bottom: 10px; font-size: 18px; font-weight: bold; color: #1877f2;">
+                Found Differences: <span id="foundCount">0</span> / <span id="totalCount">0</span>
+            </div>
             <div class="game-image">
                 <img src="" id="image1" alt="Spot the Difference Image 1">
                 <canvas id="gameCanvas1" width="400" height="300"></canvas>
@@ -354,6 +357,12 @@ function startGameLoop() {
 function updateGameState(data) {
     differences = data.differences || [];
     players = data.players || {};
+    
+    // Update the differences counter
+    const foundCount = differences.filter(diff => diff.found).length;
+    const totalCount = differences.length;
+    document.getElementById('foundCount').textContent = foundCount;
+    document.getElementById('totalCount').textContent = totalCount;
     
     // Set placeholder images if not already set
     const image1 = document.getElementById('image1');

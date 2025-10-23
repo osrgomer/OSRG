@@ -121,10 +121,13 @@ $additional_css = '
         overflow: hidden;
     }
     .game-image img {
-        width: 100%;
-        height: 100%;
-        object-fit: contain;
+        width: 400px;
+        height: 300px;
+        position: absolute;
+        top: 0;
+        left: 0;
         background: white;
+        pointer-events: none;
     }
     #gameCanvas1, #gameCanvas2 {
         position: absolute;
@@ -394,6 +397,15 @@ function updateScoreboard() {
 }
 
 function drawGame() {
+    const image1 = document.getElementById('image1');
+    const image2 = document.getElementById('image2');
+    
+    // Only draw if images are loaded
+    if (!image1.complete || !image2.complete) {
+        setTimeout(drawGame, 100); // Try again in 100ms if images aren't loaded
+        return;
+    }
+
     const canvas1 = document.getElementById('gameCanvas1');
     const canvas2 = document.getElementById('gameCanvas2');
     const ctx1 = canvas1.getContext('2d');
@@ -404,42 +416,22 @@ function drawGame() {
     
     // Draw differences
     differences.forEach((diff) => {
-        if (!diff.found) {
-            // Convert HSL to HSLA for proper alpha support
-            const color = diff.color.replace(')', ', 1)').replace('hsl', 'hsla');
-            const colorFaded = diff.color.replace(')', ', 0.5)').replace('hsl', 'hsla');
-            
-            // Draw on first image
-            const gradient1 = ctx1.createRadialGradient(diff.x1, diff.y, 0, diff.x1, diff.y, diff.radius);
-            gradient1.addColorStop(0, color);
-            gradient1.addColorStop(1, colorFaded);
-            
-            ctx1.fillStyle = gradient1;
-            ctx1.beginPath();
-            ctx1.arc(diff.x1, diff.y, diff.radius, 0, Math.PI * 2);
-            ctx1.fill();
-            
-            // Draw on second image
-            const gradient2 = ctx2.createRadialGradient(diff.x2, diff.y, 0, diff.x2, diff.y, diff.radius);
-            gradient2.addColorStop(0, color);
-            gradient2.addColorStop(1, colorFaded);
-            
-            ctx2.fillStyle = gradient2;
-            ctx2.beginPath();
-            ctx2.arc(diff.x2, diff.y, diff.radius, 0, Math.PI * 2);
-            ctx2.fill();
-        } else {
+        if (diff.found) {
             // Draw found indicators
             [ctx1, ctx2].forEach((ctx, index) => {
                 const x = index === 0 ? diff.x1 : diff.x2;
                 
-                ctx.fillStyle = '#28a745';
+                // Draw green circle
+                ctx.fillStyle = 'rgba(40, 167, 69, 0.3)';
+                ctx.strokeStyle = '#28a745';
+                ctx.lineWidth = 2;
                 ctx.beginPath();
                 ctx.arc(x, diff.y, diff.radius, 0, Math.PI * 2);
                 ctx.fill();
+                ctx.stroke();
                 
                 // Draw checkmark
-                ctx.strokeStyle = '#fff';
+                ctx.strokeStyle = '#28a745';
                 ctx.lineWidth = 3;
                 ctx.beginPath();
                 ctx.moveTo(x - 8, diff.y);

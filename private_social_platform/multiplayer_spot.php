@@ -377,14 +377,19 @@ function updateGameState(data) {
     image1.onload = () => handleImageLoad(image1, 1);
     image2.onload = () => handleImageLoad(image2, 2);
     
+    <?php $baseUrl = isset($_SERVER['HTTPS']) && $_SERVER['HTTPS'] === 'on' ? 'https://' : 'http://' . $_SERVER['HTTP_HOST']; ?>
     const timestamp = new Date().getTime();
+    const baseUrl = '<?php echo $baseUrl; ?>';
+    
     if (!image1.src || !image1.src.includes('scene1.svg')) {
-        console.log('Setting image1 src to:', '../private_social_platform/assets/spot_the_difference/scene1.svg');
-        image1.src = '../private_social_platform/assets/spot_the_difference/scene1.svg?' + timestamp;
+        const path1 = baseUrl + '/private_social_platform/assets/spot_the_difference/scene1.svg';
+        console.log('Setting image1 src to:', path1);
+        image1.src = path1 + '?' + timestamp;
     }
     if (!image2.src || !image2.src.includes('scene2.svg')) {
-        console.log('Setting image2 src to:', '../private_social_platform/assets/spot_the_difference/scene2.svg');
-        image2.src = '../private_social_platform/assets/spot_the_difference/scene2.svg?' + timestamp;
+        const path2 = baseUrl + '/private_social_platform/assets/spot_the_difference/scene2.svg';
+        console.log('Setting image2 src to:', path2);
+        image2.src = path2 + '?' + timestamp;
     }
     
     updateScoreboard();

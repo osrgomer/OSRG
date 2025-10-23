@@ -121,13 +121,15 @@ $additional_css = '
         overflow: hidden;
     }
     .game-image img {
-        width: 400px;
-        height: 300px;
+        width: 100%;
+        height: 100%;
         position: absolute;
         top: 0;
         left: 0;
         background: white;
         pointer-events: none;
+        display: block;
+        object-fit: cover;
     }
     #gameCanvas1, #gameCanvas2 {
         position: absolute;
@@ -357,22 +359,32 @@ function updateGameState(data) {
     const image1 = document.getElementById('image1');
     const image2 = document.getElementById('image2');
     
-    // Add error handlers for images
+    // Add handlers for images
     const handleImageError = (img, num) => {
         console.error(`Failed to load image ${num}:`, img.src);
         showStatus(`Failed to load image ${num}. Check console for details.`, 'error');
+    };
+
+    const handleImageLoad = (img, num) => {
+        console.log(`Image ${num} loaded successfully:`, img.src);
+        showStatus(`Image ${num} loaded`, 'waiting');
+        drawGame(); // Redraw after image loads
     };
     
     image1.onerror = () => handleImageError(image1, 1);
     image2.onerror = () => handleImageError(image2, 2);
     
-    if (!image1.src || image1.src.endsWith('scene1.svg')) {
-        console.log('Setting image1 src to:', '/private_social_platform/assets/spot_the_difference/scene1.svg');
-        image1.src = 'assets/spot_the_difference/scene1.svg?v=' + new Date().getTime();
+    image1.onload = () => handleImageLoad(image1, 1);
+    image2.onload = () => handleImageLoad(image2, 2);
+    
+    const timestamp = new Date().getTime();
+    if (!image1.src || !image1.src.includes('scene1.svg')) {
+        console.log('Setting image1 src to:', '../private_social_platform/assets/spot_the_difference/scene1.svg');
+        image1.src = '../private_social_platform/assets/spot_the_difference/scene1.svg?' + timestamp;
     }
-    if (!image2.src || image2.src.endsWith('scene2.svg')) {
-        console.log('Setting image2 src to:', 'assets/spot_the_difference/scene1.svg');
-        image2.src = 'assets/spot_the_difference/scene2.svg?v=' + new Date().getTime();
+    if (!image2.src || !image2.src.includes('scene2.svg')) {
+        console.log('Setting image2 src to:', '../private_social_platform/assets/spot_the_difference/scene2.svg');
+        image2.src = '../private_social_platform/assets/spot_the_difference/scene2.svg?' + timestamp;
     }
     
     updateScoreboard();

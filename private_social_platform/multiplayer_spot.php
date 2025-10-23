@@ -430,19 +430,21 @@ function drawGame() {
             ctx2.fill();
         } else {
             // Draw found indicators
-            [ctx1, ctx2].forEach(ctx => {
+            [ctx1, ctx2].forEach((ctx, index) => {
+                const x = index === 0 ? diff.x1 : diff.x2;
+                
                 ctx.fillStyle = '#28a745';
                 ctx.beginPath();
-                ctx.arc(diff.x1, diff.y, diff.radius, 0, Math.PI * 2);
+                ctx.arc(x, diff.y, diff.radius, 0, Math.PI * 2);
                 ctx.fill();
                 
                 // Draw checkmark
                 ctx.strokeStyle = '#fff';
                 ctx.lineWidth = 3;
                 ctx.beginPath();
-                ctx.moveTo(diff.x1 - 8, diff.y);
-                ctx.lineTo(diff.x1 - 2, diff.y + 6);
-                ctx.lineTo(diff.x1 + 8, diff.y - 6);
+                ctx.moveTo(x - 8, diff.y);
+                ctx.lineTo(x - 2, diff.y + 6);
+                ctx.lineTo(x + 8, diff.y - 6);
                 ctx.stroke();
             });
         }

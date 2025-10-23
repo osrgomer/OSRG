@@ -376,7 +376,6 @@ function updateGameState(data) {
 
     const handleImageLoad = (img, num) => {
         console.log(`Image ${num} loaded successfully:`, img.src);
-        showStatus(`Image ${num} loaded`, 'waiting');
         drawGame(); // Redraw after image loads
     };
     

@@ -281,6 +281,18 @@ License: All rights reserved License
                 orders.push(order);
                 localStorage.setItem('aljezur_orders', JSON.stringify(orders));
 
+                // Notify restaurants about the order
+                const restaurantIds = [...new Set(order.items.map(item => item.restaurantId))];
+                restaurantIds.forEach(restaurantId => {
+                    const restaurantOrders = JSON.parse(localStorage.getItem(`aljezur_restaurant_orders_${restaurantId}`) || '[]');
+                    const restaurantOrder = {
+                        ...order,
+                        items: order.items.filter(item => item.restaurantId === restaurantId)
+                    };
+                    restaurantOrders.push(restaurantOrder);
+                    localStorage.setItem(`aljezur_restaurant_orders_${restaurantId}`, JSON.stringify(restaurantOrders));
+                });
+
                 state.cart = [];
                 state.view = 'customer_home';
                 alert(`Payment successful! Order #${order.id.substring(0, 8)} confirmed.`);
@@ -432,6 +444,20 @@ License: All rights reserved License
                 <h2>👨‍🍳 ${restaurant.name} Dashboard</h2>
                 <div class="dashboard">
                     <div>
+                        <div class="restaurant-card">
+                            <h3>Recent Orders</h3>
+                            <div id="orders-list">
+                                <script>
+                                    const restaurantOrders = JSON.parse(localStorage.getItem('aljezur_restaurant_orders_${state.userId}') || '[]');
+                                    const recentOrders = restaurantOrders.slice(-5).reverse();
+                                    const ordersHtml = recentOrders.map(order => {
+                                        const itemsList = order.items.map(item => item.name + ' x' + item.quantity).join(', ');
+                                        return '<div style="background: #f0f9ff; padding: 10px; border-radius: 6px; margin-bottom: 10px;"><div style="font-weight: bold;">Order #' + order.id.substring(0, 8) + '</div><div style="font-size: 0.9em; color: #666;">' + itemsList + '</div><div style="font-size: 0.8em; color: #999;">' + order.total.toFixed(2) + '€ - ' + order.paymentMethod + '</div></div>';
+                                    }).join('');
+                                    document.getElementById('orders-list').innerHTML = ordersHtml || '<p style="color: #666; text-align: center; padding: 20px;">No orders yet!</p>';
+                                </script>
+                            </div>
+                        </div>
                         <div class="restaurant-card">
                             <h3>Add New Menu Item</h3>
                             <form onsubmit="handleMenuSubmit(event)">

@@ -305,13 +305,16 @@ License: All rights reserved License
                 };
 
                 const sharedData = await loadSharedData();
+                console.log('Loading shared data for order save:', sharedData);
                 if (!sharedData.orders) sharedData.orders = {};
                 if (!sharedData.orders.all) sharedData.orders.all = [];
                 
                 sharedData.orders.all.push(order);
+                console.log('Order added to all orders:', order);
 
                 // Notify restaurants about the order
                 const restaurantIds = [...new Set(order.items.map(item => item.restaurantId))];
+                console.log('Restaurant IDs from order:', restaurantIds);
                 restaurantIds.forEach(restaurantId => {
                     if (!sharedData.orders[restaurantId]) {
                         sharedData.orders[restaurantId] = [];
@@ -322,6 +325,7 @@ License: All rights reserved License
                     };
                     sharedData.orders[restaurantId].push(restaurantOrder);
                     console.log(`Order saved for restaurant ${restaurantId}:`, restaurantOrder);
+                    console.log(`Total orders for restaurant ${restaurantId}:`, sharedData.orders[restaurantId].length);
                 });
                 
                 await saveSharedData(sharedData);
@@ -477,7 +481,10 @@ License: All rights reserved License
             `).join('');
 
             const sharedData = await loadSharedData();
+            console.log('Shared data loaded:', sharedData);
+            console.log('Looking for orders for restaurant:', state.userId);
             const restaurantOrders = sharedData.orders[state.userId] || [];
+            console.log('Restaurant orders found:', restaurantOrders);
             const recentOrders = restaurantOrders.slice(-5).reverse();
             const ordersHtml = recentOrders.map(order => {
                 const itemsList = order.items.map(item => `${item.name} x${item.quantity}`).join(', ');

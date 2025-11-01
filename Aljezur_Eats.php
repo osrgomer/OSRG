@@ -43,6 +43,9 @@ License: All rights reserved License
         .btn-small { padding: 4px 8px; font-size: 0.8em; }
         .cart-item { display: flex; justify-content: space-between; align-items: center; padding: 8px; border-bottom: 1px solid #eee; }
         .cart-summary { background: #f9f9f9; padding: 15px; border-radius: 8px; margin-top: 15px; }
+        .cart-icon { position: fixed; top: 20px; right: 20px; background: var(--color-secondary); color: white; padding: 12px; border-radius: 50%; cursor: pointer; box-shadow: 0 4px 12px rgba(0,0,0,0.2); z-index: 1000; }
+        .cart-icon:hover { background: #ea580c; transform: scale(1.1); }
+        .cart-badge { position: absolute; top: -8px; right: -8px; background: #dc3545; color: white; border-radius: 50%; width: 24px; height: 24px; display: flex; align-items: center; justify-content: center; font-size: 0.8em; font-weight: bold; }
     </style>
 </head>
 <body>
@@ -487,6 +490,11 @@ License: All rights reserved License
             `;
         }
 
+        function viewCart() {
+            state.view = 'cart';
+            renderApp();
+        }
+
         function renderApp() {
             const userInfo = document.getElementById('user-info');
             const app = document.getElementById('app');
@@ -496,6 +504,28 @@ License: All rights reserved License
                     ${state.userId.substring(0, 4)}... - ${state.userRole} 
                     <button onclick="logout()" style="margin-left: 10px; padding: 5px 10px; background: #dc3545; color: white; border: none; border-radius: 4px; cursor: pointer;">Logout</button>
                 `;
+            }
+
+            // Add cart icon for customers
+            const existingCartIcon = document.getElementById('cart-icon');
+            if (existingCartIcon) {
+                existingCartIcon.remove();
+            }
+
+            if (state.userRole === 'customer') {
+                const cartCount = state.cart.reduce((sum, item) => sum + item.quantity, 0);
+                const cartTotal = state.cart.reduce((sum, item) => sum + (item.price * item.quantity), 0);
+                
+                const cartIcon = document.createElement('div');
+                cartIcon.id = 'cart-icon';
+                cartIcon.className = 'cart-icon';
+                cartIcon.onclick = viewCart;
+                cartIcon.innerHTML = `
+                    🛒
+                    ${cartCount > 0 ? `<div class="cart-badge">${cartCount}</div>` : ''}
+                `;
+                cartIcon.title = cartCount > 0 ? `Cart: ${cartCount} items - ${cartTotal.toFixed(2)}€` : 'Cart is empty';
+                document.body.appendChild(cartIcon);
             }
 
             switch (state.view) {

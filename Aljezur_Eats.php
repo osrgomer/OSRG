@@ -38,6 +38,11 @@ License: All rights reserved License
         .message.error { background: #fee; color: #c33; }
         .message.success { background: #efe; color: #363; }
         .loading { text-align: center; padding: 50px; }
+        .btn-secondary { background: var(--color-secondary); color: white; padding: 8px 16px; border: none; border-radius: 6px; cursor: pointer; }
+        .btn-secondary:hover { background: #ea580c; }
+        .btn-small { padding: 4px 8px; font-size: 0.8em; }
+        .cart-item { display: flex; justify-content: space-between; align-items: center; padding: 8px; border-bottom: 1px solid #eee; }
+        .cart-summary { background: #f9f9f9; padding: 15px; border-radius: 8px; margin-top: 15px; }
     </style>
 </head>
 <body>
@@ -57,7 +62,9 @@ License: All rights reserved License
             authMode: 'register',
             authRole: 'customer',
             isReady: false,
-            restaurants: []
+            restaurants: [],
+            cart: [],
+            selectedRestaurant: null
         };
 
         // Initialize app
@@ -184,6 +191,83 @@ License: All rights reserved License
             }
         }
 
+        function addToCart(restaurantId, item) {
+            const restaurant = state.restaurants.find(r => r.id === restaurantId);
+            if (!restaurant) return;
+
+            const cartItem = {
+                id: item.id,
+                name: item.name,
+                price: item.price,
+                restaurantId: restaurantId,
+                restaurantName: restaurant.name,
+                quantity: 1
+            };
+
+            const existingItem = state.cart.find(c => c.id === item.id && c.restaurantId === restaurantId);
+            if (existingItem) {
+                existingItem.quantity += 1;
+            } else {
+                state.cart.push(cartItem);
+            }
+
+            showMessage('Added to cart!', 'success');
+            renderApp();
+        }
+
+        function removeFromCart(itemId, restaurantId) {
+            const index = state.cart.findIndex(c => c.id === itemId && c.restaurantId === restaurantId);
+            if (index > -1) {
+                if (state.cart[index].quantity > 1) {
+                    state.cart[index].quantity -= 1;
+                } else {
+                    state.cart.splice(index, 1);
+                }
+                renderApp();
+            }
+        }
+
+        function clearCart() {
+            state.cart = [];
+            renderApp();
+        }
+
+        function placeOrder() {
+            if (state.cart.length === 0) {
+                showMessage('Cart is empty!', 'error');
+                return;
+            }
+
+            const order = {
+                id: 'order_' + Math.random().toString(36).substr(2, 9),
+                customerId: state.userId,
+                items: [...state.cart],
+                total: state.cart.reduce((sum, item) => sum + (item.price * item.quantity), 0),
+                status: 'pending',
+                createdAt: new Date().toISOString()
+            };
+
+            const orders = JSON.parse(localStorage.getItem('aljezur_orders') || '[]');
+            orders.push(order);
+            localStorage.setItem('aljezur_orders', JSON.stringify(orders));
+
+            state.cart = [];
+            showMessage('Order placed successfully!', 'success');
+            renderApp();
+        }
+
+        function viewRestaurant(restaurantId) {
+            state.selectedRestaurant = restaurantId;
+            state.view = 'restaurant_menu';
+            renderApp();
+        }
+
+        function backToHome() {
+            state.selectedRestaurant = null;
+            state.view = 'customer_home';
+            renderApp();
+        }
+
         function renderAuth() {
             const isLogin = state.authMode === 'login';
             const isCustomer = state.authRole === 'customer';
@@ -239,12 +323,19 @@ License: All rights reserved License
                         <h4>Top Dishes:</h4>
                         ${menuHtml}
                         ${r.menu.length > 3 ? `<p style="color: #999; font-size: 0.9em;">+${r.menu.length - 3} more items</p>` : ''}
+                        <button onclick="viewRestaurant('${r.id}')" class="btn-primary" style="width: 100%; margin-top: 10px;">View Menu & Order</button>
                     </div>
                 `;
             }).join('');
 
+            const cartTotal = state.cart.reduce((sum, item) => sum + (item.price * item.quantity), 0);
+            const cartCount = state.cart.reduce((sum, item) => sum + item.quantity, 0);
+
             return `
-                <h2>Order Now in Aljezur</h2>
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+                    <h2>Order Now in Aljezur</h2>
+                    ${cartCount > 0 ? `<button onclick="state.view='cart'; renderApp()" class="btn-secondary">🛒 Cart (${cartCount}) - ${cartTotal.toFixed(2)}€</button>` : ''}
+                </div>
                 ${restaurantCards}
             `;
         }
@@ -315,6 +406,87 @@ License: All rights reserved License
             `;
         }
 
+        function renderRestaurantMenu() {
+            const restaurant = state.restaurants.find(r => r.id === state.selectedRestaurant);
+            if (!restaurant) return '<p>Restaurant not found</p>';
+
+            const menuHtml = (restaurant.menu || []).map(item => `
+                <div class="menu-item">
+                    <div>
+                        <strong>${item.name}</strong>
+                        <div style="font-size: 0.9em; color: #666;">${item.description || ''}</div>
+                        <div style="font-size: 0.8em; color: #999;">${item.category}</div>
+                    </div>
+                    <div style="text-align: right;">
+                        <div style="font-weight: bold; color: var(--color-primary); margin-bottom: 5px;">${item.price.toFixed(2)}€</div>
+                        <button onclick="addToCart('${restaurant.id}', ${JSON.stringify(item).replace(/"/g, '&quot;')})" class="btn-secondary btn-small">Add to Cart</button>
+                    </div>
+                </div>
+            `).join('');
+
+            return `
+                <div style="margin-bottom: 20px;">
+                    <button onclick="backToHome()" class="btn-secondary">← Back to Restaurants</button>
+                </div>
+                <div class="restaurant-card">
+                    <h2>🍽️ ${restaurant.name}</h2>
+                    <p style="color: #666; margin: 10px 0;">${restaurant.description}</p>
+                    <h3>Menu:</h3>
+                    ${menuHtml || '<p>No menu items available</p>'}
+                </div>
+            `;
+        }
+
+        function renderCart() {
+            if (state.cart.length === 0) {
+                return `
+                    <div style="margin-bottom: 20px;">
+                        <button onclick="backToHome()" class="btn-secondary">← Back to Restaurants</button>
+                    </div>
+                    <div class="restaurant-card">
+                        <h2>🛒 Your Cart</h2>
+                        <p>Your cart is empty. Add some delicious items!</p>
+                    </div>
+                `;
+            }
+
+            const cartHtml = state.cart.map(item => `
+                <div class="cart-item">
+                    <div>
+                        <strong>${item.name}</strong>
+                        <div style="font-size: 0.8em; color: #666;">${item.restaurantName}</div>
+                    </div>
+                    <div style="text-align: right;">
+                        <div>${item.price.toFixed(2)}€ x ${item.quantity} = ${(item.price * item.quantity).toFixed(2)}€</div>
+                        <button onclick="removeFromCart('${item.id}', '${item.restaurantId}')" class="btn-secondary btn-small" style="margin-top: 5px;">Remove</button>
+                    </div>
+                </div>
+            `).join('');
+
+            const total = state.cart.reduce((sum, item) => sum + (item.price * item.quantity), 0);
+
+            return `
+                <div style="margin-bottom: 20px;">
+                    <button onclick="backToHome()" class="btn-secondary">← Back to Restaurants</button>
+                </div>
+                <div class="restaurant-card">
+                    <h2>🛒 Your Cart</h2>
+                    ${cartHtml}
+                    <div class="cart-summary">
+                        <div style="display: flex; justify-content: space-between; font-size: 1.2em; font-weight: bold;">
+                            <span>Total:</span>
+                            <span>${total.toFixed(2)}€</span>
+                        </div>
+                        <div style="margin-top: 15px; display: flex; gap: 10px;">
+                            <button onclick="clearCart()" class="btn-secondary">Clear Cart</button>
+                            <button onclick="placeOrder()" class="btn-primary" style="flex: 1;">Place Order</button>
+                        </div>
+                    </div>
+                    <div id="message"></div>
+                </div>
+            `;
+        }
+
         function renderApp() {
             const userInfo = document.getElementById('user-info');
             const app = document.getElementById('app');
@@ -332,6 +504,12 @@ License: All rights reserved License
                     break;
                 case 'customer_home':
                     app.innerHTML = renderCustomerHome();
+                    break;
+                case 'restaurant_menu':
+                    app.innerHTML = renderRestaurantMenu();
+                    break;
+                case 'cart':
+                    app.innerHTML = renderCart();
                     break;
                 case 'restaurant_dashboard':
                     app.innerHTML = renderRestaurantDashboard();

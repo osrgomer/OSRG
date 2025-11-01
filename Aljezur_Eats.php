@@ -191,27 +191,27 @@ License: All rights reserved License
             }
         }
 
-        function addToCart(restaurantId, item) {
+        function addToCart(restaurantId, itemId, itemName, itemPrice) {
             const restaurant = state.restaurants.find(r => r.id === restaurantId);
             if (!restaurant) return;
 
             const cartItem = {
-                id: item.id,
-                name: item.name,
-                price: item.price,
+                id: itemId,
+                name: itemName,
+                price: itemPrice,
                 restaurantId: restaurantId,
                 restaurantName: restaurant.name,
                 quantity: 1
             };
 
-            const existingItem = state.cart.find(c => c.id === item.id && c.restaurantId === restaurantId);
+            const existingItem = state.cart.find(c => c.id === itemId && c.restaurantId === restaurantId);
             if (existingItem) {
                 existingItem.quantity += 1;
             } else {
                 state.cart.push(cartItem);
             }
 
-            showMessage('Added to cart!', 'success');
+            alert('Added to cart!');
             renderApp();
         }
 
@@ -419,7 +419,7 @@ License: All rights reserved License
                     </div>
                     <div style="text-align: right;">
                         <div style="font-weight: bold; color: var(--color-primary); margin-bottom: 5px;">${item.price.toFixed(2)}€</div>
-                        <button onclick="addToCart('${restaurant.id}', ${JSON.stringify(item).replace(/"/g, '&quot;')})" class="btn-secondary btn-small">Add to Cart</button>
+                        <button onclick="addToCart('${restaurant.id}', '${item.id}', '${item.name}', ${item.price})" class="btn-secondary btn-small">Add to Cart</button>
                     </div>
                 </div>
             `).join('');

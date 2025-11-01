@@ -176,8 +176,9 @@ License: All rights reserved License
             await registerUser(name, state.authRole);
         }
 
-        function addMenuItem(item) {
-            const restaurants = JSON.parse(localStorage.getItem('aljezur_restaurants') || '[]');
+        async function addMenuItem(item) {
+            const sharedData = await loadSharedData();
+            const restaurants = sharedData.restaurants || [];
             const restaurantIndex = restaurants.findIndex(r => r.ownerId === state.userId);
             
             if (restaurantIndex === -1) return false;
@@ -191,12 +192,13 @@ License: All rights reserved License
             };
 
             restaurants[restaurantIndex].menu.push(newItem);
-            localStorage.setItem('aljezur_restaurants', JSON.stringify(restaurants));
+            sharedData.restaurants = restaurants;
+            await saveSharedData(sharedData);
             state.restaurants = restaurants;
             return true;
         }
 
-        function handleMenuSubmit(e) {
+        async function handleMenuSubmit(e) {
             e.preventDefault();
             const form = e.target;
             const item = {
@@ -206,11 +208,16 @@ License: All rights reserved License
                 category: form.category.value
             };
 
-            if (addMenuItem(item)) {
-                showMessage('Item added successfully!', 'success');
-                form.reset();
-                renderApp();
-            } else {
+            try {
+                if (await addMenuItem(item)) {
+                    showMessage('Item added successfully!', 'success');
+                    form.reset();
+                    renderApp();
+                } else {
+                    showMessage('Failed to add item', 'error');
+                }
+            } catch (error) {
+                console.error('Error adding item:', error);
                 showMessage('Failed to add item', 'error');
             }
         }

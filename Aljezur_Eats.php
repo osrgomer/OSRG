@@ -2,7 +2,7 @@
 Author: OSRG
 Version: 2.0
 Description: A simple web app for food ordering in Aljezur with customer and restaurant roles.
-Date: 2025-11-01
+Date: 01-11-25
 License: All rights reserved License
 
 -->

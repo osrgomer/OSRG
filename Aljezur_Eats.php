@@ -528,6 +528,22 @@ License: All rights reserved License
             renderApp();
         }
 
+        function togglePaymentFields(method) {
+            const creditFields = document.getElementById('credit-card-fields');
+            const multibancoInfo = document.getElementById('multibanco-info');
+            
+            if (method === 'credit_card') {
+                creditFields.style.display = 'block';
+                multibancoInfo.style.display = 'none';
+            } else if (method === 'multibanco') {
+                creditFields.style.display = 'none';
+                multibancoInfo.style.display = 'block';
+            } else {
+                creditFields.style.display = 'none';
+                multibancoInfo.style.display = 'none';
+            }
+        }
+
         function renderPayment() {
             const total = state.cart.reduce((sum, item) => sum + (item.price * item.quantity), 0);
             
@@ -582,24 +598,6 @@ License: All rights reserved License
                         <button type="submit" class="btn-primary" style="width: 100%;">Confirm Payment</button>
                     </form>
                 </div>
-                
-                <script>
-                    function togglePaymentFields(method) {
-                        const creditFields = document.getElementById('credit-card-fields');
-                        const multibancoInfo = document.getElementById('multibanco-info');
-                        
-                        if (method === 'credit_card') {
-                            creditFields.style.display = 'block';
-                            multibancoInfo.style.display = 'none';
-                        } else if (method === 'multibanco') {
-                            creditFields.style.display = 'none';
-                            multibancoInfo.style.display = 'block';
-                        } else {
-                            creditFields.style.display = 'none';
-                            multibancoInfo.style.display = 'none';
-                        }
-                    }
-                </script>
             `;
         }
 

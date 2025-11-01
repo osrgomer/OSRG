@@ -235,28 +235,61 @@ License: All rights reserved License
             renderApp();
         }
 
-        function placeOrder() {
+        function proceedToPayment() {
             if (state.cart.length === 0) {
                 showMessage('Cart is empty!', 'error');
                 return;
             }
-
-            const order = {
-                id: 'order_' + Math.random().toString(36).substr(2, 9),
-                customerId: state.userId,
-                items: [...state.cart],
-                total: state.cart.reduce((sum, item) => sum + (item.price * item.quantity), 0),
-                status: 'pending',
-                createdAt: new Date().toISOString()
-            };
-
-            const orders = JSON.parse(localStorage.getItem('aljezur_orders') || '[]');
-            orders.push(order);
-            localStorage.setItem('aljezur_orders', JSON.stringify(orders));
-
-            state.cart = [];
-            showMessage('Order placed successfully!', 'success');
+            state.view = 'payment';
             renderApp();
+        }
+
+        function processPayment(paymentMethod) {
+            const total = state.cart.reduce((sum, item) => sum + (item.price * item.quantity), 0);
+            
+            // Simulate payment processing
+            const messageDiv = document.getElementById('payment-message');
+            messageDiv.innerHTML = `<div class="message">Processing ${paymentMethod} payment of ${total.toFixed(2)}€...</div>`;
+            
+            setTimeout(() => {
+                const order = {
+                    id: 'order_' + Math.random().toString(36).substr(2, 9),
+                    customerId: state.userId,
+                    items: [...state.cart],
+                    total: total,
+                    paymentMethod: paymentMethod,
+                    status: 'confirmed',
+                    createdAt: new Date().toISOString()
+                };
+
+                const orders = JSON.parse(localStorage.getItem('aljezur_orders') || '[]');
+                orders.push(order);
+                localStorage.setItem('aljezur_orders', JSON.stringify(orders));
+
+                state.cart = [];
+                state.view = 'customer_home';
+                alert(`Payment successful! Order #${order.id.substring(0, 8)} confirmed.`);
+                renderApp();
+            }, 2000);
+        }
+
+        function handlePaymentSubmit(e) {
+            e.preventDefault();
+            const form = e.target;
+            const paymentMethod = form.payment_method.value;
+            
+            if (paymentMethod === 'credit_card') {
+                const cardNumber = form.card_number.value;
+                const expiryDate = form.expiry_date.value;
+                const cvv = form.cvv.value;
+                
+                if (!cardNumber || !expiryDate || !cvv) {
+                    document.getElementById('payment-message').innerHTML = '<div class="message error">Please fill all card details</div>';
+                    return;
+                }
+            }
+            
+            processPayment(paymentMethod === 'credit_card' ? 'Credit Card' : 'Multibanco');
         }
 
         function viewRestaurant(restaurantId) {
@@ -482,7 +515,7 @@ License: All rights reserved License
                         </div>
                         <div style="margin-top: 15px; display: flex; gap: 10px;">
                             <button onclick="clearCart()" class="btn-secondary">Clear Cart</button>
-                            <button onclick="placeOrder()" class="btn-primary" style="flex: 1;">Place Order</button>
+                            <button onclick="proceedToPayment()" class="btn-primary" style="flex: 1;">Proceed to Payment</button>
                         </div>
                     </div>
                     <div id="message"></div>
@@ -493,6 +526,81 @@ License: All rights reserved License
         function viewCart() {
             state.view = 'cart';
             renderApp();
+        }
+
+        function renderPayment() {
+            const total = state.cart.reduce((sum, item) => sum + (item.price * item.quantity), 0);
+            
+            return `
+                <div style="margin-bottom: 20px;">
+                    <button onclick="state.view='cart'; renderApp()" class="btn-secondary">← Back to Cart</button>
+                </div>
+                <div class="restaurant-card">
+                    <h2>💳 Payment</h2>
+                    <div style="background: #f0f9ff; padding: 15px; border-radius: 8px; margin-bottom: 20px;">
+                        <h3>Order Summary</h3>
+                        <div style="display: flex; justify-content: space-between; font-size: 1.2em; font-weight: bold; margin-top: 10px;">
+                            <span>Total to Pay:</span>
+                            <span>${total.toFixed(2)}€</span>
+                        </div>
+                    </div>
+                    
+                    <form onsubmit="handlePaymentSubmit(event)">
+                        <div class="form-group">
+                            <label>Payment Method</label>
+                            <select name="payment_method" required onchange="togglePaymentFields(this.value)">
+                                <option value="">Select payment method</option>
+                                <option value="credit_card">💳 Credit Card</option>
+                                <option value="multibanco">🏧 Multibanco</option>
+                            </select>
+                        </div>
+                        
+                        <div id="credit-card-fields" style="display: none;">
+                            <div class="form-group">
+                                <label>Card Number</label>
+                                <input type="text" name="card_number" placeholder="1234 5678 9012 3456" maxlength="19">
+                            </div>
+                            <div style="display: flex; gap: 15px;">
+                                <div class="form-group" style="flex: 1;">
+                                    <label>Expiry Date</label>
+                                    <input type="text" name="expiry_date" placeholder="MM/YY" maxlength="5">
+                                </div>
+                                <div class="form-group" style="flex: 1;">
+                                    <label>CVV</label>
+                                    <input type="text" name="cvv" placeholder="123" maxlength="3">
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div id="multibanco-info" style="display: none; background: #fff3cd; padding: 15px; border-radius: 8px; margin: 15px 0;">
+                            <h4>Multibanco Payment</h4>
+                            <p>You will receive payment instructions after confirming your order.</p>
+                        </div>
+                        
+                        <div id="payment-message" style="margin: 15px 0;"></div>
+                        
+                        <button type="submit" class="btn-primary" style="width: 100%;">Confirm Payment</button>
+                    </form>
+                </div>
+                
+                <script>
+                    function togglePaymentFields(method) {
+                        const creditFields = document.getElementById('credit-card-fields');
+                        const multibancoInfo = document.getElementById('multibanco-info');
+                        
+                        if (method === 'credit_card') {
+                            creditFields.style.display = 'block';
+                            multibancoInfo.style.display = 'none';
+                        } else if (method === 'multibanco') {
+                            creditFields.style.display = 'none';
+                            multibancoInfo.style.display = 'block';
+                        } else {
+                            creditFields.style.display = 'none';
+                            multibancoInfo.style.display = 'none';
+                        }
+                    }
+                </script>
+            `;
         }
 
         function renderApp() {
@@ -540,6 +648,9 @@ License: All rights reserved License
                     break;
                 case 'cart':
                     app.innerHTML = renderCart();
+                    break;
+                case 'payment':
+                    app.innerHTML = renderPayment();
                     break;
                 case 'restaurant_dashboard':
                     app.innerHTML = renderRestaurantDashboard();

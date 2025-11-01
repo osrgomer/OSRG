@@ -70,8 +70,32 @@ License: All rights reserved License
             selectedRestaurant: null
         };
 
+        // Shared storage functions
+        async function loadSharedData() {
+            try {
+                const response = await fetch('aljezur_data.json');
+                if (response.ok) {
+                    return await response.json();
+                }
+            } catch (e) {}
+            return { restaurants: [], users: {}, orders: {} };
+        }
+
+        async function saveSharedData(data) {
+            try {
+                await fetch('save_data.php', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(data)
+                });
+            } catch (e) {
+                console.log('Fallback to localStorage');
+                localStorage.setItem('aljezur_shared_data', JSON.stringify(data));
+            }
+        }
+
         // Initialize app
-        function initApp() {
+        async function initApp() {
             let userId = localStorage.getItem('aljezur_user_id');
             if (!userId) {
                 userId = 'user_' + Math.random().toString(36).substr(2, 9);
@@ -81,27 +105,20 @@ License: All rights reserved License
             state.userId = userId;
             state.isReady = true;
 
+            // Load shared data
+            const sharedData = await loadSharedData();
+            if (!sharedData && localStorage.getItem('aljezur_shared_data')) {
+                const fallbackData = JSON.parse(localStorage.getItem('aljezur_shared_data'));
+                state.restaurants = fallbackData.restaurants || [];
+            } else {
+                state.restaurants = sharedData.restaurants || [];
+            }
+
             const profile = localStorage.getItem(`aljezur_profile_${userId}`);
             if (profile) {
                 const userData = JSON.parse(profile);
                 state.userRole = userData.role;
                 state.view = userData.role === 'customer' ? 'customer_home' : 'restaurant_dashboard';
-            }
-
-            const restaurants = localStorage.getItem('aljezur_restaurants');
-            if (restaurants) {
-                let restaurantList = JSON.parse(restaurants);
-                // Remove duplicates based on ownerId
-                const uniqueRestaurants = [];
-                const seenOwners = new Set();
-                for (const restaurant of restaurantList) {
-                    if (!seenOwners.has(restaurant.ownerId)) {
-                        seenOwners.add(restaurant.ownerId);
-                        uniqueRestaurants.push(restaurant);
-                    }
-                }
-                state.restaurants = uniqueRestaurants;
-                localStorage.setItem('aljezur_restaurants', JSON.stringify(uniqueRestaurants));
             }
 
             renderApp();
@@ -113,7 +130,7 @@ License: All rights reserved License
             renderApp();
         }
 
-        function registerUser(name, role) {
+        async function registerUser(name, role) {
             const profile = {
                 role: role,
                 name: name,
@@ -122,7 +139,8 @@ License: All rights reserved License
             localStorage.setItem(`aljezur_profile_${state.userId}`, JSON.stringify(profile));
 
             if (role === 'restaurant') {
-                let restaurants = JSON.parse(localStorage.getItem('aljezur_restaurants') || '[]');
+                const sharedData = await loadSharedData();
+                let restaurants = sharedData.restaurants || [];
                 
                 // Remove any existing restaurant with same ownerId to prevent duplicates
                 restaurants = restaurants.filter(r => r.ownerId !== state.userId);
@@ -134,7 +152,9 @@ License: All rights reserved License
                     menu: [],
                     description: `Delicious food from ${name} in Aljezur.`
                 });
-                localStorage.setItem('aljezur_restaurants', JSON.stringify(restaurants));
+                
+                sharedData.restaurants = restaurants;
+                await saveSharedData(sharedData);
                 state.restaurants = restaurants;
             }
 
@@ -143,7 +163,7 @@ License: All rights reserved License
             renderApp();
         }
 
-        function handleAuthSubmit(e) {
+        async function handleAuthSubmit(e) {
             e.preventDefault();
             const form = e.target;
             const name = form.name.value;
@@ -153,7 +173,7 @@ License: All rights reserved License
                 return;
             }
 
-            registerUser(name, state.authRole);
+            await registerUser(name, state.authRole);
         }
 
         function addMenuItem(item) {

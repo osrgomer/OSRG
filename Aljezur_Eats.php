@@ -446,17 +446,21 @@ License: All rights reserved License
                     <div>
                         <div class="restaurant-card">
                             <h3>Recent Orders</h3>
-                            <div id="orders-list">
-                                <script>
-                                    const restaurantOrders = JSON.parse(localStorage.getItem('aljezur_restaurant_orders_${state.userId}') || '[]');
-                                    const recentOrders = restaurantOrders.slice(-5).reverse();
-                                    const ordersHtml = recentOrders.map(order => {
-                                        const itemsList = order.items.map(item => item.name + ' x' + item.quantity).join(', ');
-                                        return '<div style="background: #f0f9ff; padding: 10px; border-radius: 6px; margin-bottom: 10px;"><div style="font-weight: bold;">Order #' + order.id.substring(0, 8) + '</div><div style="font-size: 0.9em; color: #666;">' + itemsList + '</div><div style="font-size: 0.8em; color: #999;">' + order.total.toFixed(2) + '€ - ' + order.paymentMethod + '</div></div>';
-                                    }).join('');
-                                    document.getElementById('orders-list').innerHTML = ordersHtml || '<p style="color: #666; text-align: center; padding: 20px;">No orders yet!</p>';
-                                </script>
-                            </div>
+                            ${(() => {
+                                const restaurantOrders = JSON.parse(localStorage.getItem(`aljezur_restaurant_orders_${state.userId}`) || '[]');
+                                const recentOrders = restaurantOrders.slice(-5).reverse();
+                                const ordersHtml = recentOrders.map(order => {
+                                    const itemsList = order.items.map(item => `${item.name} x${item.quantity}`).join(', ');
+                                    return `
+                                        <div style="background: #f0f9ff; padding: 10px; border-radius: 6px; margin-bottom: 10px;">
+                                            <div style="font-weight: bold;">Order #${order.id.substring(0, 8)}</div>
+                                            <div style="font-size: 0.9em; color: #666;">${itemsList}</div>
+                                            <div style="font-size: 0.8em; color: #999;">${order.total.toFixed(2)}€ - ${order.paymentMethod}</div>
+                                        </div>
+                                    `;
+                                }).join('');
+                                return ordersHtml || '<p style="color: #666; text-align: center; padding: 20px;">No orders yet!</p>';
+                            })()}
                         </div>
                         <div class="restaurant-card">
                             <h3>Add New Menu Item</h3>

@@ -607,8 +607,7 @@ License: All rights reserved License
             
             if (state.userRole) {
                 userInfo.innerHTML = `
-                    ${state.userId.substring(0, 4)}... - ${state.userRole} 
-                    <button onclick="logout()" style="margin-left: 10px; padding: 5px 10px; background: #dc3545; color: white; border: none; border-radius: 4px; cursor: pointer;">Logout</button>
+                    <button onclick="logout()" style="padding: 5px 10px; background: #dc3545; color: white; border: none; border-radius: 4px; cursor: pointer;">Logout</button>
                 `;
             }
 

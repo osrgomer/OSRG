@@ -286,7 +286,7 @@ License: All rights reserved License
             renderApp();
         }
 
-        function processPayment(paymentMethod) {
+        async function processPayment(paymentMethod) {
             const total = state.cart.reduce((sum, item) => sum + (item.price * item.quantity), 0);
             
             // Simulate payment processing
@@ -304,22 +304,26 @@ License: All rights reserved License
                     createdAt: new Date().toISOString()
                 };
 
-                const orders = JSON.parse(localStorage.getItem('aljezur_orders') || '[]');
+                const sharedData = await loadSharedData();
+                const orders = sharedData.orders.all || [];
                 orders.push(order);
-                localStorage.setItem('aljezur_orders', JSON.stringify(orders));
+                sharedData.orders.all = orders;
 
                 // Notify restaurants about the order
                 const restaurantIds = [...new Set(order.items.map(item => item.restaurantId))];
                 restaurantIds.forEach(restaurantId => {
-                    const restaurantOrders = JSON.parse(localStorage.getItem(`aljezur_restaurant_orders_${restaurantId}`) || '[]');
+                    if (!sharedData.orders[restaurantId]) {
+                        sharedData.orders[restaurantId] = [];
+                    }
                     const restaurantOrder = {
                         ...order,
                         items: order.items.filter(item => item.restaurantId === restaurantId)
                     };
-                    restaurantOrders.push(restaurantOrder);
-                    localStorage.setItem(`aljezur_restaurant_orders_${restaurantId}`, JSON.stringify(restaurantOrders));
+                    sharedData.orders[restaurantId].push(restaurantOrder);
                     console.log(`Order saved for restaurant ${restaurantId}:`, restaurantOrder);
                 });
+                
+                await saveSharedData(sharedData);
 
                 state.cart = [];
                 state.view = 'customer_home';
@@ -360,7 +364,7 @@ License: All rights reserved License
             if (paymentMethod === 'credit_card') paymentName = 'Credit Card';
             if (paymentMethod === 'mbway') paymentName = 'MB WAY';
             
-            processPayment(paymentName);
+            await processPayment(paymentName);
         }
 
         function viewRestaurant(restaurantId) {
@@ -448,7 +452,7 @@ License: All rights reserved License
             `;
         }
 
-        function renderRestaurantDashboard() {
+        async function renderRestaurantDashboard() {
             const restaurant = state.restaurants.find(r => r.ownerId === state.userId);
             
             if (!restaurant) {
@@ -471,7 +475,8 @@ License: All rights reserved License
                 </div>
             `).join('');
 
-            const restaurantOrders = JSON.parse(localStorage.getItem(`aljezur_restaurant_orders_${state.userId}`) || '[]');
+            const sharedData = await loadSharedData();
+            const restaurantOrders = sharedData.orders[state.userId] || [];
             const recentOrders = restaurantOrders.slice(-5).reverse();
             const ordersHtml = recentOrders.map(order => {
                 const itemsList = order.items.map(item => `${item.name} x${item.quantity}`).join(', ');
@@ -710,7 +715,7 @@ License: All rights reserved License
             `;
         }
 
-        function renderApp() {
+        async function renderApp() {
             const userInfo = document.getElementById('user-info');
             const app = document.getElementById('app');
             
@@ -759,7 +764,7 @@ License: All rights reserved License
                     app.innerHTML = renderPayment();
                     break;
                 case 'restaurant_dashboard':
-                    app.innerHTML = renderRestaurantDashboard();
+                    app.innerHTML = await renderRestaurantDashboard();
                     break;
                 default:
                     app.innerHTML = renderAuth();

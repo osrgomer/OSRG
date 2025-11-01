@@ -330,6 +330,10 @@ License: All rights reserved License
                 state.view = 'customer_home';
                 alert(`Payment successful! Order #${order.id.substring(0, 8)} confirmed.`);
                 
+                // Force refresh of shared data for all users
+                const updatedData = await loadSharedData();
+                state.restaurants = updatedData.restaurants || [];
+                
                 renderApp();
             }, 2000);
         }

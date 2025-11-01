@@ -293,7 +293,7 @@ License: All rights reserved License
             const messageDiv = document.getElementById('payment-message');
             messageDiv.innerHTML = `<div class="message">Processing ${paymentMethod} payment of ${total.toFixed(2)}€...</div>`;
             
-            setTimeout(() => {
+            setTimeout(async () => {
                 const order = {
                     id: 'order_' + Math.random().toString(36).substr(2, 9),
                     customerId: state.userId,
@@ -305,9 +305,10 @@ License: All rights reserved License
                 };
 
                 const sharedData = await loadSharedData();
-                const orders = sharedData.orders.all || [];
-                orders.push(order);
-                sharedData.orders.all = orders;
+                if (!sharedData.orders) sharedData.orders = {};
+                if (!sharedData.orders.all) sharedData.orders.all = [];
+                
+                sharedData.orders.all.push(order);
 
                 // Notify restaurants about the order
                 const restaurantIds = [...new Set(order.items.map(item => item.restaurantId))];
@@ -329,15 +330,11 @@ License: All rights reserved License
                 state.view = 'customer_home';
                 alert(`Payment successful! Order #${order.id.substring(0, 8)} confirmed.`);
                 
-                // Force refresh of restaurant data
-                const restaurants = JSON.parse(localStorage.getItem('aljezur_restaurants') || '[]');
-                state.restaurants = restaurants;
-                
                 renderApp();
             }, 2000);
         }
 
-        function handlePaymentSubmit(e) {
+        async function handlePaymentSubmit(e) {
             e.preventDefault();
             const form = e.target;
             const paymentMethod = form.payment_method.value;

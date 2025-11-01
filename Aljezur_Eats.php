@@ -90,7 +90,18 @@ License: All rights reserved License
 
             const restaurants = localStorage.getItem('aljezur_restaurants');
             if (restaurants) {
-                state.restaurants = JSON.parse(restaurants);
+                let restaurantList = JSON.parse(restaurants);
+                // Remove duplicates based on ownerId
+                const uniqueRestaurants = [];
+                const seenOwners = new Set();
+                for (const restaurant of restaurantList) {
+                    if (!seenOwners.has(restaurant.ownerId)) {
+                        seenOwners.add(restaurant.ownerId);
+                        uniqueRestaurants.push(restaurant);
+                    }
+                }
+                state.restaurants = uniqueRestaurants;
+                localStorage.setItem('aljezur_restaurants', JSON.stringify(uniqueRestaurants));
             }
 
             renderApp();
@@ -111,7 +122,11 @@ License: All rights reserved License
             localStorage.setItem(`aljezur_profile_${state.userId}`, JSON.stringify(profile));
 
             if (role === 'restaurant') {
-                const restaurants = JSON.parse(localStorage.getItem('aljezur_restaurants') || '[]');
+                let restaurants = JSON.parse(localStorage.getItem('aljezur_restaurants') || '[]');
+                
+                // Remove any existing restaurant with same ownerId to prevent duplicates
+                restaurants = restaurants.filter(r => r.ownerId !== state.userId);
+                
                 restaurants.push({
                     id: state.userId,
                     name: name,

@@ -302,9 +302,20 @@ License: All rights reserved License
                     document.getElementById('payment-message').innerHTML = '<div class="message error">Please fill all card details</div>';
                     return;
                 }
+            } else if (paymentMethod === 'mbway') {
+                const phoneNumber = form.phone_number.value;
+                
+                if (!phoneNumber) {
+                    document.getElementById('payment-message').innerHTML = '<div class="message error">Please enter your phone number</div>';
+                    return;
+                }
             }
             
-            processPayment(paymentMethod === 'credit_card' ? 'Credit Card' : 'Multibanco');
+            let paymentName = 'Multibanco';
+            if (paymentMethod === 'credit_card') paymentName = 'Credit Card';
+            if (paymentMethod === 'mbway') paymentName = 'MB WAY';
+            
+            processPayment(paymentName);
         }
 
         function viewRestaurant(restaurantId) {
@@ -549,16 +560,24 @@ License: All rights reserved License
         function togglePaymentFields(method) {
             const creditFields = document.getElementById('credit-card-fields');
             const multibancoInfo = document.getElementById('multibanco-info');
+            const mbwayFields = document.getElementById('mbway-fields');
             
             if (method === 'credit_card') {
                 creditFields.style.display = 'block';
                 multibancoInfo.style.display = 'none';
+                mbwayFields.style.display = 'none';
             } else if (method === 'multibanco') {
                 creditFields.style.display = 'none';
                 multibancoInfo.style.display = 'block';
+                mbwayFields.style.display = 'none';
+            } else if (method === 'mbway') {
+                creditFields.style.display = 'none';
+                multibancoInfo.style.display = 'none';
+                mbwayFields.style.display = 'block';
             } else {
                 creditFields.style.display = 'none';
                 multibancoInfo.style.display = 'none';
+                mbwayFields.style.display = 'none';
             }
         }
 
@@ -586,7 +605,7 @@ License: All rights reserved License
                                 <option value="">Select payment method</option>
                                 <option value="credit_card">💳 Credit Card</option>
                                 <option value="multibanco">🏧 Multibanco</option>
-                                <option value="MB Way">MB Way</option>
+                                <option value="mbway">📱 MB WAY</option>
                             </select>
                         </div>
                         
@@ -610,6 +629,17 @@ License: All rights reserved License
                         <div id="multibanco-info" style="display: none; background: #fff3cd; padding: 15px; border-radius: 8px; margin: 15px 0;">
                             <h4>Multibanco Payment</h4>
                             <p>You will receive payment instructions after confirming your order.</p>
+                        </div>
+                        
+                        <div id="mbway-fields" style="display: none;">
+                            <div class="form-group">
+                                <label>Phone Number</label>
+                                <input type="tel" name="phone_number" placeholder="+351 912 345 678" maxlength="15">
+                            </div>
+                            <div style="background: #e8f5e8; padding: 15px; border-radius: 8px; margin: 15px 0;">
+                                <h4>📱 MB WAY Payment</h4>
+                                <p>After confirming, you'll receive a notification on your phone to approve the transaction with PIN or fingerprint.</p>
+                            </div>
                         </div>
                         
                         <div id="payment-message" style="margin: 15px 0;"></div>

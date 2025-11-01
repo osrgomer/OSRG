@@ -586,6 +586,7 @@ License: All rights reserved License
                                 <option value="">Select payment method</option>
                                 <option value="credit_card">💳 Credit Card</option>
                                 <option value="multibanco">🏧 Multibanco</option>
+                                <option value="MB Way">MB Way</option>
                             </select>
                         </div>
                         

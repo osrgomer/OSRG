@@ -352,7 +352,10 @@ License: All rights reserved License
         }
 
         function renderCustomerHome() {
-            if (state.restaurants.length === 0) {
+            // Filter out restaurants with empty menus
+            const restaurantsWithFood = state.restaurants.filter(r => r.menu && r.menu.length > 0);
+            
+            if (restaurantsWithFood.length === 0) {
                 return `
                     <div style="text-align: center; padding: 50px;">
                         <h2>No Restaurants Found</h2>
@@ -361,7 +364,7 @@ License: All rights reserved License
                 `;
             }
 
-            const restaurantCards = state.restaurants.map(r => {
+            const restaurantCards = restaurantsWithFood.map(r => {
                 const menuItems = (r.menu || []).slice(0, 3);
                 const menuHtml = menuItems.map(item => 
                     `<div class="menu-item"><span>${item.name}</span><span>${item.price.toFixed(2)}€</span></div>`

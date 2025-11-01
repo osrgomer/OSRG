@@ -291,11 +291,17 @@ License: All rights reserved License
                     };
                     restaurantOrders.push(restaurantOrder);
                     localStorage.setItem(`aljezur_restaurant_orders_${restaurantId}`, JSON.stringify(restaurantOrders));
+                    console.log(`Order saved for restaurant ${restaurantId}:`, restaurantOrder);
                 });
 
                 state.cart = [];
                 state.view = 'customer_home';
                 alert(`Payment successful! Order #${order.id.substring(0, 8)} confirmed.`);
+                
+                // Force refresh of restaurant data
+                const restaurants = JSON.parse(localStorage.getItem('aljezur_restaurants') || '[]');
+                state.restaurants = restaurants;
+                
                 renderApp();
             }, 2000);
         }
@@ -368,8 +374,6 @@ License: All rights reserved License
                         <div id="message"></div>
                         <button type="submit" class="btn-primary" style="width: 100%;">${isLogin ? 'Sign In' : 'Register'}</button>
                     </form>
-                    
-                    <p style="margin-top: 15px; color: #666; font-size: 0.9em;">Session ID: ${state.userId.substring(0, 8)}...</p>
                 </div>
             `;
         }

@@ -183,6 +183,12 @@ License: All rights reserved License
             console.log('Shared data loaded:', sharedData);
             const restaurants = sharedData.restaurants || [];
             console.log('Restaurants found:', restaurants);
+            restaurants.forEach((r, i) => {
+                console.log(`Restaurant ${i}:`, r);
+                console.log(`  - id: ${r.id}`);
+                console.log(`  - ownerId: ${r.ownerId}`);
+                console.log(`  - matches userId: ${r.ownerId === state.userId || r.id === state.userId}`);
+            });
             const restaurantIndex = restaurants.findIndex(r => r.ownerId === state.userId || r.id === state.userId);
             console.log('Restaurant index found:', restaurantIndex);
             

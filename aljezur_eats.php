@@ -193,10 +193,32 @@ License: All rights reserved License
             console.log('Restaurant index found:', restaurantIndex);
             
             if (restaurantIndex === -1) {
-                console.log('Restaurant not found!');
-                return false;
+                console.log('Restaurant not found! Creating new restaurant...');
+                // Create restaurant for current user
+                const profile = localStorage.getItem(`aljezur_profile_${state.userId}`);
+                if (profile) {
+                    const userData = JSON.parse(profile);
+                    const newRestaurant = {
+                        id: state.userId,
+                        name: userData.name,
+                        ownerId: state.userId,
+                        menu: [],
+                        description: `Delicious food from ${userData.name} in Aljezur.`
+                    };
+                    restaurants.push(newRestaurant);
+                    sharedData.restaurants = restaurants;
+                    await saveSharedData(sharedData);
+                    state.restaurants = restaurants;
+                    console.log('New restaurant created:', newRestaurant);
+                } else {
+                    console.log('No profile found!');
+                    return false;
+                }
             }
 
+            // Find restaurant index again after potential creation
+            const finalRestaurantIndex = restaurants.findIndex(r => r.ownerId === state.userId || r.id === state.userId);
+            
             const newItem = {
                 id: 'item_' + Math.random().toString(36).substr(2, 9),
                 name: item.name,
@@ -206,7 +228,7 @@ License: All rights reserved License
             };
             console.log('New item created:', newItem);
 
-            restaurants[restaurantIndex].menu.push(newItem);
+            restaurants[finalRestaurantIndex].menu.push(newItem);
             sharedData.restaurants = restaurants;
             console.log('Saving shared data...');
             await saveSharedData(sharedData);

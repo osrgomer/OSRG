@@ -179,7 +179,7 @@ License: All rights reserved License
         async function addMenuItem(item) {
             const sharedData = await loadSharedData();
             const restaurants = sharedData.restaurants || [];
-            const restaurantIndex = restaurants.findIndex(r => r.ownerId === state.userId);
+            const restaurantIndex = restaurants.findIndex(r => r.ownerId === state.userId || r.id === state.userId);
             
             if (restaurantIndex === -1) return false;
 

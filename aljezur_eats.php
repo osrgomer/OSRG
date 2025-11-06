@@ -363,7 +363,7 @@ License: All rights reserved License
                     document.getElementById('payment-message').innerHTML = '<div class="message error">Please enter your phone number</div>';
                     return;
                 }
-            }
+            } 
             
             let paymentName = 'Multibanco';
             if (paymentMethod === 'credit_card') paymentName = 'Credit Card';

@@ -304,8 +304,22 @@ License: All rights reserved License
             renderApp();
         }
 
+        async function logDebug(message, type = 'general') {
+            try {
+                await fetch('debug_logger.php', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ message, type })
+                });
+            } catch (e) {
+                console.log('Debug log failed:', e);
+            }
+        }
+
         async function processPayment(paymentMethod) {
             const total = state.cart.reduce((sum, item) => sum + (item.price * item.quantity), 0);
+            
+            await logDebug(`Starting payment process - Method: ${paymentMethod}, Total: ${total}€, Cart items: ${state.cart.length}`, 'payment');
             
             // Simulate payment processing
             const messageDiv = document.getElementById('payment-message');
@@ -322,18 +336,22 @@ License: All rights reserved License
                     createdAt: new Date().toISOString()
                 };
 
+                await logDebug(`Order created: ${JSON.stringify(order)}`, 'orders');
+
                 const sharedData = await loadSharedData();
-                console.log('Loading shared data for order save:', sharedData);
+                await logDebug(`Shared data loaded: ${JSON.stringify(sharedData)}`, 'orders');
+                
                 if (!sharedData.orders) sharedData.orders = {};
                 if (!sharedData.orders.all) sharedData.orders.all = [];
                 
                 sharedData.orders.all.push(order);
-                console.log('Order added to all orders:', order);
+                await logDebug(`Order added to all orders. Total all orders: ${sharedData.orders.all.length}`, 'orders');
 
                 // Notify restaurants about the order
                 const restaurantIds = [...new Set(order.items.map(item => item.restaurantId))];
-                console.log('Restaurant IDs from order:', restaurantIds);
-                restaurantIds.forEach(restaurantId => {
+                await logDebug(`Restaurant IDs from order: ${JSON.stringify(restaurantIds)}`, 'orders');
+                
+                for (const restaurantId of restaurantIds) {
                     if (!sharedData.orders[restaurantId]) {
                         sharedData.orders[restaurantId] = [];
                     }
@@ -342,11 +360,13 @@ License: All rights reserved License
                         items: order.items.filter(item => item.restaurantId === restaurantId)
                     };
                     sharedData.orders[restaurantId].push(restaurantOrder);
-                    console.log(`Order saved for restaurant ${restaurantId}:`, restaurantOrder);
-                    console.log(`Total orders for restaurant ${restaurantId}:`, sharedData.orders[restaurantId].length);
-                });
+                    await logDebug(`Order saved for restaurant ${restaurantId}. Restaurant now has ${sharedData.orders[restaurantId].length} orders`, 'orders');
+                    await logDebug(`Restaurant order details: ${JSON.stringify(restaurantOrder)}`, 'orders');
+                }
                 
+                await logDebug(`Saving shared data with orders: ${JSON.stringify(sharedData.orders)}`, 'orders');
                 await saveSharedData(sharedData);
+                await logDebug('Shared data saved successfully', 'orders');
 
                 state.cart = [];
                 state.view = 'customer_home';
@@ -476,7 +496,9 @@ License: All rights reserved License
         }
 
         async function renderRestaurantDashboard() {
+            await logDebug(`Rendering restaurant dashboard for user: ${state.userId}`, 'dashboard');
             const restaurant = state.restaurants.find(r => r.ownerId === state.userId || r.id === state.userId);
+            await logDebug(`Restaurant found: ${restaurant ? restaurant.name : 'NONE'}`, 'dashboard');
             
             if (!restaurant) {
                 return `
@@ -499,10 +521,12 @@ License: All rights reserved License
             `).join('');
 
             const sharedData = await loadSharedData();
-            console.log('Shared data loaded:', sharedData);
-            console.log('Looking for orders for restaurant:', state.userId);
+            await logDebug(`Dashboard: Shared data loaded - ${JSON.stringify(sharedData)}`, 'dashboard');
+            await logDebug(`Dashboard: Looking for orders for restaurant: ${state.userId}`, 'dashboard');
+            await logDebug(`Dashboard: Available order keys: ${Object.keys(sharedData.orders || {})}`, 'dashboard');
             const restaurantOrders = sharedData.orders[state.userId] || [];
-            console.log('Restaurant orders found:', restaurantOrders);
+            await logDebug(`Dashboard: Restaurant orders found: ${JSON.stringify(restaurantOrders)}`, 'dashboard');
+            await logDebug(`Dashboard: Restaurant orders count: ${restaurantOrders.length}`, 'dashboard');
             const recentOrders = restaurantOrders.slice(-5).reverse();
             const ordersHtml = recentOrders.map(order => {
                 const itemsList = order.items.map(item => `${item.name} x${item.quantity}`).join(', ');

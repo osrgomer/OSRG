@@ -75,22 +75,39 @@ License: All rights reserved License
             try {
                 const response = await fetch('aljezur_data.json');
                 if (response.ok) {
-                    return await response.json();
+                    const data = await response.json();
+                    if (data && (data.restaurants || data.orders || data.users)) {
+                        return data;
+                    }
                 }
             } catch (e) {}
+            
+            // Fallback to localStorage
+            const localData = localStorage.getItem('aljezur_shared_data');
+            if (localData) {
+                try {
+                    return JSON.parse(localData);
+                } catch (e) {}
+            }
+            
             return { restaurants: [], users: {}, orders: {} };
         }
 
         async function saveSharedData(data) {
             try {
-                await fetch('save_data.php', {
+                const response = await fetch('save_data.php', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify(data)
                 });
+                if (!response.ok) throw new Error('Save failed');
             } catch (e) {
-                console.log('Fallback to localStorage');
+                console.log('Fallback to localStorage:', e);
                 localStorage.setItem('aljezur_shared_data', JSON.stringify(data));
+                // Also save to a backup file name
+                try {
+                    await fetch('data:text/json;charset=utf-8,' + encodeURIComponent(JSON.stringify(data, null, 2)));
+                } catch (e2) {}
             }
         }
 

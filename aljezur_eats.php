@@ -177,23 +177,11 @@ License: All rights reserved License
         }
 
         async function addMenuItem(item) {
-            console.log('Adding menu item:', item);
-            console.log('Current userId:', state.userId);
             const sharedData = await loadSharedData();
-            console.log('Shared data loaded:', sharedData);
             const restaurants = sharedData.restaurants || [];
-            console.log('Restaurants found:', restaurants);
-            restaurants.forEach((r, i) => {
-                console.log(`Restaurant ${i}:`, r);
-                console.log(`  - id: ${r.id}`);
-                console.log(`  - ownerId: ${r.ownerId}`);
-                console.log(`  - matches userId: ${r.ownerId === state.userId || r.id === state.userId}`);
-            });
             const restaurantIndex = restaurants.findIndex(r => r.ownerId === state.userId || r.id === state.userId);
-            console.log('Restaurant index found:', restaurantIndex);
             
             if (restaurantIndex === -1) {
-                console.log('Restaurant not found! Creating new restaurant...');
                 // Create restaurant for current user
                 const profile = localStorage.getItem(`aljezur_profile_${state.userId}`);
                 if (profile) {
@@ -209,9 +197,7 @@ License: All rights reserved License
                     sharedData.restaurants = restaurants;
                     await saveSharedData(sharedData);
                     state.restaurants = restaurants;
-                    console.log('New restaurant created:', newRestaurant);
                 } else {
-                    console.log('No profile found!');
                     return false;
                 }
             }
@@ -226,14 +212,11 @@ License: All rights reserved License
                 price: parseFloat(item.price),
                 category: item.category
             };
-            console.log('New item created:', newItem);
 
             restaurants[finalRestaurantIndex].menu.push(newItem);
             sharedData.restaurants = restaurants;
-            console.log('Saving shared data...');
             await saveSharedData(sharedData);
             state.restaurants = restaurants;
-            console.log('Menu item added successfully!');
             return true;
         }
 

@@ -208,16 +208,12 @@ License: All rights reserved License
                 category: form.category.value
             };
 
-            try {
-                if (await addMenuItem(item)) {
-                    showMessage('Item added successfully!', 'success');
-                    form.reset();
-                    renderApp();
-                } else {
-                    showMessage('Failed to add item', 'error');
-                }
-            } catch (error) {
-                console.error('Error adding item:', error);
+            const success = await addMenuItem(item);
+            if (success) {
+                showMessage('Item added successfully!', 'success');
+                form.reset();
+                renderApp();
+            } else {
                 showMessage('Failed to add item', 'error');
             }
         }

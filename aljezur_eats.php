@@ -177,11 +177,19 @@ License: All rights reserved License
         }
 
         async function addMenuItem(item) {
+            console.log('Adding menu item:', item);
+            console.log('Current userId:', state.userId);
             const sharedData = await loadSharedData();
+            console.log('Shared data loaded:', sharedData);
             const restaurants = sharedData.restaurants || [];
+            console.log('Restaurants found:', restaurants);
             const restaurantIndex = restaurants.findIndex(r => r.ownerId === state.userId || r.id === state.userId);
+            console.log('Restaurant index found:', restaurantIndex);
             
-            if (restaurantIndex === -1) return false;
+            if (restaurantIndex === -1) {
+                console.log('Restaurant not found!');
+                return false;
+            }
 
             const newItem = {
                 id: 'item_' + Math.random().toString(36).substr(2, 9),
@@ -190,11 +198,14 @@ License: All rights reserved License
                 price: parseFloat(item.price),
                 category: item.category
             };
+            console.log('New item created:', newItem);
 
             restaurants[restaurantIndex].menu.push(newItem);
             sharedData.restaurants = restaurants;
+            console.log('Saving shared data...');
             await saveSharedData(sharedData);
             state.restaurants = restaurants;
+            console.log('Menu item added successfully!');
             return true;
         }
 

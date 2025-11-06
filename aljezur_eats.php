@@ -454,7 +454,7 @@ License: All rights reserved License
         }
 
         async function renderRestaurantDashboard() {
-            const restaurant = state.restaurants.find(r => r.ownerId === state.userId);
+            const restaurant = state.restaurants.find(r => r.ownerId === state.userId || r.id === state.userId);
             
             if (!restaurant) {
                 return `

@@ -3,11 +3,18 @@
 if(isset($_POST['submit'])) {
     // get csv file
     $csvUrl = 'https://docs.google.com/spreadsheets/d/1CCP5B4_VxVF6SoT-DPVb77NmdWXa3xCIF92pR7KAmSY/export?format=csv&gid=0';
-    $csvFile = fopen($csvUrl, 'r');
+    $ch = curl_init();
+    curl_setopt($ch, CURLOPT_URL, $csvUrl);
+    curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+    curl_setopt($ch, CURLOPT_FOLLOWLOCATION, true);
+    $csvData = curl_exec($ch);
+    curl_close($ch);
     
-    if (!$csvFile) {
+    if (!$csvData) {
         die('Error: Unable to access CSV data. Please try again later.');
     }
+    
+    $lines = str_getcsv($csvData, "\n");
 
     //collect user data
     $userData = [
@@ -23,9 +30,9 @@ if(isset($_POST['submit'])) {
 
  // collect tea scores
 $teaScores = [];
-$firstline = true;
 $counter = 0;
-while (($line = fgetcsv($csvFile)) !== false) {
+foreach ($lines as $lineData) {
+    $line = str_getcsv($lineData);
     if (count($line) < 30) continue; // Skip incomplete rows
     $score = 0;
     $image_url = isset($line[29]) ? $line[29] : '';
@@ -131,7 +138,7 @@ while (($line = fgetcsv($csvFile)) !== false) {
         body {
             font-family: sans-serif;
             background-color: #000000;
-            background-image: url('images/tea.jpg');
+            background-image: url('https://osrg.lol/wp-content/uploads/2025/11/tea.jpg');
             background-size: cover;
         }
         #main {

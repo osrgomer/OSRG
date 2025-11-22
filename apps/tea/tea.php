@@ -2,7 +2,12 @@
 
 if(isset($_POST['submit'])) {
     // get csv file
-    $csvFile = fopen('https://docs.google.com/spreadsheets/d/1CCP5B4_VxVF6SoT-DPVb77NmdWXa3xCIF92pR7KAmSY/export?format=csv', 'r');
+    $csvUrl = 'https://docs.google.com/spreadsheets/d/1CCP5B4_VxVF6SoT-DPVb77NmdWXa3xCIF92pR7KAmSY/export?format=csv&gid=0';
+    $csvFile = fopen($csvUrl, 'r');
+    
+    if (!$csvFile) {
+        die('Error: Unable to access CSV data. Please try again later.');
+    }
 
     //collect user data
     $userData = [
@@ -21,20 +26,21 @@ $teaScores = [];
 $firstline = true;
 $counter = 0;
 while (($line = fgetcsv($csvFile)) !== false) {
+    if (count($line) < 30) continue; // Skip incomplete rows
     $score = 0;
-    $image_url = $line[29];
+    $image_url = isset($line[29]) ? $line[29] : '';
     $index = $counter;
     $counter ++;
         foreach ($userData as $key => $value) {
             if($key == 'hour') {
-                if($value == 'morning') {
-                    $score += $line[3];
-                } else if ($value == 'noon') {
-                    $score += $line[4];
-                } else if ($value == 'afternoon') {
-                    $score += $line[5];
-                } else if ($value == 'evening') {
-                    $score += $line[6];
+                if($value == 'morning' && isset($line[3])) {
+                    $score += (int)$line[3];
+                } else if ($value == 'noon' && isset($line[4])) {
+                    $score += (int)$line[4];
+                } else if ($value == 'afternoon' && isset($line[5])) {
+                    $score += (int)$line[5];
+                } else if ($value == 'evening' && isset($line[6])) {
+                    $score += (int)$line[6];
                 }
             } else if($key == 'wakeup') {
                 if($value == '1') {

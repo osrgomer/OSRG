@@ -2,7 +2,7 @@
 
 if(isset($_POST['submit'])) {
     // get csv file
-    $csvFile = fopen('https://osrg.lol/osrg/apps/tea/tea.csv', 'r');
+    $csvFile = fopen('https://docs.google.com/spreadsheets/d/1CCP5B4_VxVF6SoT-DPVb77NmdWXa3xCIF92pR7KAmSY/export?format=csv', 'r');
 
     //collect user data
     $userData = [

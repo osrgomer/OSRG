@@ -1,6 +1,9 @@
 <?php
+error_reporting(E_ALL);
+ini_set('display_errors', 1);
 
 if(isset($_POST['submit'])) {
+    try {
     // get csv file
     $csvFile = fopen('tea.csv', 'r');
     if (!$csvFile) {
@@ -109,8 +112,11 @@ while (($line = fgetcsv($csvFile)) !== false) {
 }
     // sort tea scores
     arsort($teaScores);
-
-
+    fclose($csvFile);
+    
+    } catch (Exception $e) {
+        die('Error: ' . $e->getMessage());
+    }
 }
 
 ?>

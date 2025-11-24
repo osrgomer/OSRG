@@ -47,58 +47,58 @@ while (($line = fgetcsv($csvFile)) !== false) {
                     $score += (int)$line[7];
                 }
             } else if($key == 'sex') {
-                if($value == 'male') {
-                    $score += $line[8];
-                } else if ($value == 'female') {
-                    $score += $line[9];
+                if($value == 'male' && isset($line[8])) {
+                    $score += (int)$line[8];
+                } else if ($value == 'female' && isset($line[9])) {
+                    $score += (int)$line[9];
                 }
             } else if($key == 'caffeine') {
                 if (($value == '0') && ($line[10]=="1")) {
                     $score = -100;
                 }
             } else if($key == 'mood') {
-                if($value == 'tired') {
-                    $score += $line[11];
-                } else if ($value == 'energized') {
-                    $score += $line[12];
-                } else if ($value == 'stress') {
-                    $score += $line[13];
-                } else if ($value == 'happy') {
-                    $score += $line[14];
-                } else if ($value == 'relaxed') {
-                    $score += $line[15];
+                if($value == 'tired' && isset($line[11])) {
+                    $score += (int)$line[11];
+                } else if ($value == 'energized' && isset($line[12])) {
+                    $score += (int)$line[12];
+                } else if ($value == 'stress' && isset($line[13])) {
+                    $score += (int)$line[13];
+                } else if ($value == 'happy' && isset($line[14])) {
+                    $score += (int)$line[14];
+                } else if ($value == 'relaxed' && isset($line[15])) {
+                    $score += (int)$line[15];
                 }
             } else if($key == 'pain') {
-                if($value == 'headache') {
-                    $score += $line[16];
-                } else if ($value == 'belly') {
-                    $score += $line[17];
-                } else if ($value == 'fever') {
-                    $score += $line[18];
-                } else if ($value == 'throat') {
-                    $score += $line[19];
-                } else if ($value == 'muscles') {
-                    $score += $line[20];
+                if($value == 'headache' && isset($line[16])) {
+                    $score += (int)$line[16];
+                } else if ($value == 'belly' && isset($line[17])) {
+                    $score += (int)$line[17];
+                } else if ($value == 'fever' && isset($line[18])) {
+                    $score += (int)$line[18];
+                } else if ($value == 'throat' && isset($line[19])) {
+                    $score += (int)$line[19];
+                } else if ($value == 'muscles' && isset($line[20])) {
+                    $score += (int)$line[20];
                 }
             } else if($key == 'yourday') {
-                if($value == 'tranquil') {
-                    $score += $line[21];
-                } else if ($value == 'physical') {
-                    $score += $line[22];
-                } else if ($value == 'emotional') {
-                    $score += $line[23];
+                if($value == 'tranquil' && isset($line[21])) {
+                    $score += (int)$line[21];
+                } else if ($value == 'physical' && isset($line[22])) {
+                    $score += (int)$line[22];
+                } else if ($value == 'emotional' && isset($line[23])) {
+                    $score += (int)$line[23];
                 }
             } else if($key == 'weather') {
-                if($value == 'rain') {
-                    $score += $line[24];
-                } else if ($value == 'cold') {
-                    $score += $line[25];
-                } else if ($value == 'cool') {
-                    $score += $line[26];
-                } else if ($value == 'warm') {
-                    $score += $line[27];
-                } else if ($value == 'hot') {
-                    $score += $line[28];
+                if($value == 'rain' && isset($line[24])) {
+                    $score += (int)$line[24];
+                } else if ($value == 'cold' && isset($line[25])) {
+                    $score += (int)$line[25];
+                } else if ($value == 'cool' && isset($line[26])) {
+                    $score += (int)$line[26];
+                } else if ($value == 'warm' && isset($line[27])) {
+                    $score += (int)$line[27];
+                } else if ($value == 'hot' && isset($line[28])) {
+                    $score += (int)$line[28];
                 }
         }
     }

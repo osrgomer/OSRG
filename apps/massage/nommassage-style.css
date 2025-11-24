@@ -1,0 +1,13 @@
+body {
+   /* background-image: url('photos_videos/massage.jpeg');*/
+    background-color: #e6e600;
+} 
+#h1_top {
+   text-align: center;
+}
+.back {
+    padding: 9em;
+}
+.video1 {
+    text-align: center;
+}

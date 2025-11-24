@@ -3,6 +3,9 @@
 if(isset($_POST['submit'])) {
     // get csv file
     $csvFile = fopen('tea.csv', 'r');
+    if (!$csvFile) {
+        die('Error: Cannot open tea.csv file.');
+    }
 
     //collect user data
     $userData = [
@@ -37,8 +40,8 @@ while (($line = fgetcsv($csvFile)) !== false) {
                     $score += (int)$line[6];
                 }
             } else if($key == 'wakeup') {
-                if($value == '1') {
-                    $score += $line[7];
+                if($value == '1' && isset($line[7])) {
+                    $score += (int)$line[7];
                 }
             } else if($key == 'sex') {
                 if($value == 'male') {
@@ -98,9 +101,11 @@ while (($line = fgetcsv($csvFile)) !== false) {
     }
 
     if ($score<0) $score = 0;
-    $teaScores[$line[0]] = $score; 
-    $imageURLs[$line[0]] = $image_url;
-    $indexes[$line[0]] = $index;
+    if (isset($line[0])) {
+        $teaScores[$line[0]] = $score; 
+        $imageURLs[$line[0]] = $image_url;
+        $indexes[$line[0]] = $index;
+    }
 }
     // sort tea scores
     arsort($teaScores);

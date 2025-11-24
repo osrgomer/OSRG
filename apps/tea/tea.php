@@ -1,6 +1,17 @@
 <?php
+session_start();
 error_reporting(E_ALL);
 ini_set('display_errors', 1);
+
+// Check if we should show results from session
+$showResults = isset($_GET['results']) && isset($_SESSION['tea_results']);
+if ($showResults) {
+    $teaScores = $_SESSION['tea_results'];
+    $imageURLs = $_SESSION['tea_images'];
+    $indexes = $_SESSION['tea_indexes'];
+    // Clear session data after displaying
+    unset($_SESSION['tea_results'], $_SESSION['tea_images'], $_SESSION['tea_indexes']);
+}
 
 if(isset($_POST['submit'])) {
     try {
@@ -113,6 +124,14 @@ while (($line = fgetcsv($csvFile)) !== false) {
     // sort tea scores
     arsort($teaScores);
     fclose($csvFile);
+    
+    // Store results in session and redirect to prevent form resubmission
+    session_start();
+    $_SESSION['tea_results'] = $teaScores;
+    $_SESSION['tea_images'] = $imageURLs;
+    $_SESSION['tea_indexes'] = $indexes;
+    header('Location: ' . $_SERVER['PHP_SELF'] . '?results=1');
+    exit;
     
     } catch (Exception $e) {
         die('Error: ' . $e->getMessage());
@@ -254,7 +273,7 @@ while (($line = fgetcsv($csvFile)) !== false) {
 <body>
     <div id="main">
         <h1>Tea Time - Find the Perfect Tea For You Now</h1>
-        <?php if(isset($_POST['submit'])) { ?>
+        <?php if($showResults) { ?>
 
         <div id="results">
         <p>Here are the best options for you:</p>

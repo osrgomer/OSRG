@@ -286,7 +286,7 @@ while (($line = fgetcsv($csvFile)) !== false) {
                     $index = $indexes[$title];
                     
                     if (($count<=3)&&($title!=='title')) {
-                        echo "<div class='list-line'><img class='tea-thumb' src='" . $url . "' /> <a href='/tea-page.php?id=" . $index . "'><span class='name-mark'>" . $title . ': ' . $score . '</span></a></div>';
+                        echo "<div class='list-line'><img class='tea-thumb' src='" . $url . "' /> <a href='/osrg/apps/tea/tea-page.php?id=" . $index . "'><span class='name-mark'>" . $title . ': ' . $score . '</span></a></div>';
                         $count = $count + 1;
                     }
                 }

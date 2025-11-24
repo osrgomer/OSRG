@@ -71,6 +71,6 @@ fclose($csvFile);
 
 
 
-<h1><a href="tea.php">Back to Tea Time</a></h1>
+<h1><a href="tea">Back to Tea Time</a></h1>
 
 </body>

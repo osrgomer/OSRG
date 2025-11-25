@@ -28,27 +28,7 @@ function googleTranslateElementInit() {
     
     
     
-    <?php
 
-
-$path = getcwd() . "/photos_videos/*.mp4";
-
-$latest_ctime = 0;
-$latest_filename = '';
-
-$files = glob($path);
-foreach($files as $file)
-{
-        if (is_file($file) && filectime($file) > $latest_ctime)
-        {
-                $latest_ctime = filectime($file);
-                $latest_filename = $file;
-                $short = basename($latest_filename);
-                $title = substr($short, 0, strrpos($short, "."));
-        } 
-}
-
-?>
 
 <html>
     <head>
@@ -59,16 +39,16 @@ foreach($files as $file)
 <h1 id = "h1_top" >first video 👇</h1>
 
 <br/>
-<h1><?php echo $title; ?></h1>
+<h1>Eyebrow Massage</h1>
 <br/>
 <div class="video1">
-	    <video controls width = "512" src="photos_videos/<?php echo $short; ?>" />
-	  </div>
-	  
-	  <div class="video2">
-	      <h1>this massage is with eyebrows</h1>
-	    <video controls width = "512" src="photos_videos/this massage is with eyebrows.mp4" />
-	  </div>
+    <iframe src="https://drive.google.com/file/d/1M3NJbAUL3TSS8jpA8HTvnkL0OmHAdnvN/preview" width="512" height="480" allow="autoplay"></iframe>
+</div>
+
+<div class="video2">
+    <h1>Cheeks and Ears Massage</h1>
+    <iframe src="https://drive.google.com/file/d/1hjU-DW_6Wo_WNKRLB2TjuaPiYJQ-0IH6/preview" width="512" height="480" allow="autoplay"></iframe>
+</div>
 	 
 	  
 <br/>	  

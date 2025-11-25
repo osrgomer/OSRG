@@ -42,12 +42,12 @@ function googleTranslateElementInit() {
 <h1>Eyebrow Massage</h1>
 <br/>
 <div class="video1">
-    <iframe src="https://drive.google.com/file/d/1M3NJbAUL3TSS8jpA8HTvnkL0OmHAdnvN/preview" width="512" height="480" allow="autoplay"></iframe>
+    <iframe src="https://drive.google.com/file/d/1hjU-DW_6Wo_WNKRLB2TjuaPiYJQ-0IH6/preview" width="512" height="480" allow="autoplay"></iframe>
 </div>
 
 <div class="video2">
     <h1>Cheeks and Ears Massage</h1>
-    <iframe src="https://drive.google.com/file/d/1hjU-DW_6Wo_WNKRLB2TjuaPiYJQ-0IH6/preview" width="512" height="480" allow="autoplay"></iframe>
+    <iframe src="https://drive.google.com/file/d/1M3NJbAUL3TSS8jpA8HTvnkL0OmHAdnvN/preview" width="512" height="480" allow="autoplay"></iframe>
 </div>
 	 
 	  

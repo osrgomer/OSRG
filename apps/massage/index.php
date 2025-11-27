@@ -22,7 +22,7 @@ function googleTranslateElementInit() {
 </head>
     <body>
         <div id="google_translate_element"></div>
-    <h1>welcome to nomi's online face massage videos</h1>
+    <h1>welcome to nomi's online face massage videos (v2)</h1>
     <br/>
     <br/>
     

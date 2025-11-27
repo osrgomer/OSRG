@@ -130,7 +130,7 @@ while (($line = fgetcsv($csvFile)) !== false) {
     $_SESSION['tea_results'] = $teaScores;
     $_SESSION['tea_images'] = $imageURLs;
     $_SESSION['tea_indexes'] = $indexes;
-    header('Location: ' . $_SERVER['PHP_SELF'] . '?results=1');
+    header('Location: tea?results=1');
     exit;
     
     } catch (Exception $e) {
@@ -287,7 +287,7 @@ while (($line = fgetcsv($csvFile)) !== false) {
                     $index = $indexes[$title];
                     
                     if (($count<=3)&&($title!=='title')) {
-                        echo "<div class='list-line'><img class='tea-thumb' src='" . $url . "' /> <a href='/osrg/apps/tea/tea-page.php?id=" . $index . "'><span class='name-mark'>" . $title . ': ' . $score . '</span></a></div>';
+                        echo "<div class='list-line'><img class='tea-thumb' src='" . $url . "' /> <a href='/osrg/apps/tea/tea-page/" . $index . "'><span class='name-mark'>" . $title . ': ' . $score . '</span></a></div>';
                         $count = $count + 1;
                     }
                 }

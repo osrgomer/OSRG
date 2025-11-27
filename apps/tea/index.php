@@ -130,7 +130,7 @@ while (($line = fgetcsv($csvFile)) !== false) {
     $_SESSION['tea_results'] = $teaScores;
     $_SESSION['tea_images'] = $imageURLs;
     $_SESSION['tea_indexes'] = $indexes;
-    header('Location: tea?results=1');
+    header('Location: ./?results=1');
     exit;
     
     } catch (Exception $e) {

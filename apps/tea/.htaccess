@@ -1,8 +1,7 @@
 RewriteEngine On
 RewriteBase /osrg/apps/tea/
 
-# Hide .php extension for tea
-RewriteRule ^tea/?$ tea.php [L]
+
 
 # Pretty URL for tea-page with id
 RewriteRule ^tea-page/([0-9]+)/?$ tea-page.php?id=$1 [L]

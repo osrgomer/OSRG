@@ -72,6 +72,6 @@ fclose($csvFile);
 
 
 
-<h1><a href="/osrg/apps/tea/tea">Back to Tea Time</a></h1>
+<h1><a href="/osrg/apps/tea/">Back to Tea Time</a></h1>
 
 </body>

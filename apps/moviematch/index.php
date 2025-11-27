@@ -12,8 +12,8 @@ if(isset($_POST['submit'])) {
         'yourday' => $_POST['yourday']
     ];
 
- // collect tea scores
-$teaScores = [];
+ // collect movie scores
+$movieScores = [];
 $firstline = true;
 $counter = 0;
 while (($line = fgetcsv($csvFile)) !== false) {
@@ -63,13 +63,13 @@ while (($line = fgetcsv($csvFile)) !== false) {
     }
 
     if ($score<0) $score = 0;
-    $teaScores[$line[0]] = $score; 
+    $movieScores[$line[0]] = $score; 
     $imageURLs[$line[0]] = $image_url;
     $trailerURLs[$line[0]] = $trailer_url;
     $indexes[$line[0]] = $index;
 }
-    // sort tea scores
-    arsort($teaScores);
+    // sort movie scores
+    arsort($movieScores);
 
 
 }
@@ -224,9 +224,9 @@ jQuery(document).ready(function(){
         <p>Here are the best options for you:</p>
             <div class="results-list">
             <?php
-                // present tea scores to the user
+                // present movie scores to the user
                 $count = 1;
-                foreach($teaScores as $title => $score) {
+                foreach($movieScores as $title => $score) {
                     $im_url = $imageURLs[$title];
                     $url = $trailerURLs[$title];
                     $index = $indexes[$title];
@@ -242,7 +242,7 @@ jQuery(document).ready(function(){
         <script>
         <?php
                 $count = 1;
-            foreach($teaScores as $title => $score) {
+            foreach($movieScores as $title => $score) {
                 if ($count<3) {
                 echo 'jQuery("#player").tubeplayer("play", {id: "' . $trailerURLs[$title] . '", time: 0});';
                 }

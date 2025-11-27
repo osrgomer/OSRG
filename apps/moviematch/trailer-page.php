@@ -1,6 +1,6 @@
 <head>
     
-    <link rel="stylesheet" href="tea-page.css">
+    <link rel="stylesheet" href="trailer-page.css">
     
     
 </head>
@@ -10,7 +10,7 @@
 require ("functions.php");
 $id = $_GET['id'] + 1;
 
-    get_tea($id);
+    get_movie($id);
 
 ?>
 
@@ -19,10 +19,10 @@ $id = $_GET['id'] + 1;
 
 <h2>Description: <?php echo $description; ?></h2>
 <br/>
-<h2>to buy:</h2>
+<h2>Where to watch:</h2>
  <div class="itemdiv">
-	  <a href="https://www.naturitas.pt/p/alimentacao/bebidas/chas-e-infusoes/infusoes-relaxantes/cha-de-alcacuz-17-saquetas-de-infusao-yogi-tea">
-	    <h2 class="itemheading"><?php echo $buy; ?></h2>
+	  <a href="<?php echo $watch_link; ?>">
+	    <h2 class="itemheading"><?php echo $watch; ?></h2>
  	  </a>
  	</div>
 
@@ -31,17 +31,10 @@ $id = $_GET['id'] + 1;
 
 
 <div class="itemdiv">
-	  <a href="https://en.wikipedia.org/wiki/Liquorice">
+	  <a href="<?php echo $info_link; ?>">
 	    <h2 class="itemheading"><?php echo $wikilink; ?></h2>
  	  </a>
  	</div>
-
-
-
-
-
-
-
 
 
 

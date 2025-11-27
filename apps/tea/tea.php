@@ -146,6 +146,7 @@ while (($line = fgetcsv($csvFile)) !== false) {
 <html>
 <head>
     <title>Tea Time</title>
+    <link rel="icon" href="favicon.ico" type="image/x-icon">
     <style>
         * {
             box-sizing: border-box;

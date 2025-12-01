@@ -4,23 +4,27 @@
 function get_movie($id) {
     global $title, $description, $wikilink, $watch, $watch_link, $info_link;
     
-    $csvFile = fopen('https://docs.google.com/spreadsheets/d/e/2PACX-1vQ7FGmJj4Tfi5l8vlzNgb4Rn52WpL-ix8f9t9poB2zXJ4r5LF1u9DyRH8DWE6myLiWcas1rlJjuJDux/pub?gid=0&single=true&output=csv', 'r');
-    $line_id = 0;    
-    while ((($line = fgetcsv($csvFile)) !== false)&&($line_id<$id)) {
-        $image_url = $line[29];
-        $info_link = $line[30];
-        $watch_link = $line[31];
-        $title = $line[0];
-        $description = $line[1];
+    $csvFile = fopen('movies.csv', 'r');
+    $line_id = 0;
+    $firstline = true;
+    
+    while ((($line = fgetcsv($csvFile)) !== false) && ($line_id < $id)) {
+        // Skip header row
+        if ($firstline) {
+            $firstline = false;
+            continue;
+        }
+        
+        $title = isset($line[0]) ? $line[0] : '';
+        $description = isset($line[1]) ? $line[1] : '';
+        $trailer_url = isset($line[2]) ? $line[2] : '';
+        $image_url = isset($line[18]) ? $line[18] : '';
+        $info_link = isset($line[19]) ? $line[19] : '';
+        $watch_link = isset($line[20]) ? $line[20] : '';
         $wikilink = "More Info";
         $watch = "Watch Now";
         $line_id++;
-
     }
-
     
-    
-    
-    
-
+    fclose($csvFile);
 }

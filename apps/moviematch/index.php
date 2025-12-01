@@ -1,8 +1,16 @@
 <?php
+session_start();
+
+// Initialize variables to prevent undefined variable errors if form hasn't been submitted yet
+$movieScores = [];
+$imageURLs = [];
+$trailerURLs = [];
+$indexes = [];
 
 if(isset($_POST['submit'])) {
     // get csv file
-    $csvFile = fopen('https://docs.google.com/spreadsheets/d/e/2PACX-1vRTzKstpqvyi9uBR6A2X86sYJwVbl4NtuerO3-LG7Wgou209GV8KsNiZv8aSZ1la_FddB7RqilW49cV/pub?output=csv', 'r');
+    // Changed from Google Sheets URL to local 'movies.csv' as per the provided edit snippet
+    $csvFile = fopen('movies.csv', 'r');
 
     //collect user data
     $userData = [
@@ -17,52 +25,64 @@ $movieScores = [];
 $firstline = true;
 $counter = 0;
 while (($line = fgetcsv($csvFile)) !== false) {
+    // Skip header row
+    if ($firstline) {
+        $firstline = false;
+        continue;
+    }
+    
+    // Skip if title is empty
+    if (empty($line[0])) {
+        continue;
+    }
+    
     $score = 0;
-    $image_url = $line[29];
-    $trailer_url = $line[2];
+    $image_url = isset($line[29]) ? $line[29] : '';
+    $trailer_url = isset($line[2]) ? $line[2] : '';
     $index = $counter;
-    $counter ++;
-        foreach ($userData as $key => $value) {
-            if($key == 'hour') {
-                if($value == 'morning') {
-                    $score += $line[3];
-                } else if ($value == 'noon') {
-                    $score += $line[4];
-                } else if ($value == 'afternoon') {
-                    $score += $line[5];
-                } else if ($value == 'evening') {
-                    $score += $line[6];
-                }
-            } else if($key == 'sex') {
-                if($value == 'male') {
-                    $score += $line[8];
-                } else if ($value == 'female') {
-                    $score += $line[9];
-                }
-            } else if($key == 'mood') {
-                if($value == 'tired') {
-                    $score += $line[11];
-                } else if ($value == 'energized') {
-                    $score += $line[12];
-                } else if ($value == 'stress') {
-                    $score += $line[13];
-                } else if ($value == 'happy') {
-                    $score += $line[14];
-                } else if ($value == 'relaxed') {
-                    $score += $line[15];
-                }
-            } else if($key == 'yourday') {
-                if($value == 'tranquil') {
-                    $score += $line[21];
-                } else if ($value == 'physical') {
-                    $score += $line[22];
-                } else if ($value == 'emotional') {
-                    $score += $line[23];
-                }
-            } 
+    $counter++;
+    
+    foreach ($userData as $key => $value) {
+        if($key == 'hour') {
+            if($value == 'morning' && isset($line[3])) {
+                $score += floatval($line[3]);
+            } else if ($value == 'noon' && isset($line[4])) {
+                $score += floatval($line[4]);
+            } else if ($value == 'afternoon' && isset($line[5])) {
+                $score += floatval($line[5]);
+            } else if ($value == 'evening' && isset($line[6])) {
+                $score += floatval($line[6]);
+            }
+        } else if($key == 'sex') {
+            if($value == 'male' && isset($line[8])) {
+                $score += floatval($line[8]);
+            } else if ($value == 'female' && isset($line[9])) {
+                $score += floatval($line[9]);
+            }
+        } else if($key == 'mood') {
+            if($value == 'tired' && isset($line[11])) {
+                $score += floatval($line[11]);
+            } else if ($value == 'energized' && isset($line[12])) {
+                $score += floatval($line[12]);
+            } else if ($value == 'stress' && isset($line[13])) {
+                $score += floatval($line[13]);
+            } else if ($value == 'happy' && isset($line[14])) {
+                $score += floatval($line[14]);
+            } else if ($value == 'relaxed' && isset($line[15])) {
+                $score += floatval($line[15]);
+            }
+        } else if($key == 'yourday') {
+            if($value == 'tranquil' && isset($line[21])) {
+                $score += floatval($line[21]);
+            } else if ($value == 'physical' && isset($line[22])) {
+                $score += floatval($line[22]);
+            } else if ($value == 'emotional' && isset($line[23])) {
+                $score += floatval($line[23]);
+            }
+        } 
     }
 
-    if ($score<0) $score = 0;
+    if ($score < 0) $score = 0;
     $movieScores[$line[0]] = $score; 
     $imageURLs[$line[0]] = $image_url;
     $trailerURLs[$line[0]] = $trailer_url;
@@ -82,15 +102,8 @@ while (($line = fgetcsv($csvFile)) !== false) {
 <html>
 <head>
     <title>MovieMatch</title>
-<script src="//cdnjs.cloudflare.com/ajax/libs/jquery/1.9.1/jquery.min.js"></script>
-<script src="//cdnjs.cloudflare.com/ajax/libs/jquery-tubeplayer/2.1.0/jquery.tubeplayer.min.js"></script>
-<div id='youtube-video-player'></div>
-<script type="text/javascript">
-jQuery(document).ready(function(){
-    jQuery("#youtube-video-player").tubeplayer({
-    });
-});
-</script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/1.9.1/jquery.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jquery-tubeplayer/2.1.0/jquery.tubeplayer.min.js"></script>
 <style>
         * {
             box-sizing: border-box;
@@ -98,57 +111,68 @@ jQuery(document).ready(function(){
             padding: 0;
         }
         body {
-            font-family: sans-serif;
-            background-color: #000000;
-            background-image: url('images/tea.jpg');
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #121212;
+            background-image: linear-gradient(to bottom, #121212, #2d2d2d);
             background-size: cover;
+            background-attachment: fixed;
+            color: #e0e0e0;
         }
         #main {
             max-width: 600px;
             margin: auto;
             padding: 20px;
-            background-color: #FFFFFF;
-            box-shadow: 10px 10px 10px rgba(0, 0, 0, 0.5);
+            background-color: #1e1e1e;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.5);
             text-align: center;
-            opacity: 80%;
+            opacity: 0.95;
+            border-radius: 8px;
         }
         h1 {
             font-size: 2.5em;
             font-weight: bold;
-            color: #863eb3;
+            color: #bb86fc;
+            margin-bottom: 20px;
         }
         p {
-            font-size: 1.2em;
-            color: #2D2D2D;
-            line-height: 1.1;
+            font-size: 1.1em;
+            color: #b0b0b0;
+            line-height: 1.4;
             padding: 10px;
         }
         #description, form {
-            font-size: 0.6em;
-            color: #2D2D2D;
+            font-size: 1em;
+            color: #e0e0e0;
             padding-top: 10px;
             margin-top: 1em;
         }
         .top-description { 
-            font-size: 25px;
-            color: #2D2D2D;
+            font-size: 1.1em;
+            color: #b0b0b0;
         }
         .bottom-description { 
-            font-size: 25px;
-            color: #2D2D2D;
+            font-size: 1.1em;
+            color: #b0b0b0;
         }
         .tea-thumb { 
             width: 65px;
             margin-right: 1em;
             vertical-align: middle;
             float: left;
+            border-radius: 4px;
         }
         .name-mark {
             float: left;
             margin-top: 1em;
+            color: #03dac6;
+            font-weight: bold;
         }   
          a:link,a:visited {
-            color: #000000;
+            color: #03dac6;
+            text-decoration: none;
+        }
+        a:hover {
+            color: #bb86fc;
         }
         #image { 
             margin: auto;
@@ -157,61 +181,93 @@ jQuery(document).ready(function(){
             padding-top: 20px;
         }
         #Back {
-            color: #2D2D2D;
-            font-size: 2em
+            color: #e0e0e0;
+            font-size: 1.5em;
+            margin-top: 20px;
         }
         #tea-info {
             font-size: 1.2em;
-            color: #2D2D2D;
+            color: #e0e0e0;
             padding-top: 20px;
         }
         select, input, .label {
-            font-size: 2em;
+            font-size: 1.2em;
+            color: #e0e0e0;
         }
         .question {
             display: inline-block;
-            width: 80%;
+            width: 90%;
+            margin-bottom: 15px;
+            text-align: left;
         }
         #results {
-            font-size: 1.5em;
-        }
-        form, #results {
-            border-style: solid;
+            font-size: 1.2em;
+            border: 1px solid #333;
             padding: 1em;
+            background-color: #2c2c2c;
+            border-radius: 8px;
+            margin-bottom: 20px;
+        }
+        form {
+            border: 1px solid #333;
+            padding: 20px;
+            background-color: #2c2c2c;
+            border-radius: 8px;
         }
         .label {
-            float: left;
+            display: block;
+            margin-bottom: 5px;
+            color: #bb86fc;
         }
         select {
-            float: right;
-            min-width: 50%;
+            width: 100%;
+            padding: 10px;
+            background-color: #333;
+            border: 1px solid #444;
+            color: #e0e0e0;
+            border-radius: 4px;
         }
         .send {
             margin-top: 1em;
-            padding: 0.8em;
-            background-color: green;
-            color: white;
+            padding: 12px 24px;
+            background-color: #bb86fc;
+            color: #000;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-weight: bold;
+            font-size: 1.1em;
+            transition: background-color 0.3s;
+        }
+        .send:hover {
+            background-color: #9965f4;
         }
         .list-line {
-            display: inline-block;
-            width: 56%;
+            display: block;
+            width: 100%;
             margin-bottom: 1em;
+            clear: both;
+            overflow: hidden;
+            padding: 10px;
+            background: #333;
+            border-radius: 4px;
         }
         .results-list {
             margin-bottom: 1em;
         }
-        @media only screen and (max-width: 1000px) {
+        #youtube-video-player {
+            background: #000;
+            border-radius: 8px;
+            overflow: hidden;
+        }
+        @media only screen and (max-width: 600px) {
             #main {
                 width: 100%;
-                font-size: 28px;
+                padding: 10px;
             }
-            select, input, .label {
-                font-size: 4em;
+            h1 {
+                font-size: 2em;
             }
-            select, input {
-                margin-bottom: 0.5em;
-            }
-
         }
     </style>
 </head>
@@ -219,6 +275,8 @@ jQuery(document).ready(function(){
     <div id="main">
         <h1>Welcome to MovieMatch: Your Trailer Advisor!</h1>
         <?php if(isset($_POST['submit'])) { ?>
+        
+        <div id="youtube-video-player" style="margin: 20px auto; max-width: 560px;"></div>
 
         <div id="results">
         <p>Here are the best options for you:</p>
@@ -232,7 +290,7 @@ jQuery(document).ready(function(){
                     $index = $indexes[$title];
                     
                     if (($count<=3)&&($title!=='title')) {
-                        echo "<div class='list-line'><img class='tea-thumb' src='" . $im_url . "' /> <span class='name-mark'>" . $title . ', ' . $url .': ' . $score . '</span></div>';
+                        echo "<div class='list-line'><img class='tea-thumb' src='" . $im_url . "' /> <span class='name-mark'>" . $title . ' (' . $score . '%)</span> <a href="trailer-page.php?id=' . $index . '">Watch Trailer</a></div>';
                         $count = $count + 1;
                     }
                 }
@@ -240,18 +298,33 @@ jQuery(document).ready(function(){
             </div>
         </div>
         <script>
-        <?php
-                $count = 1;
-            foreach($movieScores as $title => $score) {
-                if ($count<3) {
-                echo 'jQuery("#player").tubeplayer("play", {id: "' . $trailerURLs[$title] . '", time: 0});';
-                }
-                $count++;
-            }
-?>
+        jQuery(document).ready(function(){
+            jQuery("#youtube-video-player").tubeplayer({
+                width: 560,
+                height: 315,
+                allowFullScreen: "true",
+                initialVideo: "<?php
+                    $count = 1;
+                    foreach($movieScores as $title => $score) {
+                        if ($count == 1 && $title !== 'title') {
+                            echo $trailerURLs[$title];
+                            break;
+                        }
+                        $count++;
+                    }
+                ?>",
+                preferredQuality: "default",
+                onPlayerEnded: function(){}
+            });
+        });
             
 
         </script>
+        
+        <div style="margin-top: 20px;">
+            <a href="index.php" class="send" style="display: inline-block; text-decoration: none; text-align: center;">Try Again</a>
+        </div>
+        
         <?php
         }
         ?>

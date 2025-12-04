@@ -5,8 +5,11 @@ init_db();
 $error = '';
 
 if ($_POST['username'] ?? false) {
-    // Verify reCAPTCHA
-    if (!isset($_POST['g-recaptcha-response']) || !verify_recaptcha($_POST['g-recaptcha-response'])) {
+    // Check if we're on local environment
+    $is_local = strpos($_SERVER['HTTP_HOST'], 'osrg.local') !== false;
+    
+    // Verify reCAPTCHA only on production
+    if (!$is_local && (!isset($_POST['g-recaptcha-response']) || !verify_recaptcha($_POST['g-recaptcha-response']))) {
         $error = 'Security verification failed. Please try again.';
     } else {
         $pdo = get_db();
@@ -75,8 +78,10 @@ if ($_POST['username'] ?? false) {
       gtag('config', 'G-Y1Y8S6WHNH');
     </script>
     
-    <!-- reCAPTCHA v3 -->
+    <!-- reCAPTCHA v3 (only on production) -->
+    <?php if (strpos($_SERVER['HTTP_HOST'], 'osrg.local') === false): ?>
     <script src="https://www.google.com/recaptcha/api.js?render=<?= RECAPTCHA_SITE_KEY ?>"></script>
+    <?php endif; ?>
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
         body { font-family: Arial, sans-serif; background: #f5f5f5; }
@@ -110,7 +115,8 @@ if ($_POST['username'] ?? false) {
             }
         }
         
-        // reCAPTCHA v3 integration
+        // reCAPTCHA v3 integration (only on production)
+        <?php if (strpos($_SERVER['HTTP_HOST'], 'osrg.local') === false): ?>
         document.addEventListener('DOMContentLoaded', function() {
             const form = document.getElementById('loginForm');
             form.addEventListener('submit', function(e) {
@@ -127,6 +133,7 @@ if ($_POST['username'] ?? false) {
                 });
             });
         });
+        <?php endif; ?>
     </script>
 </head>
 <body>

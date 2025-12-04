@@ -36,9 +36,18 @@ while (($line = fgetcsv($csvFile)) !== false) {
         continue;
     }
     
+    // Genre filter
+    $movie_genre = isset($line[19]) ? $line[19] : '';
+    $selected_genre = isset($_POST['genre']) ? $_POST['genre'] : 'all';
+    if ($selected_genre !== 'all' && $movie_genre !== $selected_genre) {
+        continue;
+    }
+    
     $score = 0;
-    $image_url = isset($line[29]) ? $line[29] : '';
+    $image_url = isset($line[17]) ? $line[17] : '';
     $trailer_url = isset($line[2]) ? $line[2] : '';
+    $info_link = isset($line[18]) ? $line[18] : '';
+    // $watch_link removed
     $index = $counter;
     $counter++;
     
@@ -102,8 +111,6 @@ while (($line = fgetcsv($csvFile)) !== false) {
 <html>
 <head>
     <title>MovieMatch</title>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/1.9.1/jquery.min.js"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/jquery-tubeplayer/2.1.0/jquery.tubeplayer.min.js"></script>
 <style>
         * {
             box-sizing: border-box;
@@ -251,6 +258,24 @@ while (($line = fgetcsv($csvFile)) !== false) {
             padding: 10px;
             background: #333;
             border-radius: 4px;
+            position: relative;
+        }
+        .fav-btn {
+            position: absolute;
+            right: 10px;
+            top: 50%;
+            transform: translateY(-50%);
+            background: transparent;
+            border: none;
+            font-size: 1.5em;
+            cursor: pointer;
+            transition: transform 0.2s;
+        }
+        .fav-btn:hover {
+            transform: translateY(-50%) scale(1.2);
+        }
+        .fav-btn.favorited {
+            filter: drop-shadow(0 0 3px #ff6b6b);
         }
         .results-list {
             margin-bottom: 1em;
@@ -270,13 +295,46 @@ while (($line = fgetcsv($csvFile)) !== false) {
             }
         }
     </style>
+    <script>
+    // Favorites management
+    function toggleFavorite(movie) {
+        let favorites = JSON.parse(localStorage.getItem('movieFavorites') || '[]');
+        const index = favorites.findIndex(f => f.title === movie.title);
+        
+        if (index > -1) {
+            favorites.splice(index, 1);
+        } else {
+            favorites.push(movie);
+        }
+        
+        localStorage.setItem('movieFavorites', JSON.stringify(favorites));
+        updateFavoriteButtons();
+    }
+    
+    function updateFavoriteButtons() {
+        const favorites = JSON.parse(localStorage.getItem('movieFavorites') || '[]');
+        document.querySelectorAll('.fav-btn').forEach(btn => {
+            const title = btn.getAttribute('data-title');
+            if (favorites.some(f => f.title === title)) {
+                btn.classList.add('favorited');
+            } else {
+                btn.classList.remove('favorited');
+            }
+        });
+    }
+    
+    window.addEventListener('DOMContentLoaded', updateFavoriteButtons);
+    </script>
 </head>
 <body>
     <div id="main">
         <h1>Welcome to MovieMatch: Your Trailer Advisor!</h1>
+        <div style="text-align: center; margin-bottom: 20px;">
+            <a href="favorites.php" style="color: #bb86fc; text-decoration: none; font-size: 1.2em; font-weight: bold;">❤️ My Favorites</a>
+        </div>
         <?php if(isset($_POST['submit'])) { ?>
         
-        <div id="youtube-video-player" style="margin: 20px auto; max-width: 560px;"></div>
+
 
         <div id="results">
         <p>Here are the best options for you:</p>
@@ -290,36 +348,19 @@ while (($line = fgetcsv($csvFile)) !== false) {
                     $index = $indexes[$title];
                     
                     if (($count<=3)&&($title!=='title')) {
-                        echo "<div class='list-line'><img class='tea-thumb' src='" . $im_url . "' /> <span class='name-mark'>" . $title . ' (' . $score . '%)</span> <a href="trailer-page.php?id=' . $index . '">Watch Trailer</a></div>';
+                        $movie_data = htmlspecialchars(json_encode(['title' => $title, 'index' => $index, 'score' => $score]));
+                        echo "<div class='list-line'>
+                                <img class='tea-thumb' src='" . $im_url . "' /> 
+                                <span class='name-mark'>" . $title . " (" . $score . "%)</span> 
+                                <a href='trailer-page.php?id=" . $index . "'>Watch Trailer</a>
+                                <button class='fav-btn' onclick='toggleFavorite(" . $movie_data . ")' data-title='" . htmlspecialchars($title) . "'>❤️</button>
+                              </div>";
                         $count = $count + 1;
                     }
                 }
                 ?>
             </div>
         </div>
-        <script>
-        jQuery(document).ready(function(){
-            jQuery("#youtube-video-player").tubeplayer({
-                width: 560,
-                height: 315,
-                allowFullScreen: "true",
-                initialVideo: "<?php
-                    $count = 1;
-                    foreach($movieScores as $title => $score) {
-                        if ($count == 1 && $title !== 'title') {
-                            echo $trailerURLs[$title];
-                            break;
-                        }
-                        $count++;
-                    }
-                ?>",
-                preferredQuality: "default",
-                onPlayerEnded: function(){}
-            });
-        });
-            
-
-        </script>
         
         <div style="margin-top: 20px;">
             <a href="index.php" class="send" style="display: inline-block; text-decoration: none; text-align: center;">Try Again</a>
@@ -370,6 +411,19 @@ while (($line = fgetcsv($csvFile)) !== false) {
                     <option value="tranquil" <?php if (isset($_POST['yourday']) && $_POST['yourday'] == 'tranquil') echo 'selected="selected"'; ?>>tranquil</option>
                     <option value="physical" <?php if (isset($_POST['yourday']) && $_POST['yourday'] == 'physical') echo 'selected="selected"'; ?>>physical</option>
                     <option value="emotional" <?php if (isset($_POST['yourday']) && $_POST['yourday'] == 'emotional') echo 'selected="selected"'; ?>>emotional</option>
+                </select>
+            </div>
+            <br>
+            <div class="question">
+                <div class="label">Genre preference?</div> 
+                <select name="genre">
+                    <option value="all" <?php if (isset($_POST['genre']) && $_POST['genre'] == 'all') echo 'selected="selected"'; ?>>All Genres</option>
+                    <option value="Action" <?php if (isset($_POST['genre']) && $_POST['genre'] == 'Action') echo 'selected="selected"'; ?>>Action</option>
+                    <option value="Action Comedy" <?php if (isset($_POST['genre']) && $_POST['genre'] == 'Action Comedy') echo 'selected="selected"'; ?>>Action Comedy</option>
+                    <option value="Comedy" <?php if (isset($_POST['genre']) && $_POST['genre'] == 'Comedy') echo 'selected="selected"'; ?>>Comedy</option>
+                    <option value="Fantasy Adventure" <?php if (isset($_POST['genre']) && $_POST['genre'] == 'Fantasy Adventure') echo 'selected="selected"'; ?>>Fantasy Adventure</option>
+                    <option value="Sci-Fi Action" <?php if (isset($_POST['genre']) && $_POST['genre'] == 'Sci-Fi Action') echo 'selected="selected"'; ?>>Sci-Fi Action</option>
+                    <option value="Romance" <?php if (isset($_POST['genre']) && $_POST['genre'] == 'Romance') echo 'selected="selected"'; ?>>Romance</option>
                 </select>
             </div>
             <br>

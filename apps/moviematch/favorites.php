@@ -106,7 +106,7 @@
         <h1>❤️ My Favorite Movies</h1>
         
         <div id="favorites-container" class="favorites-list">
-            <p class="empty-message">No favorites yet. Start adding movies to your favorites!</p>
+            <p class="empty-message">Loading favorites...</p>
         </div>
         
         <div class="back-button">
@@ -114,7 +114,31 @@
         </div>
     </div>
     
+    <?php
+    // Build movie index lookup from CSV
+    $movieIndexMap = [];
+    $csvFile = fopen('movies.csv', 'r');
+    $firstline = true;
+    $counter = 0;
+    
+    while (($line = fgetcsv($csvFile)) !== false) {
+        if ($firstline) {
+            $firstline = false;
+            continue;
+        }
+        
+        if (!empty($line[0])) {
+            $movieIndexMap[$line[0]] = $counter;
+            $counter++;
+        }
+    }
+    fclose($csvFile);
+    ?>
+    
     <script>
+        // Movie index map from PHP
+        const movieIndexMap = <?php echo json_encode($movieIndexMap); ?>;
+        
         function loadFavorites() {
             const favorites = JSON.parse(localStorage.getItem('movieFavorites') || '[]');
             const container = document.getElementById('favorites-container');
@@ -124,7 +148,19 @@
                 return;
             }
             
-            container.innerHTML = favorites.map(movie => `
+            // Update indices based on current CSV order
+            const updatedFavorites = favorites.map(movie => {
+                const currentIndex = movieIndexMap[movie.title];
+                if (currentIndex !== undefined) {
+                    return { ...movie, index: currentIndex };
+                }
+                return movie;
+            });
+            
+            // Save updated favorites back to localStorage
+            localStorage.setItem('movieFavorites', JSON.stringify(updatedFavorites));
+            
+            container.innerHTML = updatedFavorites.map(movie => `
                 <div class="favorite-item">
                     <div class="favorite-info">
                         <div class="favorite-title">${escapeHtml(movie.title)}</div>
